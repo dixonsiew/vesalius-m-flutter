@@ -15,10 +15,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.31+32
+version: 1.0.0+7
 
 environment:
-  sdk: ">=2.19.6 <3.0.0"
+  sdk: ">=3.4.4 <4.0.0"
 
 dependencies:
   flutter:
@@ -29,41 +29,78 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.4
-  modal_progress_hud_nsn: ^0.3.0
-  dio: ^5.2.0
+  cupertino_icons: ^1.0.8
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_dotenv: ^5.2.1
+  modal_progress_hud_nsn: ^0.5.1
+  dio: ^5.8.0+1
+  mime_type: ^1.0.1
+  flutter_inappwebview: ^6.1.5
+  flutter_inappwebview_ios: ^1.1.2
+  expandable_page_view: ^1.0.17
+  local_auth: ^2.3.0
   form_validator: ^2.1.1
   flip_card: ^0.7.0
-  qr_flutter: ^4.0.0
-  barcode_widget: ^2.0.1
-  carousel_slider: ^4.0.0
-  shared_preferences: ^2.0.12
-  localstorage: ^4.0.0+1
-  flutter_html: ^2.2.1
-  sqflite: ^2.0.2
-  intl: ^0.17.0
-  date_format: ^2.0.4
-  flutter_calendar_carousel: ^2.4.1
-  path_provider: ^2.0.8
-  open_filex: ^4.3.2
-  percent_indicator: ^4.2.2
-  provider: ^6.0.2
+  carousel_slider: ^5.0.0
+  flutter_secure_storage: ^9.2.4
+  flutter_widget_from_html_core: ^0.15.2
+  # flutter_html_v3: ^3.0.6
+  intl: ^0.19.0
+  date_format: ^2.0.9
+  # flutter_calendar_carousel: ^2.4.3
+  calendar_date_picker2: ^1.1.9
+  path_provider: ^2.1.5
+  open_filex: ^4.4.0
+  percent_indicator: ^4.2.4
   progress_indicators: ^1.0.0
-  package_info_plus: ^3.1.2
-  path: ^1.8.2
-  collection: ^1.17.0
-  syncfusion_flutter_charts: ^21.2.4
-  url_launcher: ^6.0.18
-  onesignal_flutter: ^3.2.7
-  flutter_launcher_icons: ^0.11.0
+  modal_bottom_sheet: ^3.0.0
+  package_info_plus: ^8.2.1
+  qr_flutter: ^4.1.0
+  barcode_widget: ^2.0.4
+  syncfusion_flutter_core: ^28.2.5
+  syncfusion_flutter_charts: ^28.2.5+1
+  syncfusion_flutter_sliders: ^28.2.5
+  url_launcher: ^6.3.1
+  url_launcher_ios: ^6.3.2
+  android_id: ^0.4.0
+  device_info_plus: ^10.1.2
+  onesignal_flutter: ^3.5.3
+  get: ^4.7.2
+  path: ^1.8.3
+  collection: ^1.18.0
+  timeline_tile: ^2.0.0
+  grouped_list: ^6.0.0
+  map_launcher: ^3.5.0
+  flutter_time_picker_spinner: ^2.0.0
+  image_picker: ^1.1.2
+  file_picker: 8.1.2
+  easy_rich_text: ^2.2.0
+  jiffy: ^6.3.2
+  # mobile_scanner: ^3.4.1
+  barcode_scan2: ^4.5.0
+  qr_code_dart_scan: ^0.8.3
+  qr_code_scanner: ^1.0.1
+  qr_scanner_with_effect: ^2.0.0
+  zoomable_widget: ^0.0.6
+  dio_brotli_transformer: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.15
+  hive_generator: ^2.0.1
 
-flutter_icons:
+flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   image_path: "images/icon/launcher.png"
@@ -81,25 +118,25 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - images/icon/
-    - images/icon/home-page-icon/
-    - images/icon/page-header-icon/
     - images/imgs/
+    - images/imgs/hospital/
 
   fonts:
-    - family: Roboto
+    - family: MyriadPro
       fonts:
-        - asset: fonts/Roboto-Regular.ttf
-        - asset: fonts/Roboto-Bold.ttf
+        - asset: fonts/MyriadPro-Regular.ttf
+        - asset: fonts/MyriadPro-Bold.ttf
           weight: 700
-        - asset: fonts/Roboto-Italic.ttf
+        - asset: fonts/MyriadPro-Italic.ttf
           style: italic
-    - family: texgyreadventor
+    - family: Montserrat
       fonts:
-        - asset: fonts/texgyreadventor-regular.otf
-        - asset: fonts/texgyreadventor-bold.otf
+        - asset: fonts/Montserrat-Regular.ttf
+        - asset: fonts/Montserrat-Bold.ttf
           weight: 700
-        - asset: fonts/texgyreadventor-italic.otf
+        - asset: fonts/Montserrat-Italic.ttf
           style: italic
 
   # To add assets to your application, add an assets section, like this:
