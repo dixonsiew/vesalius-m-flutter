@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.gms.nova.m">
+    package="io.gms.nova.m.uat.cvs">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -8,9 +8,8 @@
     <application
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
-        android:label="vesalius.m.x"
-        android:allowBackup="true"
-        android:fullBackupContent="@xml/backup_rules"
+        android:label="CVSKLgo"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -49,4 +48,30 @@
             android:value="2" />
     </application>
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <queries>
+      <!-- If your app opens https URLs -->
+      <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="https" />
+      </intent>
+      <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="http" />
+      </intent>
+      <!-- If your app makes calls -->
+      <intent>
+        <action android:name="android.intent.action.DIAL" />
+        <data android:scheme="tel" />
+      </intent>
+      <!-- If your sends SMS messages -->
+      <intent>
+        <action android:name="android.intent.action.SENDTO" />
+        <data android:scheme="smsto" />
+      </intent>
+      <!-- If your app sends emails -->
+      <intent>
+        <action android:name="android.intent.action.SEND" />
+        <data android:mimeType="*/*" />
+      </intent>
+    </queries>
 </manifest>

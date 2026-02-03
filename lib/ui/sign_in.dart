@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/bottom_red.dart';
-import 'package:vesalius_m_flutter/components/top_red.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
@@ -22,42 +20,47 @@ class SignIn extends StatefulWidget {
 
   static const String routeName = 'SignIn';
 
-  final String email;
+  final String? email;
 
   const SignIn({
-    super.key, 
-    this.email = '',
-  });
+    Key? key,
+    this.email,
+  }) : super(key: key);
 
   @override
-  
- createState() => _SignInState();
+  State<SignIn> createState() => _SignInState();
 }
 
 class _SignInState extends State<SignIn> {
 
   bool isTxt = false;
   bool isLoading = false;
-
   final usernameController = TextEditingController();
   final pwdController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    usernameController.value = const TextEditingValue(text: 'rosalind.yee@nova-hub.com');
-    pwdController.value = const TextEditingValue(text: 'password');
-    // initPlatformState();
+    usernameController.value = TextEditingValue(text: widget.email ?? '');
+    pwdController.value = const TextEditingValue(text: '');
+  }
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    pwdController.dispose();
+    super.dispose();
   }
 
   void login() async {
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
     try {
+      NavigatorState nav = Navigator.of(context);
       if (usernameController.text.isEmpty || pwdController.text.isEmpty) {
-        dlg.showCustomDialog('Login Failed', 'Incorrect Email or Password', 'Dismiss');
+        CustomDialog.of(context).showCustomDialog('Login Failed', 'Incorrect Email or Password', 'Dismiss');
         return;
       }
-      
+
       var o = {
         'username': usernameController.text,
         'password': pwdController.text
@@ -65,7 +68,6 @@ class _SignInState extends State<SignIn> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
       var m = await authenticate(o);
       var x = m['data'];
       await DataManager.removeItem('isFirstTimeLogin');
@@ -82,12 +84,12 @@ class _SignInState extends State<SignIn> {
       if (x['role'] == 'USER') {
         var o = await getUser();
         if (o != null) {
-          if (o.userBranches?.isNotEmpty ?? false) {
+          if (o.userBranches!.isNotEmpty) {
             await DataManager.setBranchDetails(o.userBranches![0]);
-            var patientData = await getVesaliusPatientData(o.userBranches!.first.branch!.branchId!, o.userBranches!.first.prn!);
+            var patientData = await getVesaliusPatientData(o.userBranches![0].branch!.branchId!, o.userBranches![0].prn!);
             if (patientData != null) {
               await DataManager.setPatientDetails(patientData);
-              DataManager.setPrn(o.userBranches!.first.prn!);
+              DataManager.setPrn(o.userBranches![0].prn!);
               await StorageDataManager.addUser(o.email!);
               await DataManager.setUserDetails(o);
             }
@@ -121,206 +123,189 @@ class _SignInState extends State<SignIn> {
   }
 
   Widget buildForm() {
-    var padding = MediaQuery.of(context).padding;
-
     return SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height - padding.top - padding.bottom,
+      child: Material(
         color: Colors.white,
-        child: Stack(
-          fit: StackFit.expand,
+        child: Column(
           children: [
-            const TopRed(),
-            const BottomRed(),
-            
-            Stack(
-              alignment: AlignmentDirectional.topEnd,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: kPrimaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20.0, right: 20.0),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.close,
+                    color: kHomeBgColor,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+            Image.asset(
+              'images/imgs/nova.png',
+              width: 72.0,
+              height: 72.0,
+              fit: BoxFit.contain,
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+              child: Text(
+                'Welcome back',
+                style: TextStyle(
+                  color: kMainColor,
+                  fontSize: 24.0,
+                  fontFamily: kTitleFont,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+              child: TextField(
+                controller: usernameController,
+                cursorColor: const Color(0xFF929292),
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                  color: Color(0xFF929292),
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Email',
+                  hintStyle: TextStyle(
+                    color: Color(0xFF929292),
+                    fontFamily: kBodyFont,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.email,
+                    color: Color(0xFF929292),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                    borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                    borderSide: BorderSide(color: Color(0xFFE9E9E9)),
                   ),
                 ),
-              ],
+              ),
             ),
-
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 72.0,
-                    height: 72.0,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      image: DecorationImage(
-                        image: AssetImage('images/imgs/nova.png'),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+              child: TextField(
+                controller: pwdController,
+                cursorColor: const Color(0xFF929292),
+                obscureText: !isTxt,
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                  color: Color(0xFF929292),
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Password',
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF929292),
+                    fontFamily: kBodyFont,
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-                    child: Text(
-                      'Welcome back',
-                      style: TextStyle(
-                        color: kPrimaryColor,
-                        fontSize: 24.0,
-                        fontFamily: kTitleFont,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  prefixIcon: const Icon(
+                    Icons.lock_open,
+                    color: Color(0xFF929292),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                    child: TextField(
-                      controller: usernameController,
-                      cursorColor: const Color(0xFF929292),
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        fontFamily: kBodyFont,
-                        color: Color(0xFF929292),
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Email',
-                        hintStyle: TextStyle(
-                          color: Color(0xFF929292),
-                          fontFamily: kBodyFont,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.email,
-                          color: Color(0xFF929292),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                          borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                          borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                        ),
-                      ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isTxt ? Icons.visibility : Icons.visibility_off,
+                      color: const Color(0xFF929292),
                     ),
+                    onPressed: () {
+                      setState(() {
+                        isTxt = !isTxt;
+                      });
+                    },            
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                    child: TextField(
-                      controller: pwdController,
-                      cursorColor: const Color(0xFF929292),
-                      obscureText: !isTxt,
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        fontFamily: kBodyFont,
-                        color: Color(0xFF929292),
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        hintStyle: const TextStyle(
-                          color: Color(0xFF929292),
-                          fontFamily: kBodyFont,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.lock_open,
-                          color: Color(0xFF929292),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            isTxt ? Icons.visibility : Icons.visibility_off,
-                            color: const Color(0xFF929292),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isTxt = !isTxt;
-                            });
-                          },            
-                        ),
-                        enabledBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                          borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                          borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                        ),
-                      ),
-                    ),
+                  enabledBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                    borderSide: BorderSide(color: Color(0xFFE9E9E9)),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20.0, right: 20.0,top: 20.0),
-                    child: RawMaterialButton(
-                      elevation: 5.0,
-                      fillColor: kPrimaryBtnBgColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                      constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                      onPressed: () {
-                        login();
-                      },
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                    borderSide: BorderSide(color: Color(0xFFE9E9E9)),
                   ),
-                  const SizedBox(height: 10.0),
-                  Align(
-                    alignment: Alignment.center,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(ForgotPassword.routeName);
-                      },
-                      child: const Text(
-                        'Forgot password?',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                          fontStyle: FontStyle.italic,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0,top: 20.0),
+              child: RawMaterialButton(
+                elevation: 5.0,
+                fillColor: kHomeBgColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+                child: const Text(
+                  'Sign In',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.0,
+                    fontFamily: kBodyFont,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 50.0),
-                  const Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Don\'t have an account?',
-                      style: TextStyle(
-                        color: kPrimaryColor,
-                        fontSize: 14.0,
-                        fontFamily: kBodyFont,
-                      ),
-                    ),
+                ),
+                onPressed: () {
+                  login();
+                },
+              ),
+            ),
+            const SizedBox(height: 10.0),
+            Align(
+              alignment: Alignment.center,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, ForgotPassword.routeName);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: kMainColor,
+                ),
+                child: const Text(
+                  'Forgot password?',
+                  style: TextStyle(
+                    color: kMainColor,
+                    fontSize: 14.0,
+                    fontFamily: kBodyFont,
+                    fontStyle: FontStyle.italic,
+                    decoration: TextDecoration.underline,
                   ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pushNamed(SignUp.routeName);
-                    },
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: kPrimaryColor,
-                        fontSize: 14.0,
-                        fontFamily: kBodyFont,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 50.0),
+            const Align(
+              alignment: Alignment.center,
+              child: Text(
+                'Don\'t have an account?',
+                style: TextStyle(
+                  color: Color(0xFF606060),
+                  fontSize: 14.0,
+                  fontFamily: kBodyFont,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, SignUp.routeName);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: kMainColor,
+              ),
+              child: const Text(
+                'Sign Up',
+                style: TextStyle(
+                  color: kMainColor,
+                  fontSize: 14.0,
+                  fontFamily: kBodyFont,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
           ],
@@ -334,7 +319,7 @@ class _SignInState extends State<SignIn> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kPrimaryBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMainColor),
         toolbarHeight: 0.0,
         backgroundColor: Colors.white,
         elevation: 5.0,

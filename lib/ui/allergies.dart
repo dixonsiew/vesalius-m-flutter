@@ -1,6 +1,6 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:collection/collection.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -15,14 +15,13 @@ class Allergies extends StatefulWidget {
 
   static const String routeName = 'Allergies';
 
-  const Allergies({super.key});
+  const Allergies({Key? key}) : super(key: key);
 
   @override
   State<Allergies> createState() => _AllergiesState();
 }
 
 class _AllergiesState extends State<Allergies> {
-
   List<AllergyGroup> groupList = [];
   AllergyGroup? medicalAlertGroup;
   AllergyGroup? allergiesAndReactionsGroup;
@@ -30,7 +29,6 @@ class _AllergiesState extends State<Allergies> {
   AllergyGroup? infectiousDiseaseGroup;
   List otherAllergies = [];
   bool isLoading = false;
-
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
@@ -51,21 +49,16 @@ class _AllergiesState extends State<Allergies> {
       for (var o in lx) {
         var k = lg.firstWhereOrNull((x) => x.alertType == o.alertType);
         if (k == null) {
-          k = AllergyGroup(
-            alertType: o.alertType,
-            list: []
-          );
+          k = AllergyGroup(alertType: o.alertType, list: []);
           lg.add(k);
         }
 
-        var la = k.list;
+        var la = k.list!;
         la.add(o);
         k.list = la;
       }
       await sortList(lg);
-    }
-
-    catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
       });
@@ -77,43 +70,35 @@ class _AllergiesState extends State<Allergies> {
   }
 
   Future<void> sortList(List<AllergyGroup> lg) async {
-    AllergyGroup? mmedicalAlertGroup;
-    AllergyGroup? mallergiesAndReactionsGroup;
-    AllergyGroup? mhealthAlertsGroup;
-    AllergyGroup? minfectiousDiseaseGroup;
+    AllergyGroup? vmedicalAlertGroup;
+    AllergyGroup? vallergiesAndReactionsGroup;
+    AllergyGroup? vhealthAlertsGroup;
+    AllergyGroup? vinfectiousDiseaseGroup;
     for (var o in lg) {
-      String s = o.alertType ?? '';
+      String s = o.alertType!;
       if (s == 'CLINICAL ALERT') {
-        mmedicalAlertGroup = o;
-      }
-
-      else if (s == 'CLINICAL ALLERGY' || s == 'GENERAL ALLERGY') {
-        if (mallergiesAndReactionsGroup == null) {
-          mallergiesAndReactionsGroup = o;
-        }
-
-        else {
-          var la = mallergiesAndReactionsGroup.list;
-          var lb = o.list;
+        vmedicalAlertGroup = o;
+      } else if (s == 'CLINICAL ALLERGY' || s == 'GENERAL ALLERGY') {
+        if (vallergiesAndReactionsGroup == null) {
+          vallergiesAndReactionsGroup = o;
+        } else {
+          var la = vallergiesAndReactionsGroup.list!;
+          var lb = o.list!;
           la.addAll(lb);
         }
-      }
-
-      else if (s == 'GENERAL ALERT') {
-        mhealthAlertsGroup = o;
-      }
-
-      else if (s == 'INFECTIOUS DISEASE') {
-        minfectiousDiseaseGroup = o;
+      } else if (s == 'GENERAL ALERT') {
+        vhealthAlertsGroup = o;
+      } else if (s == 'INFECTIOUS DISEASE') {
+        vinfectiousDiseaseGroup = o;
       }
     }
 
     setState(() {
       groupList = lg;
-      medicalAlertGroup = mmedicalAlertGroup;
-      allergiesAndReactionsGroup = mallergiesAndReactionsGroup;
-      healthAlertsGroup = mhealthAlertsGroup;
-      infectiousDiseaseGroup = minfectiousDiseaseGroup;
+      medicalAlertGroup = vmedicalAlertGroup;
+      allergiesAndReactionsGroup = vallergiesAndReactionsGroup;
+      healthAlertsGroup = vhealthAlertsGroup;
+      infectiousDiseaseGroup = vinfectiousDiseaseGroup;
       isLoading = false;
     });
     await DataManager.setItem('allergies', groupList);
@@ -129,21 +114,20 @@ class _AllergiesState extends State<Allergies> {
   List<Widget> _buildList() {
     List<Widget> lx = [];
     if (medicalAlertGroup != null) {
-      lx.add(
-        AllergiesItem(
-          name: 'Medical Alerts',
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Medical Alert',
-                  list: medicalAlertGroup!.list,
-                ),
-              )
-            );
-          },
-        )
-      );
+      lx.add(AllergiesItem(
+        name: 'Medical Alerts',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AllergiesGroup(
+                title: 'Medical Alert',
+                list: medicalAlertGroup!.list!,
+              ),
+            ),
+          );
+        },
+      ));
     }
 
     if (allergiesAndReactionsGroup != null) {
@@ -156,13 +140,14 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Allergies & Reactions',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(
+              context,
               MaterialPageRoute(
                 builder: (context) => AllergiesGroup(
                   title: 'Allergies & Reactions',
-                  list: allergiesAndReactionsGroup!.list,
+                  list: allergiesAndReactionsGroup!.list!,
                 ),
-              )
+              ),
             );
           },
         ),
@@ -179,13 +164,14 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Health Alerts',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(
+              context,
               MaterialPageRoute(
                 builder: (context) => AllergiesGroup(
                   title: 'Health Alerts',
-                  list: healthAlertsGroup!.list,
+                  list: healthAlertsGroup!.list!,
                 ),
-              )
+              ),
             );
           },
         ),
@@ -202,13 +188,14 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Infectious Disease',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(
+              context,
               MaterialPageRoute(
                 builder: (context) => AllergiesGroup(
                   title: 'Infectious Disease',
-                  list: infectiousDiseaseGroup!.list,
+                  list: infectiousDiseaseGroup!.list!,
                 ),
-              )
+              ),
             );
           },
         ),
@@ -226,7 +213,7 @@ class _AllergiesState extends State<Allergies> {
           Padding(
             padding: EdgeInsets.all(15.0),
             child: Text(
-              'You do not have any drug allergies and medical alerts at the moment.',
+              'You do not have any drug allergies and medical alert captured at the moment.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF727272),
@@ -254,7 +241,7 @@ class _AllergiesState extends State<Allergies> {
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -276,8 +263,8 @@ class _AllergiesState extends State<Allergies> {
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Image.asset(
             'images/icon/page-header-icon/allergies.png',
@@ -296,6 +283,28 @@ class _AllergiesState extends State<Allergies> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget buildLayer2xx() {
+    var padding = MediaQuery.of(context).padding;
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height -
+          padding.top -
+          kAppToolbarHeight -
+          padding.bottom,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Flexible(
+              child: buildContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -345,7 +354,7 @@ class _AllergiesState extends State<Allergies> {
         leading: const BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: kAllergiesBgColor,
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
@@ -363,22 +372,22 @@ class _AllergiesState extends State<Allergies> {
 }
 
 class AllergiesItem extends StatelessWidget {
-
   final String name;
   final void Function() onTap;
 
   const AllergiesItem({
-    super.key, 
+    Key? key,
     required this.name,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
+        padding:
+            const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

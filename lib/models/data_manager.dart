@@ -40,8 +40,8 @@ class DataManager {
     return userDetails;
   }
 
-  static void setPrn(String mprn) {
-    prn = mprn;
+  static void setPrn(String sprn) {
+    prn = sprn;
   }
 
   static String? getPrn() {

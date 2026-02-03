@@ -6,9 +6,9 @@ class DetailContent extends StatelessWidget {
   final String text;
 
   const DetailContent({
-    super.key, 
+    Key? key,
     required this.text,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

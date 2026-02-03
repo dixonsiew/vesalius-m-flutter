@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
+import 'dart:developer' as developer;
 
 import 'appointment_model.dart';
 
@@ -26,16 +26,16 @@ class AppointmentManager {
 
   static Future<FutureAppointment?> getValidAppointment(num branchId) async {
     appointment = null;
+    AppointmentModel ctx = context.read<AppointmentModel>();
     var branchDetails = DataManager.branchDetails;
     if (branchDetails != null) {
       try {
-        AppointmentModel m = Provider.of<AppointmentModel>(context, listen: false);
         var lx = await getVesaliusFutureAppointments(branchId, branchDetails.prn!);
         if (lx.isNotEmpty) {
           appointment = lx.first;
           hasAppointment = true;
-          m.setAppointment(appointment);
-          await startAppointmentMonitor(appointment!);
+          ctx.setAppointment(appointment);
+          startAppointmentMonitor(appointment);
         }
 
         else {
@@ -43,7 +43,10 @@ class AppointmentManager {
         }
       }
       
-      catch (_) {}
+      catch (error) {
+        developer.log('AppointmentManager.getValidAppointment');
+        developer.log(error.toString());
+      }
     }
     
     else {
@@ -53,7 +56,7 @@ class AppointmentManager {
     return appointment;
   }
 
-  static Future<void> startAppointmentMonitor(FutureAppointment appointment) async {
+  static Future<void> startAppointmentMonitor(FutureAppointment? appointment) async {
     if (tx != null) {
       tx!.cancel();
     }
@@ -61,52 +64,57 @@ class AppointmentManager {
     await _startAppointmentMonitor(appointment);
   }
 
-  static Future<void> _startAppointmentMonitor(FutureAppointment mappointment) async {
-    appointment = mappointment;
+  static Future<void> _startAppointmentMonitor(FutureAppointment? vappointment) async {
+    appointment = vappointment;
     await getAndUpdateAppointment();
     tx = Timer.periodic(const Duration(milliseconds: 2000000), (ti) async { // 2000000
       await getAndUpdateAppointment();
+      developer.log('AppointmentManager._startAppointmentMonitor');
     });
   }
 
   static Future<void> getAndUpdateAppointment() async {
+    AppointmentModel ctx = context.read<AppointmentModel>();
     var branchDetails = DataManager.branchDetails;
     if (branchDetails != null) {
       try {
-        AppointmentModel m = Provider.of<AppointmentModel>(context, listen: false);
         var lx = await getVesaliusFutureAppointments(branchDetails.branch!.branchId!, branchDetails.prn!);
         if (lx.isNotEmpty) {
           appointment = lx.first;
           hasAppointment = true;
-          m.setAppointment(appointment);
+          ctx.setAppointment(appointment);
           await DataManager.setItem('appointment', appointment);
         }
 
         else {
           appointment = null;
           hasAppointment = false;
-          m.setAppointment(null);
+          ctx.setAppointment(null);
         }
       }
 
-      catch (_) {}
+      catch (error) {
+        developer.log('AppointmentManager.getAndUpdateAppointment');
+        developer.log(error.toString());
+      }
     }
   }
 
   static void stopAppointmentMonitor() async {
+    developer.log('AppointmentManager.stopAppointmentMonitor');
     if (tx != null) {
       tx!.cancel();
     }
     
     appointment = null;
     hasAppointment = false;
-    AppointmentModel m = Provider.of<AppointmentModel>(context, listen: false);
+    AppointmentModel ctx = context.read<AppointmentModel>();
     await DataManager.removeItem('appointment');
-    m.setAppointment(null);
+    ctx.setAppointment(null);
   }
 
-  static void start(BuildContext mcontext) {
-    context = mcontext;
+  static void start(BuildContext ctx) {
+    context = ctx;
   }
 
   static void stop() {

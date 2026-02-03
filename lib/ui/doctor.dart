@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:provider/provider.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/components/doctor/content.dart';
@@ -10,6 +11,7 @@ import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/doctor_data.dart';
+import 'package:vesalius_m_flutter/models/doctor_model.dart';
 import 'package:vesalius_m_flutter/models/storage_data_manager.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 import 'package:vesalius_m_flutter/ui/doctor/doctor_bookmark.dart';
@@ -18,7 +20,7 @@ class Doctor extends StatefulWidget {
   
   static const String routeName = 'Doctor';
 
-  const Doctor({super.key});
+  const Doctor({Key? key}) : super(key: key);
 
   @override
   State<Doctor> createState() => _DoctorState();
@@ -27,13 +29,12 @@ class Doctor extends StatefulWidget {
 class _DoctorState extends State<Doctor> {
 
   List<DoctorInfo> list = [];
-  List<DoctorInfo> _list = [];
+  List<DoctorInfo> mlist = [];
   List<Map> bookmarkedInfoId = [];
   ScrollController scr = ScrollController();
   int page = 1;
   String keyword = '';
   bool isLoading = false;
-
   final searchController = TextEditingController();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
@@ -50,12 +51,14 @@ class _DoctorState extends State<Doctor> {
 
   @override
   void dispose() {
+    scr.removeListener(() { });
     scr.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
   void load() async {
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
     await AuthManager.load();
     try {
       setState(() {
@@ -79,8 +82,8 @@ class _DoctorState extends State<Doctor> {
   }
 
   void loadMore() async {
-    final dlg = CustomDialog.of(context);
     int p = page + 1;
+    CustomDialog dlg = CustomDialog.of(context);
     try {
       setState(() {
         isLoading = true;
@@ -131,13 +134,13 @@ class _DoctorState extends State<Doctor> {
     setState(() {
       page = 1;
       list.clear();
-      _list.clear();
+      mlist.clear();
     });
     load();
   }
 
   Future<void> toggleBookmark(bool isBookmarked, String mcr, DoctorInfo o) async {
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
     String userMode = await getUserMode();
     if (!isBookmarked) {
       await StorageDataManager.addDoctorBookmarkStorage(userMode, o);
@@ -200,7 +203,6 @@ class _DoctorState extends State<Doctor> {
   }
 
   /* void __filterDoctor(String s) {
-    // ignore: null_aware_in_condition
     if (s?.isEmpty) {
       setState(() {
         list = _list;
@@ -242,16 +244,16 @@ class _DoctorState extends State<Doctor> {
     );
   }
 
-  Widget buildSearch() {
+  /* Widget __buildSearch() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+      padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
       child: Material(
         elevation: 5.0,
-        borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+        borderRadius: BorderRadius.all(Radius.circular(5.0)),
         child: TextField(
           controller: searchController,
-          cursorColor: const Color(0xFF999494),
-          decoration: const InputDecoration(
+          cursorColor: Color(0xFF999494),
+          decoration: InputDecoration(
             isDense: true,
             contentPadding: EdgeInsets.symmetric(horizontal: 15.0),
             hintText: 'Search',
@@ -271,7 +273,50 @@ class _DoctorState extends State<Doctor> {
               borderSide: BorderSide(color: Color(0xFF999494)),
             ),
           ),
-          onSubmitted: searchDoctor,
+          onSubmitted: (String s) {
+            searchDoctor(s);
+          },
+        ),
+      ),
+    );
+  } */
+
+  Widget buildSearch() {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFDDDDDD),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
+        child: Material(
+          elevation: 0.0,
+          borderRadius: const BorderRadius.all(Radius.circular(50.0)),
+          child: TextField(
+            controller: searchController,
+            cursorColor: const Color(0xFF999494),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 15.0),
+              hintText: 'Search',
+              hintStyle: TextStyle(
+                fontFamily: kBodyFont,
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Color(0xFF999494),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(50.0)),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(50.0)),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            onSubmitted: (String s) {
+              searchDoctor(s);
+            },
+          ),
         ),
       ),
     );
@@ -327,18 +372,24 @@ class _DoctorState extends State<Doctor> {
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(DoctorBookmark.routeName);
+              onPressed: () async {
+                DoctorModel ctx = context.read<DoctorModel>();
+                await Navigator.pushNamed(context, DoctorBookmark.routeName);
+                bool b = ctx.isbookmarkChanged;
+                if (b) {
+                  ctx.setBookmarkChanged(false);
+                  await getBookmarkedInfoIdFromStorage();
+                }
               },
               icon: const Icon(
-                Icons.bookmark_sharp,
+                Icons.bookmark_outline_sharp,
                 color: Colors.white,
               ),
             ),
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFDDDDDD),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),

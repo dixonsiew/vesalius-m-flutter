@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/components/doctor/content.dart';
 import 'package:vesalius_m_flutter/constants.dart';
@@ -7,13 +8,14 @@ import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/doctor_data.dart';
+import 'package:vesalius_m_flutter/models/doctor_model.dart';
 import 'package:vesalius_m_flutter/models/storage_data_manager.dart';
 
 class DoctorBookmark extends StatefulWidget {
   
   static const String routeName = 'DoctorBookmark';
 
-  const DoctorBookmark({super.key});
+  const DoctorBookmark({Key? key}) : super(key: key);
 
   @override
   State<DoctorBookmark> createState() => _DoctorBookmarkState();
@@ -35,8 +37,10 @@ class _DoctorBookmarkState extends State<DoctorBookmark> {
   }
 
   Future<void> toggleBookmark(bool isBookmarked, String mcr, DoctorInfo o) async {
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
+    DoctorModel ctx = context.read<DoctorModel>();
     String userMode = await getUserMode();
+    ctx.setBookmarkChanged(true);
     if (!isBookmarked) {
       await StorageDataManager.addDoctorBookmarkStorage(userMode, o);
       await getDoctorAndHospitalFromStorage();
@@ -73,12 +77,12 @@ class _DoctorBookmarkState extends State<DoctorBookmark> {
     });
   }
 
-  bool checkBookmarkedMcr(String mcr) {
+  bool checkBookmarkedMcr(String? mcr) {
     bool b = false;
 
     if (doctorBookmarks.isNotEmpty) {
       for (int i = 0; i < doctorBookmarks.length; i++) {
-        String infoId = doctorBookmarks[i].mcr!;
+        String? infoId = doctorBookmarks[i].mcr;
         if (mcr == infoId) {
           b = true;
           break;
@@ -90,7 +94,7 @@ class _DoctorBookmarkState extends State<DoctorBookmark> {
   }
 
   Widget buildContent(DoctorInfo data) {
-    String mcr = data.mcr!;
+    String? mcr = data.mcr;
     bool isBookmarked = checkBookmarkedMcr(mcr);
     return DoctorItem(
       data: data,
@@ -115,6 +119,7 @@ class _DoctorBookmarkState extends State<DoctorBookmark> {
           style: TextStyle(
             fontSize: 18.0,
             fontFamily: kTitleFont,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

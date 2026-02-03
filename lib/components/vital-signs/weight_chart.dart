@@ -8,9 +8,9 @@ class WeightChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const WeightChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<WeightChart> createState() => _WeightChartState();
@@ -33,11 +33,11 @@ class _WeightChartState extends State<WeightChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Weight (kg)',
               style: TextStyle(
@@ -62,25 +62,25 @@ class _WeightChartState extends State<WeightChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'Weight (kg)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +91,7 @@ class _WeightChartState extends State<WeightChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<WeightData, String>>[
+      series: <CartesianSeries<WeightData, String>>[
         LineSeries<WeightData, String>(
           dataSource: createData(),
           xValueMapper: (WeightData m, _) => m.date,

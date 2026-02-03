@@ -16,7 +16,7 @@ class BranchList extends StatefulWidget {
   
   static const String routeName = 'Branch';
 
-  const BranchList({super.key});
+  const BranchList({Key? key}) : super(key: key);
 
   @override
   State<BranchList> createState() => _BranchListState();
@@ -27,7 +27,6 @@ class _BranchListState extends State<BranchList> {
   List<UserBranch> list = [];
   UserBranch? userBranch;
   bool isLoading = false;
-
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
@@ -75,12 +74,12 @@ class _BranchListState extends State<BranchList> {
   }
 
   Future<void> confirmChangeHospital(UserBranch o) async {
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
     try {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
+      NavigatorState nav = Navigator.of(context);
       var patientDetails = await getVesaliusPatientData(o.branch!.branchId!, o.prn!);
       DataManager.setPrn(o.prn!);
       await DataManager.setPatientDetails(patientDetails);
@@ -101,45 +100,50 @@ class _BranchListState extends State<BranchList> {
 
   Widget buildContent(UserBranch userBranch) {
     final o = userBranch.branch;
-    return InkWell(
-      onTap: () async {
-        final nav = Navigator.of(context);
-        if (AuthManager.isLogin) {
-          bool b = await CustomDialog.of(context).showConfirmDialog('Change Hospital', 'Are you sure want to change the hospital to:\n${o?.branchName}', 'Cancel', 'Sure');
-          if (b) {
-            confirmChangeHospital(userBranch);
-          }
-        }
-
-        else {
-          await DataManager.setBranchDetails(userBranch);
-          nav.pop(true);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            bottom: BorderSide(
-              color: Color(0xFFE2E2E2),
-            ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFFE2E2E2),
           ),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                o?.branchName ?? '',
-                style: const TextStyle(
-                  fontFamily: kBodyFont,
+      ),
+      child: Material(
+        child: InkWell(
+          onTap: () async {
+            NavigatorState nav = Navigator.of(context);
+            if (AuthManager.isLogin) {
+              bool b = await CustomDialog.of(context).showConfirmDialog('Change Hospital', 'Are you sure want to change the hospital to:\n${o?.branchName}', 'Cancel', 'Sure');
+              if (b) {
+                confirmChangeHospital(userBranch);
+              }
+            }
+      
+            else {
+              await DataManager.setBranchDetails(userBranch);
+              nav.pop(true);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    o?.branchName ?? '',
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                    ),
+                  ),
                 ),
-              ),
+                userBranch.branch?.branchId == o?.branchId ? const Icon(
+                  Icons.check,
+                  color: kHomeBgColor,
+                ) : Container(),
+              ],
             ),
-            userBranch.branch?.branchId == o?.branchId ? const Icon(
-              Icons.check
-            ) : Container(),
-          ],
+          ),
         ),
       ),
     );
@@ -160,7 +164,7 @@ class _BranchListState extends State<BranchList> {
         title: const Text(
           'Hospital',
           style: TextStyle(
-            color: kPrimaryColor,
+            color: kHomeBgColor,
             fontSize: 18.0,
             fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,

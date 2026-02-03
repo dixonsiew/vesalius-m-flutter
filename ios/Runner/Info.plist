@@ -11,7 +11,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>vesalius.m.x</string>
+	<string>CVSKLgo</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -39,13 +39,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-	<key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-    </dict>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
@@ -55,6 +48,37 @@
         <string>https</string>
         <string>http</string>
 		<string>tel</string>
+		<string>mailto</string>
     </array>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>YOUR DESCRIPTION HERE</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>YOUR DESCRIPTION HERE</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>YOUR DESCRIPTION HERE</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>cvsklgo.cvskl.com</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+        <string>en_US</string>
+        <string>en_AU</string>
+    </array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>

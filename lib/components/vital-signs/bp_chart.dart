@@ -8,9 +8,9 @@ class BPChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const BPChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<BPChart> createState() => _BPChartState();
@@ -43,8 +43,8 @@ class _BPChartState extends State<BPChart> {
   }
 
   void onDataLabelRender(DataLabelRenderArgs m) {
-    int i = m.pointIndex!;
-    CartesianSeries<dynamic, dynamic> s = m.seriesRenderer;
+    int i = m.pointIndex;
+    CartesianSeriesRenderer<dynamic, dynamic> s = m.seriesRenderer;
     var o = widget.list[i];
     if (o.value1High != null && o.value1Low != null && s.name == 'Systolic') {
       double v1 = double.parse(o.value1High!);
@@ -149,11 +149,11 @@ class _BPChartState extends State<BPChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Blood Pressure (mmHg)',
               style: TextStyle(
@@ -188,18 +188,18 @@ class _BPChartState extends State<BPChart> {
         ),
         axisLabelFormatter: axisLabelFormatter,
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'Blood Pressure (mmHg)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: true,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -210,7 +210,7 @@ class _BPChartState extends State<BPChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<BPData, String>>[
+      series: <CartesianSeries<BPData, String>>[
         LineSeries<BPData, String>(
           dataSource: createData(),
           xValueMapper: (BPData m, _) => m.date,

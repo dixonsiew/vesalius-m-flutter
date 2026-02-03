@@ -7,10 +7,10 @@ class DataLabel extends StatelessWidget {
   final String data;
 
   const DataLabel({
-    super.key, 
+    Key? key,
     required this.label,
     required this.data,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +22,8 @@ class DataLabel extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 15.0,
-              fontWeight: FontWeight.bold,
               fontFamily: kBodyFont,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
