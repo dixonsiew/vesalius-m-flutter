@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 
 class FrontLayer extends StatelessWidget {
@@ -50,20 +50,28 @@ class FrontLayer extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          Html(
-            data: content,
-            style: {
-              'span': Style(
-                color: Colors.white,
-                fontSize: const FontSize(16.0, units: 'pt'),
-                fontWeight: FontWeight.bold,
-              ),
-              'p': Style(
-                color: Colors.white,
-                fontSize: const FontSize(16.0, units: 'pt'),
-                fontWeight: FontWeight.bold,
-              ),
-            },
+          // Html(
+          //   data: content,
+          //   style: {
+          //     'span': Style(
+          //       color: Colors.white,
+          //       fontSize: FontSize(16.0),
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //     'p': Style(
+          //       color: Colors.white,
+          //       fontSize: FontSize(16.0),
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //   },
+          // ),
+          HtmlWidget(
+            content,
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 10.0),
@@ -76,6 +84,9 @@ class FrontLayer extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(25.0)),
                 ),
                 child: IconButton(
+                  onPressed: () {
+                    onToggleBookmark(isBookmarked, hospitalInformationId, data);
+                  },
                   icon: isBookmarked ? 
                   const Icon(
                     Icons.bookmark_sharp,
@@ -84,9 +95,6 @@ class FrontLayer extends StatelessWidget {
                   const Icon(
                     Icons.bookmark_outline_sharp,
                   ),
-                  onPressed: () {
-                    onToggleBookmark(isBookmarked, hospitalInformationId, data);
-                  },
                 ),
               ),
             ),
@@ -99,11 +107,6 @@ class FrontLayer extends StatelessWidget {
 
 class BackgroundLayer extends StatelessWidget {
 
-  final String title;
-  final String content;
-  final bool isBookmarked;
-  final String? image;
-
   const BackgroundLayer({
     super.key, 
     required this.title,
@@ -111,6 +114,11 @@ class BackgroundLayer extends StatelessWidget {
     required this.isBookmarked,
     required this.image,
   });
+
+  final String title;
+  final String content;
+  final bool isBookmarked;
+  final String? image;
 
   @override
   Widget build(BuildContext context) {
@@ -145,20 +153,28 @@ class BackgroundLayer extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          Html(
-            data: content,
-            style: {
-              'span': Style(
-                color: Colors.transparent,
-                fontSize: const FontSize(16.0, units: 'pt'),
-                fontWeight: FontWeight.bold,
-              ),
-              'p': Style(
-                color: Colors.transparent,
-                fontSize: const FontSize(16.0, units: 'pt'),
-                fontWeight: FontWeight.bold,
-              ),
-            },
+          // Html(
+          //   data: content,
+          //   style: {
+          //     'span': Style(
+          //       color: Colors.transparent,
+          //       fontSize: FontSize(16.0),
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //     'p': Style(
+          //       color: Colors.transparent,
+          //       fontSize: FontSize(16.0),
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //   },
+          // ),
+          HtmlWidget(
+            content,
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 10.0),

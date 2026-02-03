@@ -1,33 +1,41 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:provider/provider.dart';
-import 'package:vesalius_m_flutter/models/appointment_model.dart';
+import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:vesalius_m_flutter/ui/services/logistic_arrangement.dart';
+import 'package:vesalius_m_flutter/ui/services/outpatient_bill.dart';
 
-import 'ui/allergies.dart';
-import 'ui/appointment.dart';
-import 'ui/appointment/add_appointment.dart';
-import 'ui/appointment/appointment_free_slot.dart';
-import 'ui/appointment/confirm_appointment.dart';
-import 'ui/change_password.dart';
-import 'ui/doctor.dart';
-import 'ui/doctor/doctor_bookmark.dart';
-import 'ui/doctor/doctor_detail.dart';
-import 'ui/first_time_login.dart';
-import 'ui/forgot_password.dart';
-import 'ui/health_dashboard.dart';
-import 'ui/home.dart';
-import 'ui/hospital.dart';
-import 'ui/hospital/hospital_bookmark.dart';
-import 'ui/medical_history.dart';
-import 'ui/medical-history/vital_signs.dart';
-import 'ui/profile.dart';
-import 'ui/sign_in.dart';
-import 'ui/sign_up.dart';
+import 'constants.dart';
+import 'models/data_manager.dart';
+import 'models/user_data_manager.dart';
+import 'ui/guest.dart';
+import 'ui/health-package/my_cart.dart';
+import 'ui/main_layout.dart';
+import 'ui/services/golden_pearl.dart';
+import 'ui/services/little_explorer.dart';
 import 'ui/splash.dart';
-import 'ui/user_list.dart';
 
-void main() {
+// late ObjectBox objectbox;
+late LazyBox box;
+late LazyBox boxUser;
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  HttpOverrides.global = MyHttpOverrides();
+  await dotenv.load(fileName: ".env");
+  box = await DataManager.instance.initHive();
+  boxUser = await UserDataManager.instance.initHive();
   runApp(const MyApp());
 }
 
@@ -43,66 +51,58 @@ class MyApp extends StatelessWidget {
       statusBarBrightness: Brightness.light,
       statusBarIconBrightness: Brightness.dark,
     ));
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => AppointmentModel()),
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Vesalius.m',
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'VESALIUS.m',
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', 'US'),
-          Locale('en', 'AU'),
-        ],
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.blue,
-          // This makes the visual density adapt to the platform that you run
-          // the app on. For desktop platforms, the controls will be smaller and
-          // closer together (more dense) than on mobile platforms.
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          appBarTheme: Theme.of(context).appBarTheme.copyWith(shadowColor: Colors.black),
-        ),
-        initialRoute: Splash.routeName,
-        routes: {
-          Splash.routeName: (context) => const Splash(),
-          Home.routeName: (context) => const Home(),
-          SignIn.routeName: (context) => const SignIn(),
-          SignUp.routeName: (context) => const SignUp(),
-          ForgotPassword.routeName: (context) => const ForgotPassword(),
-          Doctor.routeName: (context) => const Doctor(),
-          DoctorBookmark.routeName: (context) => const DoctorBookmark(),
-          DoctorDetail.routeName: (context) => const DoctorDetail(),
-          Hospital.routeName: (context) => const Hospital(),
-          HospitalBookmark.routeName: (context) => const HospitalBookmark(),
-          UserList.routeName: (context) => const UserList(),
-          MedicalHistory.routeName: (context) => const MedicalHistory(),
-          VitalSigns.routeName: (context) => const VitalSigns(),
-          Profile.routeName: (context) => const Profile(),
-          Allergies.routeName: (context) => const Allergies(),
-          HealthDashboard.routeName: (context) => const HealthDashboard(),
-          Appointment.routeName: (context) => const Appointment(),
-          AddAppointment.routeName: (context) => const AddAppointment(),
-          AppointmentFreeSlot.routeName: (context) => const AppointmentFreeSlot(),
-          ConfirmAppointment.routeName: (context) => const ConfirmAppointment(),
-          ChangePassword.routeName: (context) => const ChangePassword(),
-          FirstTimeLogin.routeName: (context) => const FirstTimeLogin(),
-        },
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('en', 'AU'),
+      ],
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // Try running your application with "flutter run". You'll see the
+        // application has a blue toolbar. Then, without quitting the app, try
+        // changing the primarySwatch below to Colors.green and then invoke
+        // "hot reload" (press "r" in the console where you ran "flutter run",
+        // or simply save your changes to "hot reload" in a Flutter IDE).
+        // Notice that the counter didn't reset back to zero; the application
+        // is not restarted.
+        primarySwatch: Colors.blue,
+        // This makes the visual density adapt to the platform that you run
+        // the app on. For desktop platforms, the controls will be smaller and
+        // closer together (more dense) than on mobile platforms.
+        fontFamily: kBodyFont,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        useMaterial3: false,
+        appBarTheme: Theme.of(context).appBarTheme.copyWith(shadowColor: Colors.black),
       ),
+      initialRoute: Splash.routeName,
+      getPages: [
+        GetPage(name: Splash.routeName, page: () => const Splash(), transition: Transition.fadeIn),
+        GetPage(name: MainLayout.routeName, page: () => const MainLayout()),
+        GetPage(name: Guest.routeName, page: () => const Guest()),
+        GetPage(name: MyCart.routeName, page: () => const MyCart()),
+        GetPage(name: LittleExplorer.routeName, page: () => const LittleExplorer()),
+        GetPage(name: GoldenPearl.routeName, page: () => const GoldenPearl()),
+        GetPage(name: LogisticArrangement.routeName, page: () => const LogisticArrangement()),
+        GetPage(name: OutpatientBill.routeName, page: () => const OutpatientBill()),
+      ],
+      builder: (context, child) {
+        final mediaQueryData = MediaQuery.of(context);
+        final scale = mediaQueryData.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.0);
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: scale),
+          child: child!,
+        );
+      },
     );
   }
 }
