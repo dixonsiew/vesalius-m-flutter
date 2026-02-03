@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:form_validator/form_validator.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/bottom_red.dart';
-import 'package:vesalius_m_flutter/components/top_red.dart';
+import 'package:vesalius_m_flutter/components/inner_page.dart';
 import 'package:vesalius_m_flutter/constants.dart';
+import 'package:vesalius_m_flutter/controllers/first_time_login_ctrl.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/services/auth_service.dart';
+import 'package:vesalius_m_flutter/ui/biometric.dart';
 
-import 'home.dart';
+import 'sign_in.dart';
 
 class FirstTimeLogin extends StatefulWidget {
-  
-  static const String routeName = 'FirstTimeLogin';
+
+  static const String routeName = '/FirstTimeLogin';
 
   const FirstTimeLogin({super.key});
 
@@ -24,184 +26,175 @@ class FirstTimeLogin extends StatefulWidget {
 
 class _FirstTimeLoginState extends State<FirstTimeLogin> {
 
-  bool isLoading = false;
-
   final formKey = GlobalKey<FormState>();
-  final txtcode = TextEditingController();
+  late final TextEditingController txtcode;
 
-  void logout() async {
-    final nav = Navigator.of(context);
-    await DataManager.clear();
-    nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+  final FirstTimeLoginCtrl ctrl = Get.put(FirstTimeLoginCtrl());
+
+  @override
+  void initState() {
+    super.initState();
+    txtcode = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    txtcode.dispose();
+    super.dispose();
+  }
+
+  void validate(String s) {
+    bool b = formKey.currentState!.validate();
+
+    if (s.isEmpty) {
+      ctrl.setIsValid(false);
+    }
+
+    else {
+      ctrl.setIsValid(b);
+    }
   }
 
   void onVerify() async {
     try {
-      setState(() {
-        isLoading = true;
-      });
-      final nav = Navigator.of(context);
-      await postVerificationCode(txtcode.text);
+      ctrl.setIsLoading(true);
+      await UserService.postVerificationCode(txtcode.text);
       await DataManager.removeItem('isFirstTimeLogin');
       await AuthManager.setIsLogin(true);
-      setState(() {
-        isLoading = false;
-      });
-      nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+      ctrl.setIsLoading(false);
+      Get.to(() => const Biometric());
+      // Get.offAll(() => const MainLayout());
     }
 
     catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      CustomDialog.of(context).showCustomDialog('Verifying Failed', 'Please enter a valid code', 'Dismiss');
+      ctrl.setIsLoading(false);
+      showCustomDialog('Verifying Failed', 'Please enter a valid code', 'Dismiss');
     }
   }
 
   Widget buildForm() {
-    var padding = MediaQuery.of(context).padding;
-
-    return SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height - padding.top - padding.bottom,
-        color: Colors.white,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const TopRed(),
-            const BottomRed(),
-
-            Stack(
-              alignment: AlignmentDirectional.topEnd,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: kPrimaryColor,
+    return Stack(
+      children: [
+        Form(
+          key: formKey,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 144.0),
+            child: Scrollbar(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const SizedBox(height: 25.0),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Text(
+                      'First Time Login\nEnter your verification code to continue',
+                      style: kTextStyle1.copyWith(
+                        fontSize: 22.0,
+                        fontWeight: FontWeight.w700,
+                        color: kTextColor1,
+                      ),
                     ),
-                    onPressed: () {
-                     logout();
-                    },
                   ),
+                  const SizedBox(height: 40.0),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBgColor2.withOpacity(0.1),
+                          offset: const Offset(0, 4.0),
+                          blurRadius: 4.0,
+                        ),
+                      ],
+                    ),
+                    child: TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onChanged: validate,
+                      validator: ValidationBuilder().required('Verification Code is required').minLength(1, 'Verification Code is required').build(),
+                      controller: txtcode,
+                      cursorColor: kTextColor1,
+                      style: const TextStyle(
+                        fontFamily: kBodyFont,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor1,
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(15.0),
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'Verification Code',
+                        hintStyle: kTextStyle1.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: kTextColor5,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            color: kBgColor1,
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Obx(() =>
+                  AppElevatedButton(
+                    text: 'Sign In',
+                    onPressed: !ctrl.isValid ? null : onVerify,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                AppOutlinedButton(
+                  text: 'Cancel',
+                  onPressed: () async {
+                    await AuthManager.signOut();
+                    Get.offAll(() => const SignIn());
+                  }
                 ),
               ],
             ),
-
-            Center(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 72.0,
-                      height: 72.0,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        image: DecorationImage(
-                          image: AssetImage('images/imgs/nova.png'),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 40.0, bottom: 17.0),
-                      child: Text(
-                        'FIRST TIME LOGIN',
-                        style: TextStyle(
-                          color: Color(0xFF414141),
-                          fontSize: 18.0,
-                          fontFamily: kTitleFont,
-                        ),
-                      ),
-                    ),
-                    const Text(
-                      'Enter your verification code to continue',
-                      style: TextStyle(
-                        color: Color(0xFF585858),
-                        fontSize: 18.0,
-                        fontFamily: kTitleFont,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 25.0, bottom: 20.0),
-                      child: TextFormField(
-                        controller: txtcode,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Verification Code',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.lock,
-                            color: Color(0xFF585858),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: RawMaterialButton(
-                        elevation: 5.0,
-                        fillColor: kPrimaryBtnBgColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                        onPressed: onVerify,
-                        child: const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontFamily: kBodyFont,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kPrimaryBgColor),
-        toolbarHeight: 0.0,
-        backgroundColor: Colors.white,
-        elevation: 5.0,
-      ),
-      backgroundColor: Colors.white,
-      body: ModalProgressHUD(
-        inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(), // AppScalingText('Please wait...'),
-        child: SafeArea(
-          child: Scrollbar(
+    return InnerPage(
+      title: '',
+      body: Obx(() =>
+        ModalProgressHUD(
+          inAsyncCall: ctrl.isLoading,
+          progressIndicator: const AppActivityIndicator(),
+          child: SafeArea(
             child: buildForm(),
           ),
         ),

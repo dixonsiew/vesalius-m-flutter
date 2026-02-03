@@ -14,7 +14,7 @@ import 'package:vesalius_m_flutter/ui/hospital/hospital-bookmark.dart';
 
 class Hospital extends StatefulWidget {
 
-  static final String routeName = 'Hospital';
+  static const String routeName = 'Hospital';
 
   @override
   _HospitalState createState() => _HospitalState();
@@ -294,7 +294,7 @@ class _HospitalState extends State<Hospital> {
       backgroundColor: Color(0xFFF5F5F5),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
-        progressIndicator: CupertinoActivityIndicator(radius: 15.0), // AppScalingText('Loading...'),
+        progressIndicator: CupertinoActivityIndicator(radius: 15.0),
         child: SafeArea(
           child: RefreshIndicator(
             key: refreshIndicatorKey,

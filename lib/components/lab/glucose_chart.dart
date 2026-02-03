@@ -19,10 +19,10 @@ class GlucoseChart extends StatefulWidget {
 class _GlucoseChartState extends State<GlucoseChart> {
   
   List<GlucoseData> createData() {
-    var lx = widget.list;
+    List<LabData> lx = widget.list;
     List<GlucoseData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i];
+      LabData m = lx[i];
       double v1 = double.parse(m.resultValue!);
       data.add(GlucoseData(m.recordedDate!, v1));
     }
@@ -37,23 +37,22 @@ class _GlucoseChartState extends State<GlucoseChart> {
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Glucose (mmol/L)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTextStyle1.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w700,
+                color: kTextColor1,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTextStyle1.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w700,
+                color: kTextColor1,
               ),
             ),
           ],
@@ -65,30 +64,36 @@ class _GlucoseChartState extends State<GlucoseChart> {
       primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
-          fontFamily: kBodyFont,
+        labelStyle: kTextStyle1.copyWith(
+          fontFamily: kFont2,
+          fontSize: 10.0,
+          fontWeight: FontWeight.w600,
+          color: kTextColor1,
         ),
       ),
       title: ChartTitle(
         text: 'Glucose (mmol/L)',
-        textStyle: const TextStyle(
+        textStyle: kTextStyle1.copyWith(
+          fontFamily: kFont2,
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
         ),
       ),
       legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
         textStyle: const TextStyle(
-          fontFamily: kBodyFont,
+          fontFamily: kFont2,
+          fontSize: 10.0,
+          fontWeight: FontWeight.w600,
+          color: kTextColor4,
         ),
       ),
       tooltipBehavior: TooltipBehavior(
         enable: true,
         canShowMarker: true,
         textStyle: const TextStyle(
-          fontFamily: kBodyFont,
+          fontFamily: kFont2,
         ),
       ),
       series: <ChartSeries<GlucoseData, String>>[
@@ -100,14 +105,13 @@ class _GlucoseChartState extends State<GlucoseChart> {
           markerSettings: const MarkerSettings(
             isVisible: true,
           ),
-          dataLabelSettings: const DataLabelSettings(
+          dataLabelSettings: DataLabelSettings(
             isVisible: true,
             color: kHealthDashboardBgColor,
-            textStyle: TextStyle(
-              fontFamily: kBodyFont, 
-              fontStyle: FontStyle.normal, 
-              fontWeight: FontWeight.normal, 
-              fontSize: 12,
+            textStyle: kTextStyle1.copyWith(
+              fontFamily: kFont2,
+              fontSize: 9.0,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),

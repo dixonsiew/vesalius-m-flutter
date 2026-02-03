@@ -1,0 +1,346 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "2:4888963607608290662",
+      "lastPropertyId": "7:8283647715738435196",
+      "name": "DoctorClinicHours",
+      "properties": [
+        {
+          "id": "1:8570438433828273021",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2338350862618574684",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:7537837262802853328",
+          "name": "displaySequence",
+          "type": 6
+        },
+        {
+          "id": "4:362934598487644110",
+          "name": "dayOfTheWeek",
+          "type": 9
+        },
+        {
+          "id": "5:7425462456418266896",
+          "name": "dayStartTime",
+          "type": 9
+        },
+        {
+          "id": "6:2040970771847878043",
+          "name": "dayEndTime",
+          "type": 9
+        },
+        {
+          "id": "7:8283647715738435196",
+          "name": "byAppointmentOnly",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:981194313715741449",
+      "lastPropertyId": "4:8653907136545547489",
+      "name": "DoctorClinicLocation",
+      "properties": [
+        {
+          "id": "1:6245117016066111395",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5373241426867984164",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:2825964323092171795",
+          "name": "location",
+          "type": 9
+        },
+        {
+          "id": "4:8653907136545547489",
+          "name": "building",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:8881990263305376500",
+      "lastPropertyId": "5:7839151249819842936",
+      "name": "DoctorContact",
+      "properties": [
+        {
+          "id": "1:8003381138380971233",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5143618017734477176",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:275821269127908318",
+          "name": "displaySequence",
+          "type": 6
+        },
+        {
+          "id": "4:7344059470754999700",
+          "name": "contactType",
+          "type": 9
+        },
+        {
+          "id": "5:7839151249819842936",
+          "name": "contactValue",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:621559165627320874",
+      "lastPropertyId": "10:3119371244662058346",
+      "name": "DoctorInfoModel",
+      "properties": [
+        {
+          "id": "1:4480937538677614377",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2276954506085026601",
+          "name": "user",
+          "type": 9
+        },
+        {
+          "id": "3:5868429407118457843",
+          "name": "mcr",
+          "type": 9
+        },
+        {
+          "id": "4:8908896856355590556",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:4028346715647531995",
+          "name": "gender",
+          "type": 9
+        },
+        {
+          "id": "6:3699322812724309681",
+          "name": "nationality",
+          "type": 9
+        },
+        {
+          "id": "7:2359196315094241786",
+          "name": "image",
+          "type": 9
+        },
+        {
+          "id": "8:5825672258705868484",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "9:4157509827758254063",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "10:3119371244662058346",
+          "name": "allowAppointment",
+          "type": 9
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:1134965209125780950",
+          "name": "doctorSpokenLanguage",
+          "targetId": "9:6837540651065450326"
+        },
+        {
+          "id": "2:5322903034608184290",
+          "name": "doctorQualifications",
+          "targetId": "6:1062854098259929606"
+        },
+        {
+          "id": "3:9026679171552540784",
+          "name": "doctorSpecialities",
+          "targetId": "7:7517099077172568575"
+        },
+        {
+          "id": "4:2120353408747604565",
+          "name": "doctorClinicLocation",
+          "targetId": "3:981194313715741449"
+        },
+        {
+          "id": "5:1300211733452594745",
+          "name": "doctorClinicHours",
+          "targetId": "2:4888963607608290662"
+        },
+        {
+          "id": "6:365214128673774914",
+          "name": "doctorContact",
+          "targetId": "4:8881990263305376500"
+        },
+        {
+          "id": "7:6203008160230486340",
+          "name": "doctorSpecialty",
+          "targetId": "8:4364241087500746010"
+        }
+      ]
+    },
+    {
+      "id": "6:1062854098259929606",
+      "lastPropertyId": "4:8724844005752575999",
+      "name": "DoctorQualification",
+      "properties": [
+        {
+          "id": "1:1182499722362409923",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:549130259867509140",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:6238909402984082017",
+          "name": "displaySequence",
+          "type": 6
+        },
+        {
+          "id": "4:8724844005752575999",
+          "name": "qualification",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:7517099077172568575",
+      "lastPropertyId": "4:1156704343839483202",
+      "name": "DoctorSpecialities",
+      "properties": [
+        {
+          "id": "1:4230895221031139953",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7769827489607488676",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:425865666537894717",
+          "name": "displaySequence",
+          "type": 6
+        },
+        {
+          "id": "4:1156704343839483202",
+          "name": "specialities",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "8:4364241087500746010",
+      "lastPropertyId": "3:5300039639931842144",
+      "name": "DoctorSpecialty",
+      "properties": [
+        {
+          "id": "1:466578473659229384",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7935006927311425197",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:5300039639931842144",
+          "name": "primarySpecialty",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "9:6837540651065450326",
+      "lastPropertyId": "4:1459747402539245404",
+      "name": "DoctorSpokenLanguage",
+      "properties": [
+        {
+          "id": "1:4534227467017390308",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8458759910641610550",
+          "name": "doctorId",
+          "type": 6
+        },
+        {
+          "id": "3:207550691976988620",
+          "name": "displaySequence",
+          "type": 6
+        },
+        {
+          "id": "4:1459747402539245404",
+          "name": "spokenLanguage",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "9:6837540651065450326",
+  "lastIndexId": "0:0",
+  "lastRelationId": "8:2157753452363746149",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [
+    1038166220417243434
+  ],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    6337665668278945342,
+    3329727610185105253,
+    272461230991073430,
+    1843658413111148688,
+    6475143974182479869,
+    1346119577516618682,
+    1609867912272813358,
+    4503787989580389144,
+    8729297190819986159,
+    3260742574836081481
+  ],
+  "retiredRelationUids": [
+    2157753452363746149
+  ],
+  "version": 1
+}

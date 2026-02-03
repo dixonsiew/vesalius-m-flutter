@@ -1,14 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:form_validator/form_validator.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/bottom_red.dart';
-import 'package:vesalius_m_flutter/components/top_red.dart';
+import 'package:vesalius_m_flutter/components/inner_page.dart';
 import 'package:vesalius_m_flutter/constants.dart';
+import 'package:vesalius_m_flutter/controllers/sign_up_ctrl.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/auth_service.dart';
 
 import 'sign_in.dart';
@@ -23,7 +24,7 @@ extension EmailValidator on String {
 
 class SignUp extends StatefulWidget {
 
-  static const String routeName = 'SignUp';
+  static const String routeName = '/SignUp';
 
   const SignUp({super.key});
 
@@ -33,400 +34,616 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
 
-  bool valid = false;
-  bool isLoading = false;
   DateTime? dobdt;
-
+  late final TextEditingController txtfullname;
+  late final TextEditingController txtic;
+  late final TextEditingController txtdob;
+  late final TextEditingController txtemail;
+  late final TextEditingController txtpwd;
   final formKey = GlobalKey<FormState>();
-  final txtfullname = TextEditingController();
-  final txtdob = TextEditingController();
-  final txtic = TextEditingController();
-  final txtemail = TextEditingController();
+
+  final SignUpCtrl ctrl = Get.put(SignUpCtrl());
+
+  @override
+  void initState() {
+    super.initState();
+    txtfullname = TextEditingController();
+    txtic = TextEditingController();
+    txtdob = TextEditingController();
+    txtemail = TextEditingController();
+    txtpwd = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    txtfullname.dispose();
+    txtic.dispose();
+    txtdob.dispose();
+    txtemail.dispose();
+    txtpwd.dispose();
+    super.dispose();
+  }
 
   void validate(String s) {
     bool b = formKey.currentState!.validate();
 
     if (s.isEmpty) {
-      setState(() {
-        valid = false;
-      });
+      ctrl.setIsValid(false);
     }
 
     else {
-      setState(() {
-        valid = b;
-      });
+      ctrl.setIsValid(b);
     }
   }
 
+  void showSuccess() async {
+    await Get.dialog(AlertDialog(
+      scrollable: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      backgroundColor: Colors.white,
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'images/icon/tick.png',
+              width: 40.0,
+              height: 40.0,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(height: 16.0),
+            Text(
+              'Sign Up Successfully',
+              style: kTextStyle1.copyWith(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: kTextColor1,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Your account is created.',
+              style: kTextStyle1.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w400,
+                color: kTextColor2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16.0),
+            AppElevatedButton(
+              text: 'Sign In',
+              onPressed: () {
+                Get.back();
+                Get.offAll(() => const SignIn());
+              },
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
   void onSignUp() async {
-    final dlg = CustomDialog.of(context);
     try {
-      setState(() {
-        isLoading = true;
-      });
-      var branchDetails = DataManager.branchDetails;
+      ctrl.setIsLoading(true);
+      UserBranch? branchDetails = DataManager.branchDetails;
       num branchId = branchDetails == null ? 1 : branchDetails.branch!.branchId!;
-      var m = await signUp(branchId, txtdob.text, txtemail.text, txtfullname.text, txtic.text);
-      setState(() {
-        isLoading = false;
-      });
-      dlg.showCustomDialog('Successful', m['successMessage'], 'Dismiss');
+      await AdminService.signUp(branchId, txtdob.text, txtemail.text, txtfullname.text, txtic.text);
+      ctrl.setIsLoading(false);
+      showSuccess();
     }
 
     on DioException catch (error) {
-      setState(() {
-        isLoading = false;
-      });
+      ctrl.setIsLoading(false);
       if (error.type == DioExceptionType.badResponse) {
-        var mx = error.response?.data as Map;
+        final mx = error.response?.data as Map;
         if (mx.containsKey('errorMessage')) {
-          dlg.showCustomDialog('Failed', mx['errorMessage'], 'Dismiss');
+          showCustomDialog('Failed', mx['errorMessage'], 'Dismiss');
         }
 
         else if (mx.containsKey('message')) {
-          dlg.showCustomDialog('Failed', mx['message'], 'Dismiss');
+          showCustomDialog('Failed', mx['message'], 'Dismiss');
         }
         
         else {
-          dlg.showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
+          showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
         }
       }
 
       else {
-        dlg.showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
+        showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
       }
     }
   }
 
   Widget buildForm() {
-    var padding = MediaQuery.of(context).padding;
-
-    return SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height - padding.top - padding.bottom,
-        color: Colors.white,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const TopRed(),
-            const BottomRed(),
-
-            Stack(
-              alignment: AlignmentDirectional.topEnd,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: kPrimaryColor,
+    return Stack(
+      children: [
+        Form(
+          key: formKey,
+          child: Scrollbar(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const SizedBox(height: 25.0),
+                  Text(
+                    'Full Name',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w600,
+                      color: kTextColor1,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
                   ),
-                ),
-              ],
-            ),
-
-            Center(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 72.0,
-                      height: 72.0,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        image: DecorationImage(
-                          image: AssetImage('images/imgs/nova.png'),
-                          fit: BoxFit.contain,
+                  const SizedBox(height: 5.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBgColor2.withOpacity(0.1),
+                          offset: const Offset(0, 4.0),
+                          blurRadius: 4.0,
                         ),
-                      ),
+                      ],
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-                      child: Text(
-                        'Enter your personal details',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 24.0,
-                          fontFamily: kTitleFont,
-                          fontWeight: FontWeight.bold,
+                    child: TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onChanged: validate,
+                      validator: ValidationBuilder().required('Fullname is required').minLength(1, 'Fullname is required').build(),
+                      controller: txtfullname,
+                      cursorColor: kTextColor1,
+                      style: const TextStyle(
+                        fontFamily: kBodyFont,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor1,
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(15.0),
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'e.g.John Smith',
+                        hintStyle: kTextStyle1.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: kTextColor5,
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('Fullname is required').minLength(1, 'Fullname is required').build(),
-                        controller: txtfullname,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
+                        errorStyle: const TextStyle(
                           fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
+                          color: kTextColor3,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'Fullname',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.account_circle,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('NRIC / Passport is required').minLength(1, 'NRIC / Passport is required').build(),
-                        controller: txtic,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'NRIC / Passport',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w600,
+                      color: kTextColor1,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBgColor2.withOpacity(0.1),
+                          offset: const Offset(0, 4.0),
+                          blurRadius: 4.0,
+                        ),
+                      ],
+                    ),
+                    child: TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onChanged: validate,
+                      validator: ValidationBuilder().required('NRIC / Passport is required').minLength(1, 'NRIC / Passport is required').build(),
+                      controller: txtic,
+                      cursorColor: kTextColor1,
+                      style: const TextStyle(
+                        fontFamily: kBodyFont,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor1,
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(15.0),
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'e.g. 96xxxx-xx-xxxx',
+                        hintStyle: kTextStyle1.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: kTextColor5,
+                        ),
+                        errorStyle: const TextStyle(
                           fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
+                          color: kTextColor3,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'NRIC / Passport',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.contacts,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        onTap: () async {
-                          DateTime? dob = await showDatePicker(
-                            context: context,
-                            initialDate: dobdt ?? DateTime.now(),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now(),
-                            locale: const Locale('en', 'AU'),
-                            fieldHintText: 'DD/MM/YYYY',
-                            builder: (context, child) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  colorScheme: const ColorScheme.light(
-                                    primary: kPrimaryColor,
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'Date of Birth',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w600,
+                      color: kTextColor1,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBgColor2.withOpacity(0.1),
+                          offset: const Offset(0, 4.0),
+                          blurRadius: 4.0,
+                        ),
+                      ],
+                    ),
+                    child: TextFormField(
+                      onTap: () async {
+                        DateTime? dob = await showDatePicker(
+                          context: context,
+                          initialDate: dobdt == null ? DateTime.now() : dobdt!,
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                          locale: const Locale('en', 'AU'),
+                          fieldHintText: 'DD/MM/YYYY',
+                          helpText: '',
+                          confirmText: 'SELECT DATE',
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: kPrimaryColor,
+                                ),
+                                dialogTheme: DialogTheme(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30.0),
                                   ),
                                 ),
-                                child: child!,
-                              );
-                            }
-                          );
-                          if (dob != null) {
-                            String dobDay = '${dob.day}';
-                            dobDay = dobDay.padLeft(2, '0');
-                            String dobMonth = '${dob.month}';
-                            dobMonth = dobMonth.padLeft(2, '0');
-                            txtdob.text = '$dobDay/$dobMonth/${dob.year}';
-                            dobdt = DateTime(dob.year, dob.month, dob.day);
+                              ),
+                              child: child!,
+                            );
                           }
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('DOB is required').minLength(10, 'DOB is required').build(),
-                        controller: txtdob,
-                        readOnly: true,
-                        showCursor: true,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'DOB (DD/MM/YYYY)',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.event,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('Email is required').minLength(1, 'Email is required').email('Email is invalid').build(),
-                        controller: txtemail,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Email',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.email,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-                      child: RawMaterialButton(
-                        elevation: 5.0,
-                        fillColor: kPrimaryBtnBgColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                        onPressed: valid ? onSignUp : null,
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontFamily: kBodyFont,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'For hospital registered patient only',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30.0),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Already a user?',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(SignIn.routeName);
+                        );
+                        if (dob != null) {
+                          String dobDay = '${dob.day}';
+                          dobDay = dobDay.padLeft(2, '0');
+                          String dobMonth = '${dob.month}';
+                          dobMonth = dobMonth.padLeft(2, '0');
+                          txtdob.text = '$dobDay/$dobMonth/${dob.year}';
+                          dobdt = DateTime(dob.year, dob.month, dob.day);
+                        }
                       },
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onChanged: validate,
+                      validator: ValidationBuilder().required('DOB is required').minLength(10, 'DOB is required').build(),
+                      controller: txtdob,
+                      readOnly: true,
+                      showCursor: true,
+                      cursorColor: kTextColor1,
+                      style: const TextStyle(
+                        fontFamily: kBodyFont,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor1,
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(15.0),
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'DOB (DD/MM/YYYY)',
+                        hintStyle: kTextStyle1.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: kTextColor5,
+                        ),
+                        errorStyle: const TextStyle(
                           fontFamily: kBodyFont,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
+                          color: kTextColor3,
+                        ),
+                        suffixIcon: const Icon(
+                          Icons.event,
+                          color: kTextColor1,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'Email',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w600,
+                      color: kTextColor1,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBgColor2.withOpacity(0.1),
+                          offset: const Offset(0, 4.0),
+                          blurRadius: 4.0,
+                        ),
+                      ],
+                    ),
+                    child: TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onChanged: validate,
+                      validator: ValidationBuilder().required('Email is required').minLength(1, 'Email is required').email('Email is invalid').build(),
+                      controller: txtemail,
+                      cursorColor: kTextColor1,
+                      style: const TextStyle(
+                        fontFamily: kBodyFont,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor1,
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(15.0),
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'e.g.JohnSmith@abc.com',
+                        hintStyle: kTextStyle1.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: kTextColor5,
+                        ),
+                        errorStyle: const TextStyle(
+                          fontFamily: kBodyFont,
+                          color: kTextColor3,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: const BorderSide(color: kTextColor3),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'Password',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w600,
+                      color: kTextColor1,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBgColor2.withOpacity(0.1),
+                          offset: const Offset(0, 4.0),
+                          blurRadius: 4.0,
+                        ),
+                      ],
+                    ),
+                    child: Obx(() =>
+                      TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        onChanged: validate,
+                        validator: ValidationBuilder().required('Password is required').minLength(1, 'Password is required').build(),
+                        controller: txtpwd,
+                        obscureText: ctrl.isPwd,
+                        cursorColor: kTextColor1,
+                        style: const TextStyle(
+                          fontFamily: kBodyFont,
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: kTextColor1,
+                        ),
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.all(15.0),
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: 'Enter Password',
+                          hintStyle: kTextStyle1.copyWith(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            color: kTextColor5,
+                          ),
+                          errorStyle: const TextStyle(
+                            fontFamily: kBodyFont,
+                            color: kTextColor3,
+                          ),
+                          suffixIcon: Material(
+                            color: Colors.white,
+                            type: MaterialType.transparency,
+                            child: IconButton(
+                              onPressed: () {
+                                ctrl.setIsPwd(!ctrl.isPwd);
+                              }, 
+                              icon: Obx(() =>
+                                Icon(
+                                  ctrl.isPwd ? Icons.visibility_off : Icons.visibility,
+                                  color: kTextColor1,
+                                ),
+                              ),
+                              color: kTextColor1,
+                              splashRadius: 22.0,           
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            borderSide: const BorderSide(color: kTextColor3),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            borderSide: const BorderSide(color: kTextColor3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 180.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            color: kBgColor1,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    '*For hospital registered patient only',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.bold,
+                      color: kPrimaryColor,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 33.0),
+                  child: Obx(() =>
+                    AppElevatedButton(
+                      text: 'Sign Up',
+                      onPressed: !ctrl.isValid ? null : onSignUp,
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already an existing user?',
+                      style: kTextStyle1.copyWith(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor2,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.offAll(() => const SignIn());
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: kPrimaryColor,
+                      ),
+                      child: Text(
+                        'Sign In',
+                        style: kTextStyle1.copyWith(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kPrimaryBgColor),
-        toolbarHeight: 0.0,
-        backgroundColor: Colors.white,
-        elevation: 5.0,
-      ),
-      backgroundColor: Colors.white,
-      body: ModalProgressHUD(
-        inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(),
-        child: SafeArea(
-          child: Scrollbar(
+    return InnerPage(
+      title: 'Sign Up',
+      body: SafeArea(
+        child: Obx(() =>
+          ModalProgressHUD(
+            inAsyncCall: ctrl.isLoading,
+            progressIndicator: const AppActivityIndicator(),
             child: buildForm(),
           ),
         ),

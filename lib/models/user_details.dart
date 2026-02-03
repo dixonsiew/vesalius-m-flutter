@@ -1,6 +1,14 @@
-class Branch {
+import 'package:hive/hive.dart';
 
+part 'user_details.g.dart';
+
+@HiveType(typeId: 3)
+class Branch extends HiveObject {
+
+  @HiveField(0)
   num? branchId;
+
+  @HiveField(1)
   String? branchName;
 
   Branch({
@@ -22,13 +30,25 @@ class Branch {
     };
 }
 
-class UserBranch {
+@HiveType(typeId: 2)
+class UserBranch extends HiveObject {
 
+  @HiveField(0)
   num? adminId;
+
+  @HiveField(1)
   String? prn;
+
+  @HiveField(2)
   num? branchId;
+
+  @HiveField(3)
   String? branchName;
+
+  @HiveField(4)
   num? userId;
+
+  @HiveField(5)
   Branch? branch;
 
   UserBranch({
@@ -74,18 +94,41 @@ class UserBranch {
     };
 }
 
-class UserDetails {
+@HiveType(typeId: 1)
+class UserDetails extends HiveObject {
 
+  @HiveField(0)
   String? address;
+
+  @HiveField(1)
   String? dob;
+
+  @HiveField(2)
   String? email;
+
+  @HiveField(3)
   String? firstName;
+
+  @HiveField(4)
   String? sex;
+
+  @HiveField(5)
   String? lastName;
+
+  @HiveField(6)
   num? userId;
+
+  @HiveField(7)
   bool? firstTimeLogin;
+
+  @HiveField(8)
   String? role;
-  List<UserBranch>? userBranches;
+
+  @HiveField(9)
+  String? race;
+
+  @HiveField(10)
+  List<UserBranch> userBranches;
 
   UserDetails({
     this.address,
@@ -97,11 +140,12 @@ class UserDetails {
     this.userId,
     this.firstTimeLogin,
     this.role,
-    this.userBranches,
+    this.race,
+    this.userBranches = const[],
   });
 
   factory UserDetails.fromJson(Map<String, dynamic> json) {
-    final ls = json['userBranches'] as List;
+    final ls = json['userBranches'] as List? ?? [];
     List<UserBranch> lx = ls.map((x) => UserBranch.fromJson(x)).toList();
 
     return UserDetails(
@@ -114,6 +158,7 @@ class UserDetails {
       userId: json['user_id'],
       firstTimeLogin: json['firstTimeLogin'],
       role: json['role'],
+      race: json['race'],
       userBranches: lx,
     );
   }
@@ -129,6 +174,7 @@ class UserDetails {
       'user_id': userId,
       'firstTimeLogin': firstTimeLogin,
       'role': role,
-      'userBranches': userBranches?.map((x) => x.toJson()).toList(),
+      'race': race,
+      'userBranches': userBranches.map((x) => x.toJson()).toList(),
     };
 }
