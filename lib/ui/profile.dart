@@ -16,7 +16,7 @@ class Profile extends StatefulWidget {
 
   static const String routeName = 'Profile';
 
-  const Profile({super.key});
+  const Profile({Key? key}) : super(key: key);
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -63,18 +63,11 @@ class _ProfileState extends State<Profile> {
 
     return Stack(
       children: [
-        Container(
+        Image.asset(
+          'images/imgs/cardb.png',
           width: 300.0,
           height: 200.0,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(30.0),
-            shape: BoxShape.rectangle,
-            image: const DecorationImage(
-              image: AssetImage('images/imgs/cardb.png'),
-              fit: BoxFit.contain,
-            ),
-          ),
+          fit: BoxFit.contain,
         ),
         SizedBox(
           width: 300.0,
@@ -105,8 +98,8 @@ class _ProfileState extends State<Profile> {
                       width: 105.0,
                       height: 60.0,
                       style: const TextStyle(
-                        fontSize: 16.0,
                         fontFamily: kBodyFont,
+                        fontSize: 16.0,
                       ),
                     ),
                   ),
@@ -122,24 +115,17 @@ class _ProfileState extends State<Profile> {
   Widget buildFrontCard() {
     String s = '';
     if (patientDetails != null) {
-      var name = patientDetails!.name;
-      s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}';
+      var name = patientDetails!.name!;
+      s = '${name.title} ${name.firstName} ${name.middleName} ${name.lastName}';
     }
 
     return Stack(
       children: [
-        Container(
+        Image.asset(
+          'images/imgs/card.png',
           width: 300.0,
           height: 200.0,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(30.0),
-            shape: BoxShape.rectangle,
-            image: const DecorationImage(
-              image: AssetImage('images/imgs/card.png'),
-              fit: BoxFit.contain,
-            ),
-          ),
+          fit: BoxFit.contain,
         ),
         SizedBox(
           width: 280.0,
@@ -166,7 +152,7 @@ class _ProfileState extends State<Profile> {
                   Padding(
                     padding: const EdgeInsets.only(top: 85.0),
                     child: Text(
-                      patientDetails == null ? '' : patientDetails!.prn ?? '',
+                      patientDetails == null ? '' : patientDetails!.prn!,
                       style: const TextStyle(
                         color: Colors.black,
                         fontFamily: kBodyFont,
@@ -209,6 +195,81 @@ class _ProfileState extends State<Profile> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget buildLayer2xx() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 120.0, bottom: 120.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          FlipCard(
+            front: buildFrontCard(),
+            back: buildBackCard(),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(top: 15.0),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                'Tap to flip the card',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  fontFamily: kBodyFont,
+                  fontStyle: FontStyle.italic,
+                  color: Color(0xFFC1C1C1),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLayer1xx() {
+    return Container(
+      width: double.infinity,
+      height: 160.0,
+      color: kProfileBgColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0),
+            child: Image.asset(
+              'images/icon/page-header-icon/profile.png',
+              width: 65.0,
+              height: 50.0,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(right: 20.0, top: 40.0),
+            child: Text(
+              'View Your Personal Info',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20.0,
+                fontFamily: kTitleFont,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLayer2yy() {
+    var padding = MediaQuery.of(context).padding;
+
+    return Container(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      margin: const EdgeInsets.only(top: 160.0),
+      color: const Color(0xFFF5F5F5),
     );
   }
 
@@ -255,7 +316,7 @@ class _ProfileState extends State<Profile> {
                 fontSize: 14.0,
                 fontFamily: kBodyFont,
                 fontStyle: FontStyle.italic,
-                color: Color(0xFFD3D3D3),
+                color: Color(0xFFC1C1C1),
               ),
             ),
           ),
@@ -296,7 +357,7 @@ class _ProfileState extends State<Profile> {
         leading: const BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: kProfileBgColor,
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),

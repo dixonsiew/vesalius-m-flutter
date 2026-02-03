@@ -4,7 +4,7 @@ import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 void onDataLabelRender(DataLabelRenderArgs m, List<VitalSignsData> list) {
-  int i = m.pointIndex!;
+  int i = m.pointIndex;
   var o = list[i];
   if (o.value1High != null && o.value1Low != null) {
     double v1 = double.parse(o.value1High!);

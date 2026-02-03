@@ -19,7 +19,7 @@ class VitalSigns extends StatefulWidget {
 
   static const String routeName = 'VitalSigns';
 
-  const VitalSigns({super.key});
+  const VitalSigns({Key? key}) : super(key: key);
 
   @override
   State<VitalSigns> createState() => _VitalSignsState();
@@ -67,7 +67,6 @@ class _VitalSignsState extends State<VitalSigns> {
         style: TextStyle(
           color: Color(0xFF727272),
           fontSize: 16.0,
-          fontFamily: kBodyFont,
         ),
       ),
     );
@@ -81,7 +80,7 @@ class _VitalSignsState extends State<VitalSigns> {
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(5.0)),
           color: Colors.white,
-          boxShadow: [
+          boxShadow: <BoxShadow>[
             BoxShadow(
               color: Color.fromRGBO(133, 133, 133, 0.29),
               offset: Offset(5, 4),
@@ -108,16 +107,11 @@ class _VitalSignsState extends State<VitalSigns> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 20.0),
-                child: Container(
+                child: Image.asset(
+                  'images/icon/page-header-icon/medical-record.png',
                   width: 80.0,
                   height: 60.0,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    image: DecorationImage(
-                      image: AssetImage('images/icon/page-header-icon/medical-record.png'),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+                  fit: BoxFit.contain,
                 ),
               ),
               const Padding(
@@ -211,6 +205,7 @@ class _VitalSignsState extends State<VitalSigns> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 18.0,
+            fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -239,30 +234,30 @@ class _VitalSignsState extends State<VitalSigns> {
 
 class VitalSignsItem extends StatelessWidget {
 
-  final String title;
-  final String code;
-  final NovaVisitVitalSignsDetail data;
-  final PatientVisit patientVisit;
+  final String? title;
+  final String? code;
+  final NovaVisitVitalSignsDetail? data;
+  final PatientVisit? patientVisit;
 
   const VitalSignsItem({
-    super.key, 
-    required this.title,
-    required this.code,
-    required this.data,
-    required this.patientVisit,
-  });
+    Key? key,
+    this.title,
+    this.code,
+    this.data,
+    this.patientVisit,
+  }) : super(key: key);
 
   String getRegistrationDate() {
-    DateTime dt = DateTime.parse(patientVisit.novaVisit!.registrationDate!);
+    DateTime dt = DateTime.parse(patientVisit!.novaVisit!.registrationDate!);
     return formatDate(dt.toLocal(), [yyyy, '-', m, '-', dd]);
   }
 
   Widget buildPRValue() {
-    if (data.value1 == null || data.value1 == '') {
+    if (data?.value1 == null || data?.value1 == '') {
       return const Text(
         '-',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 24.0,
           fontFamily: kBodyFont,
           fontWeight: FontWeight.w900,
@@ -286,10 +281,10 @@ class VitalSignsItem extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '${data.value1}',
+            '${data?.value1}',
             style: const TextStyle(
-              color: Colors.black,
-              fontSize: 24.0,
+              color: Colors.white,
+              fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.w900,
             ),
@@ -300,7 +295,7 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             unit,
             style: const TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.bold,
@@ -312,11 +307,11 @@ class VitalSignsItem extends StatelessWidget {
   }
 
   Widget buildBPValue() {
-    if (data.unit == null || data.unit == '') {
+    if (data?.unit == null || data?.unit == '') {
       return const Text(
         '-',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 24.0,
           fontFamily: kBodyFont,
           fontWeight: FontWeight.w900,
@@ -331,10 +326,10 @@ class VitalSignsItem extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '${data.value1}/${data.value2}',
+            '${data?.value1}/${data?.value2}',
             style: const TextStyle(
-              color: Colors.black,
-              fontSize: 24.0,
+              color: Colors.white,
+              fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.w900,
             ),
@@ -345,7 +340,7 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             'mmHg',
             style: TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.bold,
@@ -357,11 +352,11 @@ class VitalSignsItem extends StatelessWidget {
   }
 
   Widget buildBMIValue() {
-    if (data.value1 == null || data.value1 == '') {
+    if (data?.value1 == null || data?.value1 == '') {
       return const Text(
         '-',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 24.0,
           fontFamily: kBodyFont,
           fontWeight: FontWeight.w900,
@@ -376,10 +371,10 @@ class VitalSignsItem extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '${data.value1}',
+            '${data?.value1}',
             style: const TextStyle(
-              color: Colors.black,
-              fontSize: 24.0,
+              color: Colors.white,
+              fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.w900,
             ),
@@ -390,7 +385,7 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             'kg/m\u00B2',
             style: TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.bold,
@@ -403,39 +398,59 @@ class VitalSignsItem extends StatelessWidget {
 
   Widget buildPR(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.ideographic,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(
-          width: 85.0,
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 18.0,
-              fontFamily: kBodyFont,
-            ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title ?? '',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                ),
+              ),
+              buildPRValue(),
+            ],
           ),
         ),
-        const SizedBox(width: 20.0),
-        Expanded(child: buildPRValue()),
-        data.value1 == null || data.value1 == '' ? Container() : ElevatedButton(
+        data?.value1 == null || data?.value1 == '' ? Container() : ElevatedButton(
           onPressed: () {
             if (code == 'PR') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => PR(date: getRegistrationDate())));
+              Navigator.push(context, 
+                MaterialPageRoute(
+                  builder: (context) => PR(
+                    date: getRegistrationDate(),
+                  ),
+                )
+              );
             }
 
             else if (code == 'WT') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => Weight(date: getRegistrationDate())));
+              Navigator.push(context, 
+                MaterialPageRoute(
+                  builder: (context) => Weight(
+                    date: getRegistrationDate(),
+                  ),
+                )
+              );
             }
             
             else if (code == 'HT') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => Height(date: getRegistrationDate())));
+              Navigator.push(context, 
+                MaterialPageRoute(
+                  builder: (context) => Height(
+                    date: getRegistrationDate(),
+                  ),
+                )
+              );
             }
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: kSecondaryColor,
+            backgroundColor: kMedicalRecordBgColor,
             minimumSize: const Size(24.0, 32.0),
           ),
           child: const Icon(
@@ -448,29 +463,37 @@ class VitalSignsItem extends StatelessWidget {
 
   Widget buildBMI(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.ideographic,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 85.0,
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 18.0,
-              fontFamily: kBodyFont,
-            ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title ?? '',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                ),
+              ),
+              buildBMIValue()
+            ],
           ),
         ),
-        const SizedBox(width: 20.0),
-        Expanded(child: buildBMIValue()),
-        data.value1 == null || data.value1 == '' ? Container() : ElevatedButton(
+        data?.value1 == null || data?.value1 == '' ? Container() : ElevatedButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => BMI(date: getRegistrationDate())));
+            Navigator.push(context, 
+              MaterialPageRoute(
+                builder: (context) => BMI(
+                  date: getRegistrationDate(),
+                ),
+              )
+            );
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: kSecondaryColor,
+            backgroundColor: kMedicalRecordBgColor,
             minimumSize: const Size(24.0, 32.0),
           ),
           child: const Icon(
@@ -484,28 +507,36 @@ class VitalSignsItem extends StatelessWidget {
   Widget buildBP(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.ideographic,
       children: [
-        SizedBox(
-          width: 85.0,
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 18.0,
-              fontFamily: kBodyFont,
-            ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title ?? '',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                ),
+              ),
+              buildBPValue(),
+            ],
           ),
         ),
-        const SizedBox(width: 20.0),
-        Expanded(child: buildBPValue()),
-        data.unit == null || data.unit == '' ? Container() : ElevatedButton(
+        data?.unit == null || data?.unit == '' ? Container() : ElevatedButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => BP(date: getRegistrationDate())));
+            Navigator.push(context, 
+              MaterialPageRoute(
+                builder: (context) => BP(
+                  date: getRegistrationDate(),
+                ),
+              )
+            );
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: kSecondaryColor,
+            backgroundColor: kMedicalRecordBgColor,
             minimumSize: const Size(24.0, 32.0),
           ),
           child: const Icon(
@@ -543,7 +574,7 @@ class VitalSignsItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0),
       child: Container(
-        padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0, bottom: 15.0),
+        padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0, bottom: 10.0),
         decoration: const BoxDecoration(
           color: kMedicalRecordBgColor,
           borderRadius: BorderRadius.all(Radius.circular(10.0)),

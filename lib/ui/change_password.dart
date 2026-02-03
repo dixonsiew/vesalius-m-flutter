@@ -15,7 +15,7 @@ class ChangePassword extends StatefulWidget {
   
   static const String routeName = 'ChangePassword';
 
-  const ChangePassword({super.key});
+  const ChangePassword({Key? key}) : super(key: key);
 
   @override
   State<ChangePassword> createState() => _ChangePasswordState();
@@ -28,14 +28,21 @@ class _ChangePasswordState extends State<ChangePassword> {
   bool isTxt1 = false;
   bool isTxt2 = false;
   bool isLoading = false;
-
   final formKey = GlobalKey<FormState>();
   final txtcurrent = TextEditingController();
   final txtnew = TextEditingController();
   final txtconfirm = TextEditingController();
 
+  @override
+  void dispose() {
+    txtcurrent.dispose();
+    txtnew.dispose();
+    txtconfirm.dispose();
+    super.dispose();
+  }
+
   void validate(String s) {
-    bool b = formKey.currentState!.validate();
+    bool? b = formKey.currentState?.validate();
 
     if (s.isEmpty) {
       setState(() {
@@ -45,7 +52,7 @@ class _ChangePasswordState extends State<ChangePassword> {
 
     else {
       setState(() {
-        valid = b;
+        valid = b ?? false;
       });
     }
   }
@@ -54,7 +61,7 @@ class _ChangePasswordState extends State<ChangePassword> {
     String s1 = txtcurrent.text;
     String s2 = txtnew.text;
     String s3 = txtconfirm.text;
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
     
     if (s2 != s3) {
       dlg.showCustomDialog('Failed', 'Password does not match with confirm password', 'Dismiss');
@@ -69,7 +76,7 @@ class _ChangePasswordState extends State<ChangePassword> {
         setState(() {
           isLoading = true;
         });
-        final nav = Navigator.of(context);
+        NavigatorState nav = Navigator.of(context);
         await changePassword(o);
         setState(() {
           isLoading = false;
@@ -99,10 +106,10 @@ class _ChangePasswordState extends State<ChangePassword> {
       alignment: Alignment.bottomCenter,
       child: Padding(
         padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
-        child: RawMaterialButton(
+          child: RawMaterialButton(
           elevation: 5.0,
           fillColor: kChangePasswordBgColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
           constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
           onPressed: valid ? onSubmit : null,
           child: const Text(
@@ -125,7 +132,7 @@ class _ChangePasswordState extends State<ChangePassword> {
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -140,12 +147,12 @@ class _ChangePasswordState extends State<ChangePassword> {
           child: ListView(
             shrinkWrap: true,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 30.0, top: 20.0),
+              const Padding(
+                padding: EdgeInsets.only(left: 30.0, top: 20.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.lock,
                       color: Color(0xFF8D7E7E),
@@ -157,7 +164,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                       style: TextStyle(
                         color: Color(0xFF727272),
                         fontSize: 18.0,
-                        fontFamily: kTitleFont,
+                        fontFamily: kBodyFont,
                       ),
                     ),
                   ],
@@ -179,6 +186,9 @@ class _ChangePasswordState extends State<ChangePassword> {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    errorStyle: const TextStyle(
+                      fontFamily: kBodyFont,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         isTxt ? Icons.visibility : Icons.visibility_off,
@@ -209,13 +219,13 @@ class _ChangePasswordState extends State<ChangePassword> {
                   ),
                 ),
               ),
-        
-              Padding(
-                padding: const EdgeInsets.only(left: 30.0, top: 20.0),
+              
+              const Padding(
+                padding: EdgeInsets.only(left: 30.0, top: 20.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.lock,
                       color: Color(0xFF8D7E7E),
@@ -249,6 +259,9 @@ class _ChangePasswordState extends State<ChangePassword> {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    errorStyle: const TextStyle(
+                      fontFamily: kBodyFont,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         isTxt1 ? Icons.visibility : Icons.visibility_off,
@@ -279,13 +292,13 @@ class _ChangePasswordState extends State<ChangePassword> {
                   ),
                 ),
               ),
-        
-              Padding(
-                padding: const EdgeInsets.only(left: 30.0, top: 20.0),
+              
+              const Padding(
+                padding: EdgeInsets.only(left: 30.0, top: 20.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.lock,
                       color: Color(0xFF8D7E7E),
@@ -319,6 +332,9 @@ class _ChangePasswordState extends State<ChangePassword> {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    errorStyle: const TextStyle(
+                      fontFamily: kBodyFont,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         isTxt2 ? Icons.visibility : Icons.visibility_off,
@@ -349,7 +365,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                   ),
                 ),
               ),
-        
+              
               const Padding(
                 padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
                 child: Text(
@@ -457,6 +473,26 @@ class _ChangePasswordState extends State<ChangePassword> {
     );
   }
 
+  Widget buildLayer2xx() {
+    var padding = MediaQuery.of(context).padding;
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Expanded(
+              child: buildForm(),
+            ),
+            buildSubmit(),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildLayer2() {
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0),
@@ -479,7 +515,7 @@ class _ChangePasswordState extends State<ChangePassword> {
         Container(
           width: double.infinity,
           height: 160.0,
-          color: kChangePasswordBgColor,
+          color: kMainColor,
         ),
         Expanded(
           child: Container(
@@ -496,9 +532,9 @@ class _ChangePasswordState extends State<ChangePassword> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kChangePasswordBgColor),
-        backgroundColor: kChangePasswordBgColor,
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMainColor),
         toolbarHeight: kAppToolbarHeight,
+        backgroundColor: kMainColor,
         automaticallyImplyLeading: false,
         leadingWidth: 100.0,
         leading: const BackBtn(
@@ -507,7 +543,7 @@ class _ChangePasswordState extends State<ChangePassword> {
         ),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: kMainColor,
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Please wait...'),

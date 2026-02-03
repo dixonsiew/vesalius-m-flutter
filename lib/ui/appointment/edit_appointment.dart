@@ -19,9 +19,9 @@ class EditAppointment extends StatefulWidget {
   final FutureAppointment appointment;
 
   const EditAppointment({
-    super.key, 
+    Key? key,
     required this.appointment,
-  });
+  }) : super(key: key);
 
   @override
   State<EditAppointment> createState() => _EditAppointmentState();
@@ -32,11 +32,11 @@ class _EditAppointmentState extends State<EditAppointment> {
   bool isLoading = false;
 
   void onDeleteAppointment() async {
-    final nav = Navigator.of(context);
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
+    NavigatorState nav = Navigator.of(context);
     final s = await dlg.showConfirmDialogWithInput('Confirm to Delete', 'Are you sure you want to delete this appointment?', 'Cancel', 'Sure', 'Reason');
     try {
-      if (s == '') {
+      if (s == null) {
         return;
       }
 
@@ -81,16 +81,16 @@ class _EditAppointmentState extends State<EditAppointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
         leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
+        leading: const BackBtn(color: Color(0xFF565758)),
         actions: [
           IconButton(
             icon: const Icon(
               Icons.delete,
-              color: Colors.white,
+              color: Color(0xFF565758),
             ),
             onPressed: () {
               onDeleteAppointment();
@@ -108,7 +108,7 @@ class _EditAppointmentState extends State<EditAppointment> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                color: const Color(0xFFF5F5F5),
+                color: Colors.white,
                 child: Column(
                   children: [
                     Padding(
@@ -124,20 +124,20 @@ class _EditAppointmentState extends State<EditAppointment> {
                           const Text(
                             'Date',
                             style: TextStyle(
+                              color: Color(0xFFB3B3B3),
                               fontSize: 16.0,
                               fontFamily: kBodyFont,
-                              color: Color(0xFFB3B3B3),
                             ),
                           ),
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Text(
-                                getDate(widget.appointment.date ?? ''),
+                                getDate(widget.appointment.date!),
                                 style: const TextStyle(
+                                  color: Color(0xFF808080),
                                   fontSize: 16.0,
                                   fontFamily: kBodyFont,
-                                  color: Color(0xFF808080),
                                 ),
                               ),
                             ),
@@ -158,9 +158,9 @@ class _EditAppointmentState extends State<EditAppointment> {
                           const Text(
                             'Time',
                             style: TextStyle(
+                              color: Color(0xFFB3B3B3),
                               fontSize: 16.0,
                               fontFamily: kBodyFont,
-                              color: Color(0xFFB3B3B3),
                             ),
                           ),
                           Expanded(
@@ -169,9 +169,9 @@ class _EditAppointmentState extends State<EditAppointment> {
                               child: Text(
                                 getTime(widget.appointment.startTime!),
                                 style: const TextStyle(
+                                  color: Color(0xFF808080),
                                   fontSize: 16.0,
                                   fontFamily: kBodyFont,
-                                  color: Color(0xFF808080),
                                 ),
                               ),
                             ),
@@ -183,25 +183,20 @@ class _EditAppointmentState extends State<EditAppointment> {
                       padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
                       child: Row(
                         children: [
-                          Container(
+                          Image.asset(
+                            'images/icon/stethoscope-0.png',
                             width: 32.0,
                             height: 32.0,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              image: DecorationImage(
-                                image: AssetImage('images/icon/stethoscope-0.png'),
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                            fit: BoxFit.contain,
                           ),
                           const Padding(
                             padding: EdgeInsets.only(left: 15.0, right: 18.0),
                             child: Text(
                               'Specialty',
                               style: TextStyle(
+                                color: Color(0xFFB3B3B3),
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
-                                color: Color(0xFFB3B3B3),
                               ),
                             ),
                           ),
@@ -211,11 +206,11 @@ class _EditAppointmentState extends State<EditAppointment> {
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Text(
-                                  widget.appointment.specialty ?? '',
+                                  widget.appointment.specialty!,
                                   style: const TextStyle(
+                                    color: Color(0xFF808080),
                                     fontSize: 16.0,
                                     fontFamily: kBodyFont,
-                                    color: Color(0xFF808080),
                                   ),
                                   softWrap: false,
                                 ),
@@ -229,25 +224,20 @@ class _EditAppointmentState extends State<EditAppointment> {
                       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
                       child: Row(
                         children: [
-                          Container(
+                          Image.asset(
+                            'images/icon/md-0.png',
                             width: 32.0,
                             height: 32.0,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              image: DecorationImage(
-                                image: AssetImage('images/icon/md-0.png'),
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                            fit: BoxFit.contain,
                           ),
                           const Padding(
                             padding: EdgeInsets.only(left: 15.0, right: 18.0),
                             child: Text(
                               'Doctor Name',
                               style: TextStyle(
+                                color: Color(0xFFB3B3B3),
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
-                                color: Color(0xFFB3B3B3),
                               ),
                             ),
                           ),
@@ -257,11 +247,11 @@ class _EditAppointmentState extends State<EditAppointment> {
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Text(
-                                  widget.appointment.doctorName ?? '',
+                                  widget.appointment.doctorName!,
                                   style: const TextStyle(
+                                    color: Color(0xFF808080),
                                     fontSize: 16.0,
                                     fontFamily: kBodyFont,
-                                    color: Color(0xFF808080),
                                   ),
                                 ),
                               ),
@@ -282,9 +272,9 @@ class _EditAppointmentState extends State<EditAppointment> {
                     child: Text(
                       '*Please ensure all the appointment details are correct before you proceed',
                       style: TextStyle(
+                        color: Color.fromARGB(255, 88, 88, 88),
                         fontSize: 16.0,
                         fontFamily: kBodyFont,
-                        color: Color.fromARGB(255, 88, 88, 88),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -293,20 +283,25 @@ class _EditAppointmentState extends State<EditAppointment> {
                     padding: const EdgeInsets.all(15.0),
                     child: RawMaterialButton(
                       elevation: 5.0,
-                      fillColor: kAppointmentBgColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                      fillColor: kHomeBgColor,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
                       constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => UpdateAppointment(appointment: widget.appointment)));
-                      },
                       child: const Text(
                         'Update',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18.0,
                           fontFamily: kBodyFont,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                      onPressed: () {
+                        Navigator.push(context,
+                          MaterialPageRoute(
+                            builder: (context) => UpdateAppointment(appointment: widget.appointment),
+                          )
+                        );
+                      },
                     ),
                   ),
                 ],

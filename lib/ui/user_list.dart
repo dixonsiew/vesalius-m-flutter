@@ -16,7 +16,7 @@ class UserList extends StatefulWidget {
   
   static const String routeName = 'User';
 
-  const UserList({super.key});
+  const UserList({Key? key}) : super(key: key);
 
   @override
   State<UserList> createState() => _UserListState();
@@ -40,12 +40,12 @@ class _UserListState extends State<UserList> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
-      var muserDetails = await DataManager.getUserDetails();
+      NavigatorState nav = Navigator.of(context);
+      var vuserDetails = await DataManager.getUserDetails();
       var lx = await StorageDataManager.getData();
       setState(() {
         list = lx;
-        userDetails = muserDetails;
+        userDetails = vuserDetails;
         isLoading = false;
       });
       if (lx.isEmpty) {
@@ -67,7 +67,7 @@ class _UserListState extends State<UserList> {
   }
 
   void confirmDeleteUser(String email) async {
-    final nav = Navigator.of(context);
+    NavigatorState nav = Navigator.of(context);
     await StorageDataManager.delUser(email);
     var lx = await StorageDataManager.getData();
     setState(() {
@@ -88,13 +88,16 @@ class _UserListState extends State<UserList> {
   Widget getIcon(String email) {
     if (userDetails?.email == email) {
       if (!isDelete) {
-        return const Icon(Icons.check);
+        return const Icon(
+          Icons.check,
+          color: kHomeBgColor,
+        );
       }
 
       else {
-        return InkWell(
-          child: const Icon(Icons.delete),
-          onTap: () => onDeleteUser(email),
+        return IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () => onDeleteUser(email),
         );
       }
     }
@@ -105,9 +108,9 @@ class _UserListState extends State<UserList> {
       }
 
       else {
-        return InkWell(
-          child: const Icon(Icons.delete),
-          onTap: () => onDeleteUser(email),
+        return IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () => onDeleteUser(email),
         );
       }
     }
@@ -115,7 +118,6 @@ class _UserListState extends State<UserList> {
 
   Widget buildContent(String email) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -124,23 +126,32 @@ class _UserListState extends State<UserList> {
           ),
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: InkWell(
-              child: Text(
-                email,
-                style: const TextStyle(
-                  fontFamily: kBodyFont,
+      child: Material(
+        child: InkWell(
+          onTap: () {
+            Navigator.push(context,
+              MaterialPageRoute(
+                builder: (context) => SignIn(email: email)
+              )
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    email,
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                    ),
+                  ),
                 ),
-              ),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignIn(email: email)));
-              },
+                getIcon(email),
+              ],
             ),
           ),
-          getIcon(email),
-        ],
+        ),
       ),
     );
   }
@@ -160,7 +171,7 @@ class _UserListState extends State<UserList> {
         title: const Text(
           'User',
           style: TextStyle(
-            color: kPrimaryColor,
+            color: kHomeBgColor,
             fontSize: 18.0,
             fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
@@ -170,7 +181,7 @@ class _UserListState extends State<UserList> {
           IconButton(
             icon: Icon(
               isDelete ? Icons.close : Icons.settings,
-              color: isDelete ? Colors.black : kPrimaryColor,
+              color: isDelete ? Colors.black : kHomeBgColor,
             ),
             onPressed: () {
               setState(() {

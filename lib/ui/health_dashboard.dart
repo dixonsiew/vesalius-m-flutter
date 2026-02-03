@@ -1,6 +1,6 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:collection/collection.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
@@ -25,7 +25,7 @@ class HealthDashboard extends StatefulWidget {
   
   static const String routeName = 'HealthDashboard';
 
-  const HealthDashboard({super.key});
+  const HealthDashboard({Key? key}) : super(key: key);
 
   @override
   State<HealthDashboard> createState() => _HealthDashboardState();
@@ -47,8 +47,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
   int current0 = 0;
   int current1 = 0;
   bool isLoading = false;
-
-  final CarouselController _controller = CarouselController();
+  final CarouselSliderController _controller = CarouselSliderController();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey0 = GlobalKey<RefreshIndicatorState>();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey1 = GlobalKey<RefreshIndicatorState>();
 
@@ -65,7 +64,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       });
       var branchDetails = DataManager.branchDetails;
 
-      await loadVitalSignChart(branchDetails!);
+      await loadVitalSignChart(branchDetails);
       await loadLabChart(branchDetails);
     }
 
@@ -80,8 +79,8 @@ class _HealthDashboardState extends State<HealthDashboard> {
     load();
   }
 
-  Future<void> loadLabChart(UserBranch branchDetails) async {
-    var lx = await getLabHistories(branchDetails.branch!.branchId!, branchDetails.prn!);
+  Future<void> loadLabChart(UserBranch? branchDetails) async {
+    var lx = await getLabHistories(branchDetails!.branch!.branchId!, branchDetails.prn!);
     var q1 = lx.firstWhereOrNull((k) => k.labCode == 'HDL');
     var q2 = lx.firstWhereOrNull((k) => k.labCode == 'LDL');
     var q3 = lx.firstWhereOrNull((k) => k.labCode == 'Glucose');
@@ -95,8 +94,8 @@ class _HealthDashboardState extends State<HealthDashboard> {
     });
   }
 
-  Future<void> loadVitalSignChart(UserBranch branchDetails) async {
-    var lx = await getVitalSignHistories(branchDetails.branch!.branchId!, branchDetails.prn!);
+  Future<void> loadVitalSignChart(UserBranch? branchDetails) async {
+    var lx = await getVitalSignHistories(branchDetails!.branch!.branchId!, branchDetails.prn!);
     var q1 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'BP');
     var q2 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'BMI');
     var q3 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'PULSE RATE');
@@ -285,7 +284,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
                       Padding(
                         padding: const EdgeInsets.only(top: 20.0),
                         child: Image.asset(
-                          'images/icon/home-page-icon/dashboard-icon.png',
+                          'images/icon/page-header-icon/dashboard-icon.png',
                           width: 65.0,
                           height: 50.0,
                           fit: BoxFit.contain,

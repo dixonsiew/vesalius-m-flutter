@@ -12,9 +12,9 @@ class Prescription extends StatefulWidget {
   final PatientVisit patientVisit;
 
   const Prescription({
-    super.key, 
+    Key? key,
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   @override
   State<Prescription> createState() => _PrescriptionState();
@@ -115,7 +115,6 @@ class _PrescriptionState extends State<Prescription> {
             style: const TextStyle(
               color: Color(0xFF002E50),
               fontSize: 14.0,
-              fontFamily: kBodyFont,
             ),
           ),
         ),

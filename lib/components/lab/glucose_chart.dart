@@ -8,9 +8,9 @@ class GlucoseChart extends StatefulWidget {
   final List<LabData> list;
 
   const GlucoseChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<GlucoseChart> createState() => _GlucoseChartState();
@@ -33,11 +33,11 @@ class _GlucoseChartState extends State<GlucoseChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Glucose (mmol/L)',
               style: TextStyle(
@@ -62,25 +62,25 @@ class _GlucoseChartState extends State<GlucoseChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'Glucose (mmol/L)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +91,7 @@ class _GlucoseChartState extends State<GlucoseChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<GlucoseData, String>>[
+      series: <CartesianSeries<GlucoseData, String>>[
         LineSeries<GlucoseData, String>(
           dataSource: createData(),
           xValueMapper: (GlucoseData m, _) => m.date,

@@ -53,16 +53,16 @@ class Allergy {
 class AllergyGroup {
 
   String? alertType;
-  List<Allergy> list;
+  List<Allergy>? list;
 
   AllergyGroup({
     this.alertType,
-    required this.list,
+    this.list,
   });
 
   Map<String, dynamic> toJson() =>
     {
       'alertType': alertType,
-      'list': list.map((x) => x.toJson()).toList(),
+      'list': list?.map((x) => x.toJson()).toList(),
     };
 }

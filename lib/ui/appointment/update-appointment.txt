@@ -16,7 +16,7 @@ import 'specialty-list.dart';
 
 class UpdateAppointment extends StatefulWidget {
 
-  static final String routeName = 'UpdateAppointment';
+  static const String routeName = 'UpdateAppointment';
 
   final FutureAppointment appointment;
 

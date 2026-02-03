@@ -5,19 +5,28 @@ class BackBtn extends StatelessWidget {
 
   final Color color;
   final FontWeight? fontWeight;
+  final void Function()? onBack;
 
   const BackBtn({
-    super.key, 
+    Key? key,
     required this.color,
     this.fontWeight,
-  });
+    this.onBack,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.of(context).pop();
+        if (onBack == null) {
+          Navigator.pop(context);
+        }
+
+        else {
+          onBack!();
+        }
       },
+      borderRadius: BorderRadius.circular(50.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -32,7 +41,7 @@ class BackBtn extends StatelessWidget {
             style: TextStyle(
               color: color,
               fontSize: 18.0,
-              fontFamily: kBodyFont,
+              fontFamily: kTitleFont,
               fontWeight: fontWeight ?? FontWeight.normal,
             ),
           ),
