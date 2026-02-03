@@ -13,9 +13,9 @@ class BillSummary extends StatelessWidget {
   final PatientVisit patientVisit;
 
   const BillSummary({
-    super.key, 
+    Key? key,
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   List<Widget> buildBillContent() {
     List<Widget> lx = [];
@@ -124,13 +124,13 @@ class BillInfo extends StatelessWidget {
   final NovaBill novaBill;
 
   const BillInfo({
-    super.key, 
+    Key? key,
     required this.novaBill,
-  });
+  }) : super(key: key);
 
-  String getAmount() {
-    double a = novaBill.amount!.toDouble();
-    return a.toStringAsFixed(2);
+  String? getAmount() {
+    double? a = novaBill.amount?.toDouble();
+    return a?.toStringAsFixed(2);
   }
 
   String getPayer() {
@@ -156,11 +156,7 @@ class BillInfo extends StatelessWidget {
     return formatDate(dt, [h, ':', nn, ' ', am]);
   }
 
-  String? getBillDate() {
-    if (novaBill.billDate == null) {
-      return null;
-    }
-
+  String getBillDate() {
     DateTime dt = DateTime.parse(novaBill.billDate!);
     return formatDate(dt.toLocal(), [dd, ' ', M, ' ', yyyy]);
   }
@@ -170,70 +166,50 @@ class BillInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            SizedBox(height: 3.0),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(top: 15.0, left: 30.0),
-                child: Text(
-                  'Invoice No',
-                  style: TextStyle(
-                    color: Color(0xFF9E9E9E),
-                    fontSize: 14.0,
-                    fontFamily: kBodyFont,
-                  ),
-                ),
-              ),
+        const SizedBox(height: 3.0),
+        const Padding(
+          padding: EdgeInsets.only(top: 15.0, left: 30.0),
+          child: Text(
+            'Invoice No',
+            style: TextStyle(
+              color: Color(0xFF9E9E9E),
+              fontSize: 14.0,
+              fontFamily: kBodyFont,
             ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(top: 15.0),
-                child: Text(
-                  'Amount',
-                  style: TextStyle(
-                    color: Color(0xFF9E9E9E),
-                    fontSize: 14.0,
-                    fontFamily: kBodyFont,
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 15.0, left: 30.0),
-                child: Text(
-                  novaBill.invoiceNumber ?? '',
-                  style: const TextStyle(
-                    color: Color(0xFF777777),
-                    fontSize: 16.0,
-                    fontFamily: kBodyFont,
-                  ),
-                ),
-              ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15.0, left: 30.0),
+          child: Text(
+            novaBill.invoiceNumber ?? '',
+            style: const TextStyle(
+              color: Color(0xFF777777),
+              fontSize: 16.0,
+              fontFamily: kBodyFont,
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 15.0),
-                child: Text(
-                  "RM ${getAmount()}",
-                  style: const TextStyle(
-                    color: Color(0xFF777777),
-                    fontSize: 16.0,
-                    fontFamily: kBodyFont,
-                  ),
-                ),
-              ),
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.only(top: 40.0, left: 30.0),
+          child: Text(
+            'Amount',
+            style: TextStyle(
+              color: Color(0xFF9E9E9E),
+              fontSize: 14.0,
+              fontFamily: kBodyFont,
             ),
-          ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15.0, left: 30.0),
+          child: Text(
+            "RM ${getAmount()}",
+            style: const TextStyle(
+              color: Color(0xFF777777),
+              fontSize: 16.0,
+              fontFamily: kBodyFont,
+            ),
+          ),
         ),
         const Padding(
           padding: EdgeInsets.only(top: 40.0, left: 30.0),
@@ -253,7 +229,6 @@ class BillInfo extends StatelessWidget {
             style: const TextStyle(
               color: Color(0xFF777777),
               fontSize: 16.0,
-              fontFamily: kBodyFont,
             ),
           ),
         ),

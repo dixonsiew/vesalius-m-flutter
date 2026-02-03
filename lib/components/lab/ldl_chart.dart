@@ -8,9 +8,9 @@ class LDLChart extends StatefulWidget {
   final List<LabData> list;
 
   const LDLChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<LDLChart> createState() => _LDLChartState();
@@ -33,11 +33,11 @@ class _LDLChartState extends State<LDLChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'LDL (mmol/L)',
               style: TextStyle(
@@ -62,25 +62,25 @@ class _LDLChartState extends State<LDLChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'LDL (mmol/L)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +91,7 @@ class _LDLChartState extends State<LDLChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<LDLData, String>>[
+      series: <CartesianSeries<LDLData, String>>[
         LineSeries<LDLData, String>(
           dataSource: createData(),
           xValueMapper: (LDLData m, _) => m.date,

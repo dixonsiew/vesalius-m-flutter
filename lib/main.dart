@@ -3,22 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:vesalius_m_flutter/models/appointment_model.dart';
+import 'package:vesalius_m_flutter/models/doctor_model.dart';
 
 import 'ui/allergies.dart';
 import 'ui/appointment.dart';
-import 'ui/appointment/add_appointment.dart';
-import 'ui/appointment/appointment_free_slot.dart';
-import 'ui/appointment/confirm_appointment.dart';
 import 'ui/change_password.dart';
 import 'ui/doctor.dart';
 import 'ui/doctor/doctor_bookmark.dart';
-import 'ui/doctor/doctor_detail.dart';
 import 'ui/first_time_login.dart';
 import 'ui/forgot_password.dart';
 import 'ui/health_dashboard.dart';
 import 'ui/home.dart';
 import 'ui/hospital.dart';
-import 'ui/hospital/hospital_bookmark.dart';
 import 'ui/medical_history.dart';
 import 'ui/medical-history/vital_signs.dart';
 import 'ui/profile.dart';
@@ -32,21 +28,21 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
-      statusBarBrightness: Brightness.light,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarColor: Colors.transparent,
+      statusBarBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
     ));
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AppointmentModel()),
+        ChangeNotifierProvider(create: (context) => DoctorModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -86,9 +82,7 @@ class MyApp extends StatelessWidget {
           ForgotPassword.routeName: (context) => const ForgotPassword(),
           Doctor.routeName: (context) => const Doctor(),
           DoctorBookmark.routeName: (context) => const DoctorBookmark(),
-          DoctorDetail.routeName: (context) => const DoctorDetail(),
           Hospital.routeName: (context) => const Hospital(),
-          HospitalBookmark.routeName: (context) => const HospitalBookmark(),
           UserList.routeName: (context) => const UserList(),
           MedicalHistory.routeName: (context) => const MedicalHistory(),
           VitalSigns.routeName: (context) => const VitalSigns(),
@@ -96,11 +90,16 @@ class MyApp extends StatelessWidget {
           Allergies.routeName: (context) => const Allergies(),
           HealthDashboard.routeName: (context) => const HealthDashboard(),
           Appointment.routeName: (context) => const Appointment(),
-          AddAppointment.routeName: (context) => const AddAppointment(),
-          AppointmentFreeSlot.routeName: (context) => const AppointmentFreeSlot(),
-          ConfirmAppointment.routeName: (context) => const ConfirmAppointment(),
           ChangePassword.routeName: (context) => const ChangePassword(),
           FirstTimeLogin.routeName: (context) => const FirstTimeLogin(),
+        },
+        builder: (context, child) {
+          final mediaQueryData = MediaQuery.of(context);
+          final scale = mediaQueryData.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.0);
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: scale),
+            child: child!,
+          );
         },
       ),
     );

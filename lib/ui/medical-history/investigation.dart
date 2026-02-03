@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html_v3/flutter_html.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/components/data_label.dart';
 import 'package:vesalius_m_flutter/components/medical_info.dart';
@@ -14,9 +14,9 @@ class Investigation extends StatefulWidget {
   final PatientVisit patientVisit;
 
   const Investigation({
-    super.key, 
+    Key? key,
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   @override
   State<Investigation> createState() => _InvestigationState();
@@ -37,7 +37,7 @@ class _InvestigationState extends State<Investigation> {
     var lx = widget.patientVisit.novaVisitInvestigationDetailList ?? [];
     for (int i = 0; i < lx.length; i++) {
       final o = lx[i];
-      String s = o.investigationType!.toLowerCase();
+      String s = o.investigationType?.toLowerCase() ?? '';
       if (map.containsKey(s)) {
         var ls = map[s]!;
         ls.add(o);
@@ -94,7 +94,7 @@ class _InvestigationState extends State<Investigation> {
           data: o.resultValue == null && o.resultClob == null ? 'Result in PDF format. Unable to view now' : o.resultClob,
           style: {
             'html': Style(
-              fontSize: const FontSize(16.0, units: 'pt'),
+              fontSize: FontSize(16.0),
               fontFamily: kBodyFont,
             ),
           },
@@ -133,7 +133,7 @@ class _InvestigationState extends State<Investigation> {
           data: o.resultValue == null && o.resultClob == null ? 'Result in PDF format. Unable to view now' : o.resultClob,
           style: {
             'html': Style(
-              fontSize: const FontSize(16.0, units: 'pt'),
+              fontSize: FontSize(16.0),
               fontFamily: kBodyFont,
             ),
           },
@@ -241,10 +241,10 @@ class _InvestigationState extends State<Investigation> {
           if (x.resultClob != null) {
             lk.add(
               Html(
-                data: x.resultClob,
+                data: x.resultClob ?? '',
                 style: {
                   'html': Style(
-                    fontSize: const FontSize(16.0, units: 'pt'),
+                    fontSize: FontSize(16.0),
                     fontFamily: kBodyFont,
                   ),
                 },

@@ -8,9 +8,9 @@ class HemoglobinChart extends StatefulWidget {
   final List<LabData> list;
 
   const HemoglobinChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<HemoglobinChart> createState() => _HemoglobinChartState();
@@ -33,13 +33,13 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
-              'Hemoglobin (mmol/L)',
+              'Hemoglobin (g/dL)',
               style: TextStyle(
                 fontSize: 16.0,
                 fontFamily: kTitleFont,
@@ -62,25 +62,25 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'Hemoglobin (mmol/L)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +91,7 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<HemoglobinData, String>>[
+      series: <CartesianSeries<HemoglobinData, String>>[
         LineSeries<HemoglobinData, String>(
           dataSource: createData(),
           xValueMapper: (HemoglobinData m, _) => m.date,

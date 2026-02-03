@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_calendar_carousel/classes/marked_date.dart';
-import 'package:flutter_calendar_carousel/classes/multiple_marked_dates.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:vesalius_m_flutter/components/app_shared.dart';
+import 'package:vesalius_m_flutter/components/back_btn.dart';
+
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
@@ -20,12 +20,12 @@ class AddAppointment extends StatefulWidget {
 
   static const String routeName = 'AddAppointment';
 
-  final DoctorInfo? doctorInfo;
+  final DoctorInfo doctorInfo;
 
   const AddAppointment({
-    super.key, 
-    this.doctorInfo,
-  });
+    Key? key,
+    required this.doctorInfo,
+  }) : super(key: key);
 
   @override
   State<AddAppointment> createState() => _AddAppointmentState();
@@ -34,8 +34,8 @@ class AddAppointment extends StatefulWidget {
 class _AddAppointmentState extends State<AddAppointment> {
 
   String? selectedDoctorMcr;
-  String selectedSpecialtyCode = '';
-  String selectedSpecialtyName = '';
+  String? selectedSpecialtyCode = '';
+  String? selectedSpecialtyName = '';
   String? selectedDoctorName = 'Select Doctor';
   String selectedCaseType = 'New Case';
   DateTime? selectedDate;
@@ -53,19 +53,17 @@ class _AddAppointmentState extends State<AddAppointment> {
       selectedDate = getMinDate();
     });
 
-    if (widget.doctorInfo != null) {
-      final o = widget.doctorInfo;
-      var doctorSpecialty = o?.doctorSpecialty ?? [];
-      var specialty = doctorSpecialty.isEmpty ? null : doctorSpecialty.first.specialty;
-      setState(() {
-        selectedDoctorMcr = o?.mcr;
-        selectedDoctorName = o?.name;
-        if (specialty != null) {
-          selectedSpecialtyCode = specialty.specialtyCode!;
-          selectedSpecialtyName = specialty.specialtyDesc!;
-        }
-      });
-    }
+    final o = widget.doctorInfo;
+    var doctorSpecialty = o.doctorSpecialty ?? [];
+    var specialty = doctorSpecialty.isEmpty ? null : doctorSpecialty.first.specialty;
+    setState(() {
+      selectedDoctorMcr = o.mcr;
+      selectedDoctorName = o.name;
+      if (specialty != null) {
+        selectedSpecialtyCode = specialty.specialtyCode;
+        selectedSpecialtyName = specialty.specialtyDesc;
+      }
+    });
   }
 
   String getSelectedTime() {
@@ -103,7 +101,7 @@ class _AddAppointmentState extends State<AddAppointment> {
   void onCheckAvailability() async {
     final formatDate = DateFormat('d-MMM-y');
     String dts = '06:00';
-    final dlg = CustomDialog.of(context);
+    CustomDialog dlg = CustomDialog.of(context);
 
     if (selectedTime != null) {
       final now = DateTime.now();
@@ -123,7 +121,7 @@ class _AddAppointmentState extends State<AddAppointment> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
+      NavigatorState nav = Navigator.of(context);
       var branchDetails = DataManager.branchDetails;
       var lx = await getVesaliusNextAvailableSlot(branchDetails!.branch!.branchId!, branchDetails.prn!, m);
       setState(() {
@@ -137,10 +135,10 @@ class _AddAppointmentState extends State<AddAppointment> {
         nav.push(
           MaterialPageRoute(
             builder: (context) => AppointmentFreeSlot(
-              selectedDate: selectedDate,
+              selectedDate: selectedDate!,
               selectedTime: selectedTime,
-              selectedDoctorName: selectedDoctorName,
-              selectedSpecialtyName: selectedSpecialtyName,
+              selectedDoctorName: selectedDoctorName!,
+              selectedSpecialtyName: selectedSpecialtyName!,
               selectedCaseType: getSelectedCaseType(),
               isUpdate: false,
               list: lx,
@@ -160,7 +158,7 @@ class _AddAppointmentState extends State<AddAppointment> {
 
   void showVisitTypes() async {
     String currCaseType = selectedCaseType;
-    String? s = await showCupertinoDialog(
+    String s = await showCupertinoDialog(
       context: context, 
       builder: (_) => StatefulBuilder(
         builder: (context, setState) => CupertinoAlertDialog(
@@ -201,7 +199,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                             child: Text(
                               'New Case',
                               style: TextStyle(
-                                color: currCaseType == 'New Case' ? kPrimaryColor : Colors.black,
+                                color: currCaseType == 'New Case' ? kHomeBgColor : Colors.black,
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
                               ),
@@ -211,7 +209,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                           currCaseType == 'New Case' ?
                           const Icon(
                             Icons.check,
-                            color: kPrimaryColor,
+                            color: kHomeBgColor,
                             size: 24.0,
                           ) :
                           const SizedBox(width: 24.0, height: 24.0),
@@ -235,7 +233,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                             child: Text(
                               'Follow-up',
                               style: TextStyle(
-                                color: currCaseType == 'Follow-up' ? kPrimaryColor : Colors.black,
+                                color: currCaseType == 'Follow-up' ? kHomeBgColor : Colors.black,
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
                               ),
@@ -245,7 +243,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                           currCaseType == 'Follow-up' ?
                           const Icon(
                             Icons.check,
-                            color: kPrimaryColor,
+                            color: kHomeBgColor,
                             size: 24.0,
                           ) :
                           const SizedBox(width: 24.0, height: 24.0),
@@ -262,39 +260,37 @@ class _AddAppointmentState extends State<AddAppointment> {
               child: const Text(
                 'Dismiss',
                 style: TextStyle(
-                  color: kPrimaryColor,
+                  color: kHomeBgColor,
                   fontSize: 18.0,
                   fontFamily: kBodyFont,
                 ),
               ), 
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.pop(context),
             ),
             CupertinoButton(
               child: const Text(
-                'Okay',
+                'Confirm',
                 style: TextStyle(
-                  color: kPrimaryColor,
+                  color: kHomeBgColor,
                   fontSize: 18.0,
                   fontFamily: kBodyFont,
                   fontWeight: FontWeight.bold,
                 ),
               ), 
-              onPressed: () => Navigator.of(context).pop(currCaseType),
+              onPressed: () => Navigator.pop(context, currCaseType),
             ),
           ],
         ),
       ),
     );
-    if (s != null) {
-      setState(() {
-        selectedCaseType = s;
-      });
-    }
+    setState(() {
+      selectedCaseType = s;
+    });
   }
 
   void showVisitTypesBak() async {
     String currCaseType = selectedCaseType;
-    String? s = await showDialog(
+    String s = await showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -403,7 +399,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                         Expanded(
                           child: TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              Navigator.pop(context);
                             },
                             child: const Text(
                               'Dismiss',
@@ -422,7 +418,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                         Expanded(
                           child: TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop(currCaseType);
+                              Navigator.pop(context, currCaseType);
                             },
                             child: const Text(
                               'Okay',
@@ -444,11 +440,9 @@ class _AddAppointmentState extends State<AddAppointment> {
         );
       }
     );
-    if (s != null) {
-      setState(() {
-        selectedCaseType = s;
-      });
-    }
+    setState(() {
+      selectedCaseType = s;
+    });
   }
 
   DateTime getMinDate() {
@@ -465,47 +459,38 @@ class _AddAppointmentState extends State<AddAppointment> {
 
   CalendarCarousel<Event> getCalendar() {
     final minDate = getMinDate();
-    List<MarkedDate> ld = [];
-    ld.addAll(
-      [
-        MarkedDate(textStyle: const TextStyle(color: Colors.white), color: const Color(0xFFFF5050), date: DateTime(2022, 1, 24)),
-        MarkedDate(textStyle: const TextStyle(color: Colors.white), color: const Color(0xFFFF5050), date: DateTime(2022, 1, 26)),
-      ]
-    );
-    MultipleMarkedDates mx = MultipleMarkedDates(markedDates: ld);
 
     final calendarCarousel = CalendarCarousel<Event>(
       height: 420.0,
-      multipleMarkedDates: mx,
-      prevDaysTextStyle: const TextStyle(color: Color(0xFFC0BFBF)),
+      staticSixWeekFormat: true,
+      showOnlyCurrentMonthDate: true,
       headerTextStyle: const TextStyle(
         fontSize: 16.0,
-        fontFamily: kBodyFont,
-        color: Color(0xFFA41D2A),
+        color: Color(0xFF8C8C8C),
       ),
-      selectedDayBorderColor: kAppointmentBgColor,
-      selectedDayButtonColor: const Color(0xFF002E50),
-      dayButtonColor: const Color(0xFFE1EDFF),
+      todayBorderColor: kAppointmentBgColor,
+      todayButtonColor: kAppointmentBgColor,
+      selectedDayBorderColor: kHomeBgColor,
+      selectedDayButtonColor: kHomeBgColor,
       daysTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: Color(0xFF4E4E4E),
+        color: Colors.black,
       ),
-      todayButtonColor: const Color(0xFF44A1E4),
       todayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: Colors.white,
       ),
       selectedDayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: Colors.white,
       ),
       weekdayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
+        color: kHomeBgColor,
       ),
       weekendTextStyle: const TextStyle(
         fontFamily: kBodyFont,
+        color: kHomeBgColor,
       ),
-      iconColor: const Color(0xFFA41D2A),
+      iconColor: Colors.black,
       daysHaveCircularBorder: false,
       thisMonthDayBorderColor: const Color(0xFF8C8C8C),
       selectedDateTime: selectedDate ?? minDate,
@@ -524,7 +509,7 @@ class _AddAppointmentState extends State<AddAppointment> {
   }
 
   void onSelectTime() async {
-    var mselectedTime = await showTimePicker(
+    var vselectedTime = await showTimePicker(
       initialTime: selectedTime ?? TimeOfDay.now(),
       initialEntryMode: TimePickerEntryMode.dial,
       context: context,
@@ -534,7 +519,7 @@ class _AddAppointmentState extends State<AddAppointment> {
           child: Theme(
             data: Theme.of(context).copyWith(
               colorScheme: const ColorScheme.light(
-                primary: kAppointmentBgColor,
+                primary: kHomeBgColor,
               ),
               timePickerTheme: TimePickerTheme.of(context).copyWith(
                 helpTextStyle: const TextStyle(
@@ -554,9 +539,9 @@ class _AddAppointmentState extends State<AddAppointment> {
         );
       }
     );
-    if (mselectedTime != null) {
+    if (vselectedTime != null) {
       setState(() {
-        selectedTime = mselectedTime;
+        selectedTime = vselectedTime;
       });
     }
   }
@@ -566,31 +551,22 @@ class _AddAppointmentState extends State<AddAppointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
+        leadingWidth: 100.0,
+        leading: const BackBtn(color: Color(0xFF565758)),
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Make Appointment',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF565758),
             fontSize: 18.0,
             fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.close,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            }
-          ),
-        ],
       ),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
@@ -598,133 +574,19 @@ class _AddAppointmentState extends State<AddAppointment> {
         child: SafeArea(
           child: isLoading ? Container() : Scrollbar(
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
-                        child: Container(
-                          width: 32.0,
-                          height: 32.0,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.rectangle,
-                            image: DecorationImage(
-                              image: AssetImage('images/icon/stethoscope-0.png'),
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Specialty',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: kBodyFont,
-                                  color: Color(0xFF8C8C8C),
-                                ),
-                              ),
-                              Text(
-                                selectedSpecialtyName,
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF8C8C8C),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      /* Padding(
-                        padding: EdgeInsets.only(right: 10.0, top: 20.0),
-                        child: Icon(
-                          Icons.arrow_forward_ios_outlined,
-                          color: Color(0xFF8C8C8C),
-                          size: 32.0,
-                        ),
-                      ), */
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
-                        child: Container(
-                          width: 32.0,
-                          height: 32.0,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.rectangle,
-                            image: DecorationImage(
-                              image: AssetImage('images/icon/md-0.png'),
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Doctor Name',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: kBodyFont,
-                                  color: Color(0xFF8C8C8C),
-                                ),
-                              ),
-                              Text(
-                                selectedDoctorName ?? '',
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: kBodyFont,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF8C8C8C),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      /* Padding(
-                        padding: EdgeInsets.only(right: 10.0, top: 20.0),
-                        child: Icon(
-                          Icons.arrow_forward_ios_outlined,
-                          color: Color(0xFF8C8C8C),
-                          size: 32.0,
-                        ),
-                      ), */
-                    ],
-                  ),
-                  InkWell(
-                    onTap: () {
-                      showVisitTypes();
-                    },
-                    child: Row(
+              child: Container(
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    Row(
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
-                          child: Container(
+                          child: Image.asset(
+                            'images/icon/stethoscope-0.png',
                             width: 32.0,
                             height: 32.0,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              image: DecorationImage(
-                                image: AssetImage('images/icon/visit-0.png'),
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                            fit: BoxFit.contain,
                           ),
                         ),
                         Expanded(
@@ -735,18 +597,235 @@ class _AddAppointmentState extends State<AddAppointment> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Type of Visit',
+                                  'Specialty',
                                   style: TextStyle(
+                                    color: Color(0xFF8C8C8C),
                                     fontSize: 16.0,
                                     fontFamily: kBodyFont,
-                                    color: Color(0xFF8C8C8C),
                                   ),
                                 ),
                                 Text(
-                                  selectedCaseType,
+                                  selectedSpecialtyName ?? '',
                                   style: const TextStyle(
+                                    color: Color(0xFF8C8C8C),
                                     fontSize: 16.0,
                                     fontFamily: kBodyFont,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        /* Padding(
+                          padding: EdgeInsets.only(right: 10.0, top: 20.0),
+                          child: Icon(
+                            Icons.arrow_forward_ios_outlined,
+                            color: Color(0xFF8C8C8C),
+                            size: 32.0,
+                          ),
+                        ), */
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
+                          child: Image.asset(
+                            'images/icon/md-0.png',
+                            width: 32.0,
+                            height: 32.0,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 20.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Doctor Name',
+                                  style: TextStyle(
+                                    color: Color(0xFF8C8C8C),
+                                    fontSize: 16.0,
+                                    fontFamily: kBodyFont,
+                                  ),
+                                ),
+                                Text(
+                                  selectedDoctorName ?? '',
+                                  style: const TextStyle(
+                                    color: Color(0xFF8C8C8C),
+                                    fontSize: 16.0,
+                                    fontFamily: kBodyFont,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        /* Padding(
+                          padding: EdgeInsets.only(right: 10.0, top: 20.0),
+                          child: Icon(
+                            Icons.arrow_forward_ios_outlined,
+                            color: Color(0xFF8C8C8C),
+                            size: 32.0,
+                          ),
+                        ), */
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () {
+                        showVisitTypes();
+                      },
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
+                            child: Image.asset(
+                              'images/icon/visit-0.png',
+                              width: 32.0,
+                              height: 32.0,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 20.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Type of Visit',
+                                    style: TextStyle(
+                                      color: Color(0xFF8C8C8C),
+                                      fontSize: 16.0,
+                                      fontFamily: kBodyFont, 
+                                    ),
+                                  ),
+                                  Text(
+                                    selectedCaseType,
+                                    style: const TextStyle(
+                                      color: Color(0xFF8C8C8C),
+                                      fontSize: 16.0,
+                                      fontFamily: kBodyFont,
+                                      fontWeight: FontWeight.bold,     
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(right: 10.0, top: 20.0),
+                            child: Icon(
+                              Icons.arrow_forward_ios_outlined,
+                              color: Color(0xFF8C8C8C),
+                              size: 32.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 15.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 25.0,
+                            height: 1.0,
+                            color: const Color(0xFF8C8C8C),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                            child: Text(
+                              'Select a preferred date',
+                              style: TextStyle(
+                                color: Color(0xFF8C8C8C),
+                                fontSize: 16.0,
+                                fontFamily: kBodyFont,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1.0,
+                              color: const Color(0xFF8C8C8C),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+                      child: getCalendar(),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 10.0, bottom: 20.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 25.0,
+                            height: 1.0,
+                            color: const Color(0xFF8C8C8C),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                            child: Text(
+                              'Select a preferred time',
+                              style: TextStyle(
+                                color: Color(0xFF8C8C8C),
+                                fontSize: 16.0,
+                                fontFamily: kBodyFont,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1.0,
+                              color: const Color(0xFF8C8C8C),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        onSelectTime();
+                      },
+                      child: Row(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 25.0, right: 15.0),
+                            child: Icon(
+                              Icons.schedule_outlined,
+                              color: Color(0xFF8C8C8C),
+                              size: 40.0,
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Time',
+                                  style: TextStyle(
+                                    color: Color(0xFF8C8C8C),
+                                    fontSize: 16.0,
+                                    fontFamily: kBodyFont,
+                                  ),
+                                ),
+                                Text(
+                                  getSelectedTime(),
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF8C8C8C),
                                   ),
@@ -754,190 +833,74 @@ class _AddAppointmentState extends State<AddAppointment> {
                               ],
                             ),
                           ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(right: 10.0, top: 20.0),
-                          child: Icon(
-                            Icons.arrow_forward_ios_outlined,
-                            color: Color(0xFF8C8C8C),
-                            size: 32.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 15.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 25.0,
-                          height: 1.0,
-                          color: const Color(0xFF8C8C8C),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                          child: Text(
-                            'Select a preferred date',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontFamily: kBodyFont,
+                          const Padding(
+                            padding: EdgeInsets.only(right: 10.0),
+                            child: Icon(
+                              Icons.arrow_forward_ios_outlined,
                               color: Color(0xFF8C8C8C),
+                              size: 32.0,
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            height: 1.0,
-                            color: const Color(0xFF8C8C8C),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-                    child: getCalendar(),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 10.0, bottom: 20.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 25.0,
-                          height: 1.0,
-                          color: const Color(0xFF8C8C8C),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                          child: Text(
-                            'Select a preferred time',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontFamily: kBodyFont,
-                              color: Color(0xFF8C8C8C),
-                            ),
+                    // Padding(
+                    //   padding: EdgeInsets.only(top: 30.0, bottom: 30.0, right: 15.0),
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.end,
+                    //     children: [
+                    //       SizedBox(
+                    //         height: 40.0,
+                    //         child: OutlinedButton(
+                    //           onPressed: () {
+                    //             setState(() {
+                    //               selectedCaseType = 'New Case';
+                    //               selectedDate = null;
+                    //               selectedTime = null;
+                    //             });
+                    //           },
+                    //           child: Text(
+                    //             'Reset',
+                    //             style: TextStyle(
+                    //               fontSize: 16.0,
+                    //               color: kAppointmentBgColor,
+                    //             ),
+                    //           ),
+                    //           style: OutlinedButton.styleFrom(
+                    //             primary: kAppointmentBgColor,
+                    //             backgroundColor: Colors.white,
+                    //             side: BorderSide(
+                    //               color: kAppointmentBgColor,
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       //SizedBox(width: 20.0),
+                    //     ],
+                    //   ),
+                    // ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0, bottom: 15.0),
+                      child: RawMaterialButton(
+                        elevation: 5.0,
+                        fillColor: kHomeBgColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+                        onPressed: shouldDisableCheckAvailability ? null : onCheckAvailability,
+                        child: const Text(
+                          'Check Available Slot',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18.0,
+                            fontFamily: kBodyFont,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            height: 1.0,
-                            color: const Color(0xFF8C8C8C),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      onSelectTime();
-                    },
-                    child: Row(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(left: 25.0, right: 15.0),
-                          child: Icon(
-                            Icons.schedule_outlined,
-                            color: Color(0xFF8C8C8C),
-                            size: 40.0,
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Time',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: kBodyFont,
-                                  color: Color(0xFF8C8C8C),
-                                ),
-                              ),
-                              Text(
-                                getSelectedTime(),
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: kBodyFont,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF8C8C8C),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(right: 10.0),
-                          child: Icon(
-                            Icons.arrow_forward_ios_outlined,
-                            color: Color(0xFF8C8C8C),
-                            size: 32.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Padding(
-                  //   padding: EdgeInsets.only(top: 30.0, bottom: 30.0, right: 15.0),
-                  //   child: Row(
-                  //     mainAxisAlignment: MainAxisAlignment.end,
-                  //     children: [
-                  //       SizedBox(
-                  //         height: 40.0,
-                  //         child: OutlinedButton(
-                  //           onPressed: () {
-                  //             setState(() {
-                  //               selectedCaseType = 'New Case';
-                  //               selectedDate = null;
-                  //               selectedTime = null;
-                  //             });
-                  //           },
-                  //           child: Text(
-                  //             'Reset',
-                  //             style: TextStyle(
-                  //               fontSize: 16.0,
-                  //               color: kAppointmentBgColor,
-                  //             ),
-                  //           ),
-                  //           style: OutlinedButton.styleFrom(
-                  //             primary: kAppointmentBgColor,
-                  //             backgroundColor: Colors.white,
-                  //             side: BorderSide(
-                  //               color: kAppointmentBgColor,
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       ),
-                  //       //SizedBox(width: 20.0),
-                  //     ],
-                  //   ),
-                  // ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0, bottom: 15.0),
-                    child: RawMaterialButton(
-                      elevation: 5.0,
-                      fillColor: kAppointmentBgColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                      constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                      onPressed: shouldDisableCheckAvailability ? null : () {
-                        onCheckAvailability();
-                      },
-                      child: const Text(
-                        'Check Available Slot',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

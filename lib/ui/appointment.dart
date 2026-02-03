@@ -15,7 +15,7 @@ class Appointment extends StatefulWidget {
 
   static const String routeName = 'Appointment';
 
-  const Appointment({super.key});
+  const Appointment({Key? key}) : super(key: key);
 
   @override
   State<Appointment> createState() => _AppointmentState();
@@ -25,7 +25,6 @@ class _AppointmentState extends State<Appointment> {
 
   List<FutureAppointment> list = [];
   bool isLoading = false;
-
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
@@ -79,7 +78,7 @@ class _AppointmentState extends State<Appointment> {
         return AppointmentItem(
           date: getDate(o.date!),
           startTime: getTime(o.startTime!),
-          doctorName: o.doctorName!,
+          doctorName: o.doctorName ?? '',
           appointment: o,
           load: load,
         );
@@ -95,23 +94,24 @@ class _AppointmentState extends State<Appointment> {
 
   Widget buildMakeAppointment() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
       child: RawMaterialButton(
         elevation: 5.0,
-        fillColor: kAppointmentBgColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+        fillColor: kHomeBgColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
         constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-        onPressed: () {
-          Navigator.of(context).pushNamed(Doctor.routeName);
-        },
         child: const Text(
           'Make Appointment',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18.0,
             fontFamily: kBodyFont,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        onPressed: () {
+          Navigator.pushNamed(context, Doctor.routeName);
+        },
       ),
     );
   }
@@ -153,7 +153,7 @@ class _AppointmentState extends State<Appointment> {
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -188,13 +188,32 @@ class _AppointmentState extends State<Appointment> {
             child: Text(
               'Schedule your Appointment',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xFF565758),
                 fontSize: 20.0,
                 fontFamily: kTitleFont,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget buildLayer2xx() {
+    var padding = MediaQuery.of(context).padding;
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom - 70.0,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Flexible(
+              child: buildContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -237,15 +256,15 @@ class _AppointmentState extends State<Appointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kAppointmentBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kAppointmentBgColor,
         automaticallyImplyLeading: false,
         leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
+        leading: const BackBtn(color: Color(0xFF565758)),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: kAppointmentBgColor,
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
@@ -275,19 +294,23 @@ class AppointmentItem extends StatelessWidget {
   final void Function() load;
 
   const AppointmentItem({
-    super.key, 
+    Key? key,
     required this.date,
     required this.startTime,
     required this.doctorName,
     required this.appointment,
     required this.load,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        final b = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditAppointment(appointment: appointment)));
+        final b = await Navigator.push(context,
+          MaterialPageRoute(
+            builder: (context) => EditAppointment(appointment: appointment),
+          )
+        );
         if (b == true) {
           load();
         }
@@ -338,7 +361,7 @@ class AppointmentItem extends StatelessWidget {
                 ),
                 const Icon(
                   Icons.arrow_forward_ios_outlined,
-                  color: Colors.black,
+                  color: Color(0xFF565758),
                   size: 18.0,
                 ),
               ],

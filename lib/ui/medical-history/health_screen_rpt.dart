@@ -22,9 +22,9 @@ class HealthScreenRpt extends StatelessWidget {
   final PatientVisit patientVisit;
 
   const HealthScreenRpt({
-    super.key, 
+    Key? key,
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   Widget buildContent() {
     return Padding(
@@ -99,9 +99,9 @@ class HealthScreenRptItem extends StatefulWidget {
   final NovaHealthScreeningRpt novaHealthScreeningRpt;
 
   const HealthScreenRptItem({
-    super.key, 
+    Key? key,
     required this.novaHealthScreeningRpt,
-  });
+  }) : super(key: key);
 
   @override
   State<HealthScreenRptItem> createState() => _HealthScreenRptItemState();
@@ -112,11 +112,7 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
   bool isDownloading = false;
   double? percent;
 
-  String? getDate() {
-    if (widget.novaHealthScreeningRpt.reportDate == null) {
-      return null;
-    }
-
+  String getDate() {
     DateTime dt = DateFormat('y-M-d').parse(widget.novaHealthScreeningRpt.reportDate!.substring(0, 10));
     return formatDate(dt, [dd, ' ', M, ' ', yyyy]);
   }
@@ -158,7 +154,7 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
       const SizedBox(height: 5.0),
       DataLabel(
         label: 'Report Date: ',
-        data: getDate() ?? '-',
+        data: getDate(),
       ),
       const SizedBox(height: 5.0),
       RawMaterialButton(

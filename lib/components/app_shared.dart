@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:vesalius_m_flutter/constants.dart';
+
+import '../constants.dart';
 
 class AppScalingText extends StatelessWidget {
 
   final String text;
 
-  const AppScalingText(this.text, {super.key});
+  const AppScalingText(this.text, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
