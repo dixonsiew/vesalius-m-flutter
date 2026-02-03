@@ -1,0 +1,5 @@
+appid: defb9cbc-dc19-4619-97ce-da34b1627f4b
+key: os_v2_app_335zzpg4dfdbtf6o3i2lcyt7jnf6nkxx4pjev45r3mvnunu43gjp6iofhqnsnofkvxo6msooqg7v5yj7a5nbltrerrkox3nmaohc6ei
+
+https://documentation.onesignal.com/docs/ios-p12-generate-certificates#step-3-generate-push-certificate
+https://testflight.apple.com/join/0WgSF7EN
