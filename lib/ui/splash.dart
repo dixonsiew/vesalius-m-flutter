@@ -8,10 +8,8 @@ class Splash extends StatefulWidget {
 
   static const String routeName = 'Splash';
 
-  const Splash({super.key});
-
   @override
-  State<Splash> createState() => _SplashState();
+  _SplashState createState() => _SplashState();
 }
 
 class _SplashState extends State<Splash> {
@@ -23,19 +21,19 @@ class _SplashState extends State<Splash> {
   }
 
   Future<Timer> startTime() async {
-    var duration = const Duration(seconds: 5);
-    return Timer(duration, navigationPage);
+    var _duration = new Duration(seconds: 5);
+    return Timer(_duration, navigationPage);
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacementNamed(Home.routeName);
+    Navigator.pushReplacementNamed(context, Home.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('images/imgs/splash.png'),
             fit: BoxFit.cover,

@@ -2,15 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:vesalius_m_flutter/constants.dart';
-import 'package:vesalius_m_flutter/models/auth_manager.dart';
-import 'package:vesalius_m_flutter/models/doctor_data.dart';
-import 'package:vesalius_m_flutter/ui/appointment/add_appointment.dart';
-import 'package:vesalius_m_flutter/ui/doctor/doctor_detail.dart';
+import 'package:vesalius_m_flutter/models/auth-manager.dart';
+import 'package:vesalius_m_flutter/models/doctor-data.dart';
+import 'package:vesalius_m_flutter/ui/appointment/add-appointment.dart';
+import 'package:vesalius_m_flutter/ui/doctor/doctor-detail.dart';
 
 class DoctorItem extends StatelessWidget {
   
   const DoctorItem({
-    super.key, 
     required this.data,
     required this.isBookmarked,
     required this.onToggleBookmark,
@@ -26,11 +25,11 @@ class DoctorItem extends StatelessWidget {
     List<Widget> ls = [
       Text(
         '${o.name}'.trim(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 20.0,
-          fontFamily: kBodyFont,
+          fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF8E9093),
+          color: Color(0xFF4B4B4B),
         ),
       ),
     ];
@@ -39,10 +38,12 @@ class DoctorItem extends StatelessWidget {
       for (int i = 0; i < specialtyList.length; i++) {
         Widget w = Text(
           specialtyList[i].specialities ?? '',
-          style: const TextStyle(
-            fontSize: 17.0,
+          style: TextStyle(
+            fontSize: 14.0,
             fontFamily: kBodyFont,
-            color: Color(0xFF949494),
+            fontWeight: FontWeight.bold,
+            fontStyle: FontStyle.italic,
+            color: Color(0xFFC1C1C1),
           ),
         );
         ls.add(w);
@@ -54,7 +55,7 @@ class DoctorItem extends StatelessWidget {
 
   ImageProvider<Object> getDoctorImage(DoctorInfo o) {
     String? image = o.image;
-    ImageProvider<Object> im = const AssetImage('images/imgs/no_image.png');
+    ImageProvider<Object> im = AssetImage('images/imgs/no_image.png');
     if (image != null && image != '') {
       int i = image.indexOf('base64,');
       String data = image;
@@ -75,10 +76,11 @@ class DoctorItem extends StatelessWidget {
 
   List<Widget> buildContents(BuildContext context) {
     String mcr = data.mcr!;
+    String? allowAppointment = data.allowAppointment;
 
     List<Widget> ls = [
       Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0, bottom: 20.0),
+        padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0, bottom: 20.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -87,11 +89,11 @@ class DoctorItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 100.0,
-                    height: 100.0,
+                    width: 80.0,
+                    height: 80.0,
                     margin: EdgeInsets.only(top: data.image != null && data.image != '' ? 10.0 : 0.0),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
                       image: DecorationImage(
                         image: getDoctorImage(data),
                         fit: BoxFit.cover,
@@ -101,9 +103,9 @@ class DoctorItem extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 5.0, top: 10.0),
+                      padding: EdgeInsets.only(left: 15.0, top: 10.0),
                       child: Column(
-                        mainAxisSize: MainAxisSize.max,
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: buildDoctorContent(context, data),
                       ),
@@ -115,7 +117,7 @@ class DoctorItem extends StatelessWidget {
             IconButton(
               icon: Icon(
                 isBookmarked ? Icons.bookmark_sharp : Icons.bookmark_outline_sharp,
-                color: kSearchDoctorBgColor,
+                color: isBookmarked ? kHomeBgColor : Color(0xFFAFAFAF),
               ),
               onPressed: () async {
                 await onToggleBookmark(isBookmarked, mcr, data);
@@ -126,106 +128,110 @@ class DoctorItem extends StatelessWidget {
       ),
     ];
 
-    if (AuthManager.isLogin) {
+    if (AuthManager.isLogin && allowAppointment == 'Y') {
       ls.add(
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          padding: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 20.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 1,
-                child: TextButton(
+                child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => DoctorDetail(mcr: mcr)));
+                    Navigator.push(context,
+                      MaterialPageRoute(
+                        builder: (context) => DoctorDetail(mcr: mcr),
+                      )
+                    );
                   },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFF097099),
-                    minimumSize: const Size(double.maxFinite, 50.0),
-                    shape: const BeveledRectangleBorder(),
-                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.list,
                         color: Colors.white,
+                        size: 20.0,
                       ),
                       SizedBox(width: 5.0),
                       Text(
                         'Details',
                         style: TextStyle(
-                          fontSize: 17.0,
+                          fontSize: 16.0,
                           fontFamily: kBodyFont,
+                          fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
+                  style: ElevatedButton.styleFrom(
+                    primary: kHomeBgColor,
+                    elevation: 5.0,
+                    minimumSize: Size(double.maxFinite, 50.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                  ),
                 ),
               ),
-              Container(
-                width: 2.0,
-                color: const Color(0xFFE0E0E0),
-              ),
+              SizedBox(width: 2.0),
               Expanded(
                 flex: 2,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddAppointment(doctorInfo: data)));
+                    Navigator.push(context, 
+                      MaterialPageRoute(
+                        builder: (context) => AddAppointment(doctorInfo: data),
+                      )
+                    );
                   },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFFC81E5D),
-                    minimumSize: const Size(double.maxFinite, 50.0),
-                    shape: const BeveledRectangleBorder(),
-                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.calendar_today,
                         color: Colors.white,
+                        size: 20.0,
                       ),
                       SizedBox(width: 5.0),
                       Text(
                         'Make Appointment',
                         style: TextStyle(
                           fontSize: 17.0,
-                          fontFamily: kBodyFont,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
+                  style: ElevatedButton.styleFrom(
+                    primary: kHomeBgColor,
+                    elevation: 5.0,
+                    minimumSize: Size(double.maxFinite, 50.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                  ),
                 ),
               ),
             ],
           ),
-        )
+        ),
       );
     }
 
     else {
       ls.add(
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-          child: TextButton(
+          padding: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 20.0),
+          child: ElevatedButton(
             onPressed: () {
-              Navigator.of(context).push(
+              Navigator.push(context,
                 MaterialPageRoute(
                   builder: (context) => DoctorDetail(mcr: mcr),
                 )
               );
             },
-            style: TextButton.styleFrom(
-              backgroundColor: const Color(0xFF097099),
-              minimumSize: const Size(double.maxFinite, 50.0),
-              shape: const BeveledRectangleBorder(),
-            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Icon(
                   Icons.list,
                   color: Colors.white,
@@ -236,23 +242,39 @@ class DoctorItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17.0,
                     fontFamily: kBodyFont,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
               ],
+            ),
+            style: ElevatedButton.styleFrom(
+              primary: kHomeBgColor,
+              elevation: 5.0,
+              minimumSize: Size(double.maxFinite, 50.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
             ),
           ),
         )
       );
     }
 
+    ls.add(
+      Container(
+        width: double.infinity,
+        height: 10.0,
+        color: Color(0xFFDDDDDD),
+      )
+    );
+
     return ls;
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      color: Colors.white,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -266,19 +288,8 @@ class DoctorItem extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: Color.fromRGBO(224, 224, 224, 0.596),
-          ),
-          bottom: BorderSide(
-            color: Color.fromRGBO(224, 224, 224, 0.599),
-          ),
-        ),
-      ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0, bottom: 15.0),
+        padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0, bottom: 15.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -294,7 +305,7 @@ class DoctorItem extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.only(left: 5.0, top: 10.0),
+                padding: EdgeInsets.only(left: 5.0, top: 10.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,6 +325,17 @@ class DoctorItem extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: Color.fromRGBO(224, 224, 224, 0.596),
+          ),
+          bottom: BorderSide(
+            color: Color.fromRGBO(224, 224, 224, 0.599),
+          ),
         ),
       ),
     );

@@ -5,36 +5,35 @@ import 'package:flutter/services.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:provider/provider.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:vesalius_m_flutter/components/app_drawer.dart';
-import 'package:vesalius_m_flutter/components/app_shared.dart';
+import 'package:vesalius_m_flutter/components/app-drawer.dart';
+import 'package:vesalius_m_flutter/components/app-shared.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
-import 'package:vesalius_m_flutter/models/appointment_data.dart';
-import 'package:vesalius_m_flutter/models/appointment_manager.dart';
-import 'package:vesalius_m_flutter/models/appointment_model.dart';
-import 'package:vesalius_m_flutter/models/auth_manager.dart';
-import 'package:vesalius_m_flutter/models/data_manager.dart';
-import 'package:vesalius_m_flutter/models/patient_data.dart';
-import 'package:vesalius_m_flutter/models/user_details.dart';
-import 'package:vesalius_m_flutter/services/data_service.dart';
-import 'package:vesalius_m_flutter/ui/allergies.dart';
-import 'package:vesalius_m_flutter/ui/appointment.dart';
-import 'package:vesalius_m_flutter/ui/doctor.dart';
-import 'package:vesalius_m_flutter/ui/health_dashboard.dart';
-import 'package:vesalius_m_flutter/ui/hospital.dart';
-import 'package:vesalius_m_flutter/ui/medical_history.dart';
-import 'package:vesalius_m_flutter/ui/profile.dart';
-import 'package:vesalius_m_flutter/ui/sign_up.dart';
-import 'package:vesalius_m_flutter/ui/user_list.dart';
+import 'package:vesalius_m_flutter/models/appointment-data.dart';
+import 'package:vesalius_m_flutter/models/appointment-manager.dart';
+import 'package:vesalius_m_flutter/models/appointment-model.dart';
+import 'package:vesalius_m_flutter/models/auth-manager.dart';
+import 'package:vesalius_m_flutter/models/data-manager.dart';
+import 'package:vesalius_m_flutter/models/patient-data.dart';
+import 'package:vesalius_m_flutter/models/user-details.dart';
+import 'package:vesalius_m_flutter/services/data-service.dart';
+
+import 'allergies.dart';
+import 'appointment.dart';
+import 'doctor.dart';
+import 'health-dashboard.dart';
+import 'hospital.dart';
+import 'medical-history.dart';
+import 'profile.dart';
+import 'sign-up.dart';
+import 'user-list.dart';
 
 class Home extends StatefulWidget {
 
   static const String routeName = 'Home';
 
-  const Home({super.key});
-
   @override
-  State<Home> createState() => _HomeState();
+  _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
@@ -56,9 +55,9 @@ class _HomeState extends State<Home> {
     setState(() {
       isLoading = true;
     });
-    AppointmentManager.start(context);
     await AuthManager.load();
     var x = await DataManager.getPatientDetails();
+    AppointmentManager.start(context);
     var branchDetails = await DataManager.getBranchDetails();
     if (branchDetails != null && branchDetails.branch != null && AuthManager.isLogin) {
       await AppointmentManager.getValidAppointment(branchDetails.branch!.branchId!);
@@ -88,18 +87,21 @@ class _HomeState extends State<Home> {
     OneSignal.shared.setNotificationWillShowInForegroundHandler((OSNotificationReceivedEvent event) {
       final notification = event.notification;
       final x = notification.additionalData;
+      print(x);
       String d = "Received notification: \n${notification.jsonRepresentation().replaceAll("\\n", "\n")}";
+      print(d);
     });
 
     OneSignal.shared.setNotificationOpenedHandler((OSNotificationOpenedResult result) {
       String d = "Opened notification: \n${result.notification.jsonRepresentation().replaceAll("\\n", "\n")}";
+      print(d);
     });
 
     // NOTE: Replace with your own app ID from https://www.onesignal.com
-    await OneSignal.shared.setAppId(kOneSignalAppID);
+    await OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
 
     // OneSignal.shared.setInFocusDisplayType(OSNotificationDisplayType.notification);
-    
+
     await clearOneSignal();
 
     if (AuthManager.isLogin) {
@@ -128,7 +130,7 @@ class _HomeState extends State<Home> {
   }
 
   String getAppointmentSchedule() {
-    var appmt = Provider.of<AppointmentModel>(context).appointment;
+    var appmt = context.watch<AppointmentModel>().appointment;
     return '${getDate(appmt!.date!)}, ${getTime(appmt.startTime!)}';
   }
 
@@ -142,18 +144,17 @@ class _HomeState extends State<Home> {
             style: TextStyle(
               color: branch?.branchName == o.branchName ? kPrimaryColor : Colors.black,
               fontSize: 16.0,
-              fontFamily: kBodyFont,
             ),
             textAlign: TextAlign.left,
           ),
         ),
         branch?.branchName == o.branchName ?
-        const Icon(
+        Icon(
           Icons.check,
           color: kPrimaryColor,
           size: 24.0,
         ) :
-        const SizedBox(width: 24.0, height: 24.0),
+        Container(width: 24.0, height: 24.0),
       ],
     );
   }
@@ -166,7 +167,7 @@ class _HomeState extends State<Home> {
 
       if (i == 0) {
         w = Padding(
-          padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+          padding: EdgeInsets.only(left: 10.0, right: 10.0),
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -181,7 +182,7 @@ class _HomeState extends State<Home> {
 
       else {
         w = Padding(
-          padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 25.0),
+          padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 25.0),
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -205,11 +206,10 @@ class _HomeState extends State<Home> {
       context: context, 
       builder: (_) => StatefulBuilder(
         builder: (context, setState) => CupertinoAlertDialog(
-          title: const Text(
+          title: Text(
             'Select Hospital',
             style: TextStyle(
               fontSize: 18.0,
-              fontFamily: kBodyFont,
             ),
           ),
           content: Column(
@@ -217,10 +217,10 @@ class _HomeState extends State<Home> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 20.0, bottom: 15.0),
+                margin: EdgeInsets.only(top: 20.0, bottom: 15.0),
                 width: double.infinity,
                 height: 1.0,
-                color: const Color(0xFFE0E0E0),
+                color: Color(0xFFE0E0E0),
               ),
 
               Column(
@@ -231,27 +231,25 @@ class _HomeState extends State<Home> {
           ),
           actions: [
             CupertinoButton(
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
                   color: kPrimaryColor,
                   fontSize: 18.0,
-                  fontFamily: kBodyFont,
                 ),
               ),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.pop(context),
             ),
             CupertinoButton(
-              child: const Text(
+              child: Text(
                 'OK',
                 style: TextStyle(
                   color: kPrimaryColor,
                   fontSize: 18.0,
-                  fontFamily: kBodyFont,
                   fontWeight: FontWeight.bold,
                 ),
               ), 
-              onPressed: () => Navigator.of(context).pop(branch),
+              onPressed: () => Navigator.pop(context, branch),
             ),
           ],
         ),
@@ -263,19 +261,17 @@ class _HomeState extends State<Home> {
   }
 
   Future<bool> onWillPop() async {
-    return await CustomDialog.of(context).showConfirmDialog('Confirm to exit', 'Are you sure you want to exit ?', 'Cancel', 'Sure');
+    return await showConfirmDialog('Confirm to exit', 'Are you sure you want to exit ?', 'Cancel', 'Sure', context);
   }
 
   List<Widget> buildDefaultList() {
     List<Widget> lx = [
-      const SizedBox(height: 20.0),
       HomeCard(
         title: 'Doctor Information',
         desc: 'Search Doctors Information',
         image: 'search-doctor',
         onTap: () async {
           var branch = DataManager.branchDetails;
-          final nav = Navigator.of(context);
           if (branch == null) {
             final lx = await getPublicBranchList();
             if (lx.length > 1) {
@@ -286,7 +282,7 @@ class _HomeState extends State<Home> {
               await DataManager.setBranchDetails(lx[0]);
             }
           }
-          await nav.pushNamed(Doctor.routeName);
+          await Navigator.pushNamed(context, Doctor.routeName);
         },
       ),
       HomeCard(
@@ -295,7 +291,6 @@ class _HomeState extends State<Home> {
         image: 'search-hospital',
         onTap: () async {
           var branch = DataManager.branchDetails;
-          final nav = Navigator.of(context);
           if (branch == null) {
             var lx = await getPublicBranchList();
             if (lx.length > 1) {
@@ -306,7 +301,7 @@ class _HomeState extends State<Home> {
               await DataManager.setBranchDetails(lx[0]);
             }
           }
-          await nav.pushNamed(Hospital.routeName);
+          await Navigator.pushNamed(context, Hospital.routeName);
         },
       ),
       // HomeCard(
@@ -323,25 +318,7 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> buildAuthList() {
-    String s = '';
-    if (isAuth && patientDetails != null) {
-      var name = patientDetails!.name;
-      s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}';
-    }
-
     List<Widget> lx = [
-      Padding(
-        padding: const EdgeInsets.only(left: 20.0, top: 20.0, bottom: 20.0),
-        child: Text(
-          s,
-          style: const TextStyle(
-            color: Color(0xFF424242),
-            fontSize: 18.0,
-            fontFamily: kBodyFont,
-          ),
-        ),
-      ),
-
       // HomeCard(
       //   title: 'Queue Number',
       //   desc: 'Queue Number and Notifications',
@@ -350,22 +327,22 @@ class _HomeState extends State<Home> {
           
       //   },
       // ),
-      Provider.of<AppointmentModel>(context).hasAppointment == false ?
+      context.watch<AppointmentModel>().hasAppointment == false ?
       HomeCard(
         title: 'Appointment',
         desc: 'You currently have no Upcoming Appointments',
         image: 'appointment',
         onTap: () {
-          Navigator.of(context).pushNamed(Appointment.routeName);
+          Navigator.pushNamed(context, Appointment.routeName);
         },
       ) :
       HomeCard(
         title: 'Appointment',
         desc: 'Upcoming Appointment',
         image: 'appointment',
-        extraInfo: getAppointmentSchedule(),
+        extraInfo: '${getAppointmentSchedule()}',
         onTap: () {
-          Navigator.of(context).pushNamed(Appointment.routeName);
+          Navigator.pushNamed(context, Appointment.routeName);
         },
       ),
       HomeCard(
@@ -373,7 +350,7 @@ class _HomeState extends State<Home> {
         desc: 'View your health trending',
         image: 'dashboard-icon',
         onTap: () {
-          Navigator.of(context).pushNamed(HealthDashboard.routeName);
+          Navigator.pushNamed(context, HealthDashboard.routeName);
         },
       ),
       HomeCard(
@@ -381,7 +358,7 @@ class _HomeState extends State<Home> {
         desc: 'View Drug Allergies and Medical Alerts',
         image: 'allergies',
         onTap: () {
-          Navigator.of(context).pushNamed(Allergies.routeName);
+          Navigator.pushNamed(context, Allergies.routeName);
         },
       ),
       HomeCard(
@@ -389,7 +366,7 @@ class _HomeState extends State<Home> {
         desc: 'View Your Medical History',
         image: 'medical-record',
         onTap: () {
-          Navigator.of(context).pushNamed(MedicalHistory.routeName);
+          Navigator.pushNamed(context, MedicalHistory.routeName);
         },
       ),
       HomeCard(
@@ -397,7 +374,7 @@ class _HomeState extends State<Home> {
         desc: 'Search Doctors Information',
         image: 'search-doctor',
         onTap: () async {
-          await Navigator.of(context).pushNamed(Doctor.routeName);
+          await Navigator.pushNamed(context, Doctor.routeName);
         },
       ),
       HomeCard(
@@ -405,7 +382,7 @@ class _HomeState extends State<Home> {
         desc: 'View Hospital Information',
         image: 'search-hospital',
         onTap: () {
-          Navigator.of(context).pushNamed(Hospital.routeName);
+          Navigator.pushNamed(context, Hospital.routeName);
         },
       ),
       HomeCard(
@@ -413,7 +390,7 @@ class _HomeState extends State<Home> {
         desc: 'View Your Personal Info',
         image: 'profile-details',
         onTap: () {
-          Navigator.of(context).pushNamed(Profile.routeName);
+          Navigator.pushNamed(context, Profile.routeName);
         },
       ),
     ];
@@ -421,12 +398,12 @@ class _HomeState extends State<Home> {
     return lx;
   }
 
-  Widget buildContent() {
+  Widget buildContent0() {
     if (isLoading) {
       return Container();
     }
-    
-    if (isAuth) {
+
+    if (this.isAuth) {
       return Scrollbar(
         child: ListView(
           shrinkWrap: true,
@@ -444,50 +421,47 @@ class _HomeState extends State<Home> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+            padding: EdgeInsets.only(left: 20.0, right: 20.0),
             child: RawMaterialButton(
               elevation: 5.0,
               fillColor: kPrimaryBtnBgColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-              constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-              onPressed: () {
-                Navigator.of(context).pushNamed(UserList.routeName);
-              },
-              child: const Text(
+              constraints: BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+              child: Text(
                 'Sign In',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18.0,
-                  fontFamily: kBodyFont,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              onPressed: () {
+                Navigator.pushNamed(context, UserList.routeName);
+              },
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 20.0, bottom: 30.0),
+            padding: EdgeInsets.only(top: 20.0, bottom: 30.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Don\'t have an account? ',
                   style: TextStyle(
                     color: kPrimaryColor,
                     fontSize: 16.0,
-                    fontFamily: kBodyFont,
                   ),
                 ),
                 InkWell(
                   onTap: () {
-                    Navigator.of(context).pushNamed(SignUp.routeName);
+                    Navigator.pushNamed(context, SignUp.routeName);
                   },
-                  child: const Text(
+                  child: Text(
                     'Sign Up',
                     style: TextStyle(
                       color: kPrimaryColor,
                       fontSize: 16.0,
-                      fontFamily: kBodyFont,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -500,23 +474,150 @@ class _HomeState extends State<Home> {
     }
   }
 
+  Widget buildContent() {
+    if (isLoading) {
+      return Container();
+    }
+
+    if (this.isAuth) {
+      return Scrollbar(
+        child: ListView(
+          shrinkWrap: true,
+          children: buildAuthList(),
+        ),
+      );
+    }
+
+    else {
+      return Column(
+        children: [
+          Expanded(
+            child: Column(
+              children: buildDefaultList(),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 20.0, right: 20.0),
+            child: RawMaterialButton(
+              elevation: 5.0,
+              fillColor: kHomeBgColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+              constraints: BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+              child: Text(
+                'Sign In',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, UserList.routeName);
+              },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 20.0, bottom: 30.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Don\'t have an account? ',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16.0,
+                    fontFamily: kBodyFont,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, SignUp.routeName);
+                  },
+                  child: Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      color: kMainColor,
+                      fontSize: 16.0,
+                      fontFamily: kBodyFont,
+                      fontWeight: FontWeight.bold,
+                      // decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget buildHeader() {
+    String s = '';
+
+    if (isAuth && patientDetails != null) {
+      var name = patientDetails!.name!;
+      s = '${name.title} ${name.firstName} ${name.middleName} ${name.lastName}';
+    }
+
+    return Padding(
+      padding: EdgeInsets.all(20.0),
+      child: Text(
+        s,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20.0,
+          fontFamily: kTitleFont,
+        ),
+      ),
+    );
+  }
+
+  Widget buildLayer2() {
+    var padding = MediaQuery.of(context).padding;
+
+    return Container(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildHeader(),
+          Flexible(
+            child: buildContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLayer1() {
+    return Container(
+      width: double.infinity,
+      height: 120.0,
+      color: kMainColor,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: onWillPop,
       child: Scaffold(
         key: drawerKey,
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: Color(0xFFF5F5F5),
         appBar: AppBar(
           // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-          systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: Color(0xFFF5F5F5)),
+          systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMainColor),
           toolbarHeight: kAppToolbarHeight,
-          backgroundColor: const Color(0xFFF5F5F5),
+          backgroundColor: kMainColor,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.menu,
-              color: kPrimaryColor,
+              color: Colors.white,
             ),
             onPressed: () {
               drawerKey.currentState?.openDrawer();
@@ -524,26 +625,29 @@ class _HomeState extends State<Home> {
           ),
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
-          title: const Text(
+          title: Text(
             'Home',
             style: TextStyle(
-              color: kPrimaryColor,
+              color: Colors.white,
               fontFamily: kTitleFont,
               fontWeight: FontWeight.bold,
             ),
           ),
+          elevation: 0.0,
         ),
         body: ModalProgressHUD(
           inAsyncCall: isLoading,
-          progressIndicator: const AppActivityIndicator(),
+          progressIndicator: AppActivityIndicator(),
           child: SafeArea(
-            child: Container(
-              color: const Color(0xFFF5F5F5),
-              child: buildContent(),
+            child: Stack(
+              children: [
+                buildLayer1(),
+                buildLayer2(),
+              ],
             ),
           ),
         ),
-        drawer: const AppDrawer(),
+        drawer: AppDrawer(),
       ),
     );
   }
@@ -557,8 +661,7 @@ class HomeCard extends StatelessWidget {
   final String? extraInfo;
   final void Function() onTap;
 
-  const HomeCard({
-    super.key, 
+  HomeCard({
     required this.title,
     required this.desc,
     required this.image,
@@ -569,22 +672,22 @@ class HomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 11.0),
+      padding: EdgeInsets.only(left: 20.0, right: 20.0, bottom: 11.0),
       child: Material(
         elevation: 5.0,
-        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
         color: Colors.white,
         child: Container(
-          padding: const EdgeInsets.all(10.0),
-          decoration: const BoxDecoration(
+          padding: EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
             boxShadow: [
               BoxShadow(
                 color: Color.fromRGBO(133, 133, 133, 0.29),
                 offset: Offset(3, 3),
-                blurRadius: 0,
-                spreadRadius: 0,
+                blurRadius: 10.0,
+                spreadRadius: 1,
               ),
             ]
           ),
@@ -596,39 +699,41 @@ class HomeCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 10.0, right: 25.0),
+                    padding: EdgeInsets.only(left: 10.0, right: 25.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          title,
-                          style: const TextStyle(
+                          '$title',
+                          style: TextStyle(
                             color: Color(0xFF424242),
                             fontSize: 18.0,
                             fontFamily: kBodyFont,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 3.0),
-                        const Divider(
-                          color: Color(0xFFDEDEDE),
-                          height: 1.0,
-                          thickness: 1.0,
-                        ),
-                        const SizedBox(height: 2.0),
+                        // SizedBox(height: 3.0),
+                        // Divider(
+                        //   color: Color(0xFFDEDEDE),
+                        //   height: 1.0,
+                        //   thickness: 1.0,
+                        // ),
+                        // SizedBox(height: 2.0),
                         Text(
-                          desc,
-                          style: const TextStyle(
+                          '$desc',
+                          style: TextStyle(
                             color: kDescriptionColor,
                             fontSize: 11.0,
                             fontFamily: kBodyFont,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         extraInfo == null ? Container() : Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding: EdgeInsets.only(top: 4.0),
                           child: Text(
                             extraInfo ?? '',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Color(0xFF5F5E5E),
                               fontSize: 16.0,
                               fontFamily: kBodyFont,
@@ -641,10 +746,10 @@ class HomeCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(right: 15.0),
+                  padding: EdgeInsets.only(right: 15.0),
                   child: Container(
-                    width: 72.0,
-                    height: 72.0,
+                    width: 52.0,
+                    height: 52.0,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(

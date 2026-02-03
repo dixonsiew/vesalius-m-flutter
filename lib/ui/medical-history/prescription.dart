@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
-import 'package:vesalius_m_flutter/components/medical_info.dart';
+import 'package:vesalius_m_flutter/components/back-btn.dart';
+import 'package:vesalius_m_flutter/components/medical-info.dart';
 import 'package:vesalius_m_flutter/constants.dart';
-import 'package:vesalius_m_flutter/models/patient_data.dart';
+import 'package:vesalius_m_flutter/models/patient-data.dart';
 
 class Prescription extends StatefulWidget {
   
@@ -11,13 +11,12 @@ class Prescription extends StatefulWidget {
 
   final PatientVisit patientVisit;
 
-  const Prescription({
-    super.key, 
+  Prescription({
     required this.patientVisit,
   });
 
   @override
-  State<Prescription> createState() => _PrescriptionState();
+  _PrescriptionState createState() => _PrescriptionState();
 }
 
 class _PrescriptionState extends State<Prescription> {
@@ -52,10 +51,10 @@ class _PrescriptionState extends State<Prescription> {
   List<Widget> buildDoctorContentList(List<NovaVisitPatientRx> ls, String doctorName) {
     List<Widget> lx = [
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        padding: EdgeInsets.symmetric(horizontal: 15.0),
         child: Text(
           'Doctor: $doctorName',
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFF002E50),
             fontSize: 14.0,
             fontFamily: kBodyFont,
@@ -63,7 +62,7 @@ class _PrescriptionState extends State<Prescription> {
           textAlign: TextAlign.left,
         ),
       ),
-      const Padding(
+      Padding(
         padding: EdgeInsets.only(top: 10.0),
         child: Divider(
           color: Color(0xFFE0E0E0),
@@ -75,7 +74,7 @@ class _PrescriptionState extends State<Prescription> {
     for (int i = 0; i < ls.length; i++) {
       var o = ls[i];
       lx.addAll([
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0),
           child: Text(
             'Medications',
@@ -87,17 +86,17 @@ class _PrescriptionState extends State<Prescription> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 10.0),
+          padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 10.0),
           child: Text(
             o.description ?? '',
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF002E50),
               fontSize: 14.0,
               fontFamily: kBodyFont,
             ),
           ),
         ),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.0),
           child: Text(
             'Instruction',
@@ -109,13 +108,12 @@ class _PrescriptionState extends State<Prescription> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0),
+          padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0),
           child: Text(
             o.instruction ?? '',
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF002E50),
               fontSize: 14.0,
-              fontFamily: kBodyFont,
             ),
           ),
         ),
@@ -123,7 +121,7 @@ class _PrescriptionState extends State<Prescription> {
 
       if (i < ls.length - 1) {
         lx.add(
-          const SizedBox(height: 5.0)
+          SizedBox(height: 5.0)
         );
       }
     }
@@ -136,10 +134,10 @@ class _PrescriptionState extends State<Prescription> {
     List<Widget> lk = [
       Material(
         elevation: 5.0,
-        borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+        borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15.0),
+          padding: EdgeInsets.symmetric(vertical: 15.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -151,7 +149,7 @@ class _PrescriptionState extends State<Prescription> {
 
     lx.add(
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+        padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -163,8 +161,8 @@ class _PrescriptionState extends State<Prescription> {
 
   Widget buildTitle() {
     return Container(
-      padding: const EdgeInsets.only(top: 20.0, left: 15.0, right: 15.0),
-      child: const Text(
+      padding: EdgeInsets.only(top: 20.0, left: 15.0, right: 15.0),
+      child: Text(
         'Prescription',
         style: TextStyle(
           color: kPrimaryBtnBgColor,
@@ -204,14 +202,14 @@ class _PrescriptionState extends State<Prescription> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
         leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
+        leading: BackBtn(color: Colors.white),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Prescription',
           style: TextStyle(
             color: Colors.white,

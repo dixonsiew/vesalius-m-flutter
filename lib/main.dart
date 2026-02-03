@@ -2,61 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:vesalius_m_flutter/models/appointment_model.dart';
+import 'package:vesalius_m_flutter/models/appointment-model.dart';
+import 'package:vesalius_m_flutter/models/doctor-model.dart';
 
 import 'ui/allergies.dart';
 import 'ui/appointment.dart';
-import 'ui/appointment/add_appointment.dart';
-import 'ui/appointment/appointment_free_slot.dart';
-import 'ui/appointment/confirm_appointment.dart';
-import 'ui/change_password.dart';
+import 'ui/change-password.dart';
 import 'ui/doctor.dart';
-import 'ui/doctor/doctor_bookmark.dart';
-import 'ui/doctor/doctor_detail.dart';
-import 'ui/first_time_login.dart';
-import 'ui/forgot_password.dart';
-import 'ui/health_dashboard.dart';
+import 'ui/doctor/doctor-bookmark.dart';
+import 'ui/first-time-login.dart';
+import 'ui/forgot-password.dart';
+import 'ui/health-dashboard.dart';
 import 'ui/home.dart';
 import 'ui/hospital.dart';
-import 'ui/hospital/hospital_bookmark.dart';
-import 'ui/medical_history.dart';
-import 'ui/medical-history/vital_signs.dart';
+import 'ui/medical-history.dart';
+import 'ui/medical-history/vital-signs.dart';
 import 'ui/profile.dart';
-import 'ui/sign_in.dart';
-import 'ui/sign_up.dart';
+import 'ui/sign-in.dart';
+import 'ui/sign-up.dart';
 import 'ui/splash.dart';
-import 'ui/user_list.dart';
+import 'ui/user-list.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-
-  const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
-      statusBarBrightness: Brightness.light,
-      statusBarIconBrightness: Brightness.dark,
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
     ));
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AppointmentModel()),
+        ChangeNotifierProvider(create: (context) => DoctorModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'VESALIUS.m',
-        localizationsDelegates: const [
+        localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
+        supportedLocales: [
           Locale('en', 'US'),
           Locale('en', 'AU'),
         ],
@@ -79,28 +73,31 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: Splash.routeName,
         routes: {
-          Splash.routeName: (context) => const Splash(),
-          Home.routeName: (context) => const Home(),
-          SignIn.routeName: (context) => const SignIn(),
-          SignUp.routeName: (context) => const SignUp(),
-          ForgotPassword.routeName: (context) => const ForgotPassword(),
-          Doctor.routeName: (context) => const Doctor(),
-          DoctorBookmark.routeName: (context) => const DoctorBookmark(),
-          DoctorDetail.routeName: (context) => const DoctorDetail(),
-          Hospital.routeName: (context) => const Hospital(),
-          HospitalBookmark.routeName: (context) => const HospitalBookmark(),
-          UserList.routeName: (context) => const UserList(),
-          MedicalHistory.routeName: (context) => const MedicalHistory(),
-          VitalSigns.routeName: (context) => const VitalSigns(),
-          Profile.routeName: (context) => const Profile(),
-          Allergies.routeName: (context) => const Allergies(),
-          HealthDashboard.routeName: (context) => const HealthDashboard(),
-          Appointment.routeName: (context) => const Appointment(),
-          AddAppointment.routeName: (context) => const AddAppointment(),
-          AppointmentFreeSlot.routeName: (context) => const AppointmentFreeSlot(),
-          ConfirmAppointment.routeName: (context) => const ConfirmAppointment(),
-          ChangePassword.routeName: (context) => const ChangePassword(),
-          FirstTimeLogin.routeName: (context) => const FirstTimeLogin(),
+          Splash.routeName: (context) => Splash(),
+          Home.routeName: (context) => Home(),
+          SignIn.routeName: (context) => SignIn(),
+          SignUp.routeName: (context) => SignUp(),
+          ForgotPassword.routeName: (context) => ForgotPassword(),
+          Doctor.routeName: (context) => Doctor(),
+          DoctorBookmark.routeName: (context) => DoctorBookmark(),
+          Hospital.routeName: (context) => Hospital(),
+          UserList.routeName: (context) => UserList(),
+          MedicalHistory.routeName: (context) => MedicalHistory(),
+          VitalSigns.routeName: (context) => VitalSigns(),
+          Profile.routeName: (context) => Profile(),
+          Allergies.routeName: (context) => Allergies(),
+          HealthDashboard.routeName: (context) => HealthDashboard(),
+          Appointment.routeName: (context) => Appointment(),
+          ChangePassword.routeName: (context) => ChangePassword(),
+          FirstTimeLogin.routeName: (context) => FirstTimeLogin(),
+        },
+        builder: (context, child) {
+          final mediaQueryData = MediaQuery.of(context);
+          final scale = mediaQueryData.textScaleFactor.clamp(1.0, 1.0);
+          return MediaQuery(
+            child: child!,
+            data: MediaQuery.of(context).copyWith(textScaleFactor: scale),
+          );
         },
       ),
     );
