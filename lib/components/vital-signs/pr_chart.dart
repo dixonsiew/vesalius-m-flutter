@@ -9,9 +9,9 @@ class PRChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const PRChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<PRChart> createState() => _PRChartState();
@@ -34,11 +34,11 @@ class _PRChartState extends State<PRChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Pulse Rate (bpm)',
               style: TextStyle(
@@ -65,25 +65,25 @@ class _PRChartState extends State<PRChart> {
     return SfCartesianChart(
       onDataLabelRender: (DataLabelRenderArgs m) => onDataLabelRender(m, widget.list),
       onMarkerRender: (MarkerRenderArgs m) => onMarkerRender(m, widget.list),
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'Pulse Rate (bpm)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -94,7 +94,7 @@ class _PRChartState extends State<PRChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<PRData, String>>[
+      series: <CartesianSeries<PRData, String>>[
         LineSeries<PRData, String>(
           dataSource: createData(),
           xValueMapper: (PRData m, _) => m.date,

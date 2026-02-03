@@ -13,7 +13,7 @@ Future<PatientDetails?> getVesaliusPatientData(num branchId, String prn) async {
   PatientDetails? o;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-data/$branchId/$prn');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-data/$branchId/$prn');
     o = PatientDetails.fromJson(res.data);
   }
 
@@ -38,13 +38,13 @@ Future<List<DoctorDetails>> getPublicDoctorData(num branchId) async {
   List<DoctorDetails> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/public/vesalius/doctor-data/$branchId');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/public/vesalius/doctor-data/$branchId');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
     
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => DoctorDetails.fromJson(x)).toList();
   }
 
@@ -59,7 +59,7 @@ Future<List> getPublicHospitalInformation() async {
   List lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/public/hospital-information');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/public/hospital-information');
     lx = res.data;
   }
 
@@ -74,13 +74,13 @@ Future<List<Allergy>> getPatientAllergies(num branchId, String prn) async {
   List<Allergy> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-allergy/$branchId/$prn');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-allergy/$branchId/$prn');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => Allergy.fromJson(x)).toList();
   }
 
@@ -92,16 +92,16 @@ Future<List<Allergy>> getPatientAllergies(num branchId, String prn) async {
 }
 
 Future<List<PatientVisit>> getVesaliusPatientVisit(num branchId, String prn, num pageId) async {
-  List<PatientVisit> lx = [];
+  List<PatientVisit> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-visit/$branchId/$prn/$pageId'); // 20015952
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-visit/$branchId/$prn/$pageId'); // 20015952
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => PatientVisit.fromJson(x)).toList();
   }
 
@@ -113,16 +113,16 @@ Future<List<PatientVisit>> getVesaliusPatientVisit(num branchId, String prn, num
 }
 
 Future<List<UserBranch>> getUserBranches() async {
-  List<UserBranch> lx = [];
+  List<UserBranch> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/user/branches');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/user/branches');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => UserBranch.fromJson(x)).toList();
   }
   
@@ -139,13 +139,13 @@ Future<List<UserBranch>> getPublicBranchList() async {
   List<UserBranch> lx;
 
   try {
-    final res = await ApiHelper.dio.get('$kServerUrl/public/branch/list');
+    var res = await ApiHelper.dio.get('$kServerUrl/public/branch/list');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => UserBranch.fromJson1(x)).toList();
   }
 
@@ -157,26 +157,26 @@ Future<List<UserBranch>> getPublicBranchList() async {
 }
 
 Future<List<DoctorInfo>> getAllDoctors(num branchId, num page, num limit) async {
-  List<DoctorInfo> lx = [];
+  List<DoctorInfo> lx;
 
   try {
     var q = {
       '_page': page,
       '_limit': limit
     };
-    final res = await ApiHelper.dio.get('$kServerUrl/public/vesalius/getAllDoctorInformation/$branchId', queryParameters: q);
+    var res = await ApiHelper.dio.get('$kServerUrl/public/vesalius/getAllDoctorInformation/$branchId', queryParameters: q);
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    int totalPage = int.parse(res.headers['x-total-page']!.first);
+    var totalPage = int.parse(res.headers['x-total-page']!.first);
     if (page > totalPage) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
   }
 
@@ -188,29 +188,30 @@ Future<List<DoctorInfo>> getAllDoctors(num branchId, num page, num limit) async 
 }
 
 Future<List<DoctorInfo>> searchDoctors(num branchId, num page, num limit, String keyword) async {
-  List<DoctorInfo> lx = [];
+  List<DoctorInfo> lx;
 
   try {
-    final q = {
+    var q = {
       '_page': page,
       '_limit': limit
     };
-    final o = {
+    var o = {
       'keyword': keyword
     };
-    final res = await ApiHelper.dio.post('$kServerUrl/public/vesalius/getAllDoctorInformation/$branchId', data: o, queryParameters: q);
+    var res = await ApiHelper.dio.post('$kServerUrl/public/vesalius/getAllDoctorInformation/$branchId', data: o, queryParameters: q);
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    int totalPage = int.parse(res.headers['x-total-page']!.first);
+    var totalPage = int.parse(res.headers['x-total-page']!.first);
+    // print('page : $page, totalPage : $totalPage');
     if (page > totalPage) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
   }
 
@@ -225,13 +226,13 @@ Future<DoctorInfo?> getDoctorByMCR(num branchId, String mcr) async {
   DoctorInfo? o;
 
   try {
-    final res = await ApiHelper.dio.get('$kServerUrl/public/vesalius/getDoctorInformationByMCR/$branchId/$mcr');
+    var res = await ApiHelper.dio.get('$kServerUrl/public/vesalius/getDoctorInformationByMCR/$branchId/$mcr');
     if (res.statusCode == 204) {
       return o;
     }
 
-    final ls = res.data as List? ?? [];
-    final lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
+    var ls = res.data as List;
+    var lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
     if (lx.isNotEmpty) {
       o = lx.first;
     }
@@ -248,13 +249,13 @@ Future<List<DoctorDetails>> getVesaliusDoctorData(num branchId) async {
   List<DoctorDetails> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/doctor-data/$branchId');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/doctor-data/$branchId');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => DoctorDetails.fromJson(x)).toList();
   }
 
@@ -269,13 +270,13 @@ Future<List<Specialty>> getSpecialtyData(num branchId) async {
   List<Specialty> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/specialty-data/$branchId');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/specialty-data/$branchId');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => Specialty.fromJson1(x)).toList();
   }
 
@@ -290,13 +291,13 @@ Future<List<AvailableSlot>> getVesaliusNextAvailableSlot(num branchId, String pr
   List<AvailableSlot> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/get-next-available-slots/$branchId/$prn', data: data);
+    var res = await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/get-next-available-slots/$branchId/$prn', data: data);
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => AvailableSlot.fromJson(x)).toList();
   }
 
@@ -311,13 +312,13 @@ Future<List<FutureAppointment>> getVesaliusFutureAppointments(num branchId, Stri
   List<FutureAppointment> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/future-appointments/$branchId/$prn');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/future-appointments/$branchId/$prn');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => FutureAppointment.fromJson(x)).toList();
   }
 
@@ -377,13 +378,13 @@ Future<List<VitalSignsData>> getVitalSignHistory(String type, num branchId, Stri
   List<VitalSignsData> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-vital-signs-history/$branchId/$prn/$dates/$type');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-vital-signs-history/$branchId/$prn/$dates/$type');
     if (res.statusCode == 204) {
       lx = [];
       return lx;
     }
 
-    final ls = res.data as List? ?? [];
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => VitalSignsData.fromJson(x)).toList();
   }
 
@@ -398,8 +399,13 @@ Future<List<VitalSignsHistory>> getVitalSignHistories(num branchId, String prn) 
   List<VitalSignsHistory> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-vital-signs-history/$branchId/$prn');
-    final ls = res.data as List? ?? [];
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-vital-signs-history/$branchId/$prn');
+    if (res.data == null) {
+      lx = [];
+      return lx;
+    }
+
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => VitalSignsHistory.fromJson(x)).toList();
   }
 
@@ -414,8 +420,13 @@ Future<List<LabHistory>> getLabHistories(num branchId, String prn) async {
   List<LabHistory> lx;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-lab-history/$branchId/$prn');
-    final ls = res.data as List? ?? [];
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-lab-history/$branchId/$prn');
+    if (res.data == null) {
+      lx = [];
+      return lx;
+    }
+
+    var ls = res.data as List? ?? [];
     lx = ls.map((x) => LabHistory.fromJson(x)).toList();
   }
 
@@ -428,7 +439,7 @@ Future<List<LabHistory>> getLabHistories(num branchId, String prn) async {
 
 Future<File> getHealthScrReportPdf(num branchId, String refno, String fp, void Function(int, int) onReceiveProgress) async {
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/health-screening-report/$branchId/$refno',
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/health-screening-report/$branchId/$refno',
       onReceiveProgress: onReceiveProgress,
       options: Options(
         responseType: ResponseType.bytes,
@@ -436,7 +447,7 @@ Future<File> getHealthScrReportPdf(num branchId, String refno, String fp, void F
       )
     );
     File file = File(fp);
-    final raf = file.openSync(mode: FileMode.write);
+    var raf = file.openSync(mode: FileMode.write);
     raf.writeFromSync(res.data);
     await raf.close();
     return file;

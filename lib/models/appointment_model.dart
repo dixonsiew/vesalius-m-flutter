@@ -13,5 +13,6 @@ class AppointmentModel extends ChangeNotifier {
   }
 
   FutureAppointment? get appointment => _appointment;
+
   bool get hasAppointment => _hasAppointment;
 }

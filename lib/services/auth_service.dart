@@ -6,8 +6,8 @@ Future<Map<String, dynamic>> authenticate(o) async {
   Map<String, dynamic> m = {};
 
   try {
-    final res = await ApiHelper.dio.post('$kServerUrl/login', data: o);
-    String? token = res.headers.value('Authorization');
+    var res = await ApiHelper.dio.post('$kServerUrl/login', data: o);
+    String token = res.headers.value('Authorization')!;
     m['token'] = token;
     m['data'] = res.data;
   }
@@ -23,14 +23,14 @@ Future<Map<String, dynamic>> signUp(num branchId, String dob, String email, Stri
   Map<String, dynamic> m = {};
 
   try {
-    final o = {
+    var o = {
       'branchId': branchId,
       'userDOB': dob,
       'userEmail': email,
       'userFullName': fullname,
       'userPersonNumber': id
     };
-    final res = await ApiHelper.dio.post('$kServerUrl/admin/self-sign-up', data: o);
+    var res = await ApiHelper.dio.post('$kServerUrl/admin/self-sign-up', data: o);
     m = res.data;
   }
 
@@ -45,7 +45,7 @@ Future<Map<String, dynamic>> resetPassword(String email) async {
   Map<String, dynamic> m = {};
 
   try {
-    final res = await ApiHelper.dio.post('$kServerUrl/admin/self-reset-password/1/$email', data: {});
+    var res = await ApiHelper.dio.post('$kServerUrl/admin/self-reset-password/1/$email', data: {});
     m = res.data;
   }
 
@@ -60,7 +60,7 @@ Future<Map<String, dynamic>> postVerificationCode(String verificationCode) async
   Map<String, dynamic> m = {};
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.post('$kServerUrl/user/verify/$verificationCode', data: {});
+    var res = await ApiHelper.tokenDioInterceptor.post('$kServerUrl/user/verify/$verificationCode', data: {});
     m = res.data;
   }
 
@@ -75,7 +75,7 @@ Future<UserDetails?> getUser() async {
   UserDetails? o;
 
   try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/user');
+    var res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/user');
     o = UserDetails.fromJson(res.data);
   }
 

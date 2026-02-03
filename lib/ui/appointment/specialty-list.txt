@@ -9,7 +9,7 @@ import 'package:vesalius_m_flutter/services/data-service.dart';
 
 class SpecialtyList extends StatefulWidget {
 
-  static final String routeName = 'SpecialtyList';
+  static const String routeName = 'SpecialtyList';
 
   final List<Specialty> list;
 
@@ -36,7 +36,6 @@ class _SpecialtyListState extends State<SpecialtyList> {
 
   void load() async {
     try {
-      // ignore: null_aware_in_condition
       if (widget.list?.isNotEmpty) {
         setState(() {
           list = widget.list;

@@ -10,9 +10,9 @@ class BMIChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const BMIChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<BMIChart> createState() => _BMIChartState();
@@ -35,11 +35,11 @@ class _BMIChartState extends State<BMIChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'BMI (kg/m\u00B2)',
               style: TextStyle(
@@ -66,25 +66,25 @@ class _BMIChartState extends State<BMIChart> {
     return SfCartesianChart(
       onDataLabelRender: (DataLabelRenderArgs m) => onDataLabelRender(m, widget.list),
       onMarkerRender: (MarkerRenderArgs m) => onMarkerRender(m, widget.list),
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'BMI (kg/m\u00B2)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -95,7 +95,7 @@ class _BMIChartState extends State<BMIChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<BMIData, String>>[
+      series: <CartesianSeries<BMIData, String>>[
         LineSeries<BMIData, String>(
           dataSource: createData(),
           xValueMapper: (BMIData m, _) => m.date,

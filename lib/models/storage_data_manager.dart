@@ -27,6 +27,7 @@ class StorageDataManager {
     }
 
     await database.close();
+
     return ls;
   }
 
@@ -73,6 +74,7 @@ class StorageDataManager {
     }
 
     await database.close();
+
     return ls;
   }
 
@@ -141,6 +143,7 @@ class StorageDataManager {
     }
 
     await database.close();
+
     return ls;
   }
 
@@ -178,6 +181,7 @@ class StorageDataManager {
     }
 
     await database.close();
+
     return ls;
   }
 
@@ -230,6 +234,7 @@ class StorageDataManager {
     }
 
     await database.close();
+
     return ls;
   }
 
@@ -272,6 +277,7 @@ class StorageDataManager {
     }
 
     await database.close();
+
     return ls;
   }
 

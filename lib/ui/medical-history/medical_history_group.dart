@@ -23,10 +23,10 @@ class MedicalHistoryGroup extends StatefulWidget {
   final int pageId;
 
   const MedicalHistoryGroup({
-    super.key, 
+    Key? key,
     required this.title,
     required this.pageId,
-  });
+  }) : super(key: key);
 
   @override
   State<MedicalHistoryGroup> createState() => _MedicalHistoryGroupState();
@@ -36,7 +36,6 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
 
   List<PatientVisit> list = [];
   bool isLoading = false;
-
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
@@ -86,23 +85,53 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
 
   void onItemTap(PatientVisit o) {
     if (widget.pageId == 4) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => BillSummary(patientVisit: o)));
+      Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => BillSummary(
+            patientVisit: o,
+          ),
+        )
+      );
     }
 
     else if (widget.pageId == 3) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => Investigation(patientVisit: o)));
+      Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => Investigation(
+            patientVisit: o,
+          )
+        )
+      );
     }
 
     else if (widget.pageId == 2) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => Prescription(patientVisit: o)));
+      Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => Prescription(
+            patientVisit: o,
+          )
+        )
+      );
     }
 
     else if (widget.pageId == 6) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ReferralLetter(patientVisit: o)));
+      Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => ReferralLetter(
+            patientVisit: o,
+          )
+        )
+      );
     }
 
     else if (widget.pageId == 7) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => HealthScreenRpt(patientVisit: o)));
+      Navigator.push(context,
+        MaterialPageRoute(
+          builder: (context) => HealthScreenRpt(
+            patientVisit: o,
+          )
+        )
+      );
     }
   }
 
@@ -114,7 +143,7 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
         final o = list[i];
         return MedicalHistoryGroupItem(
           date: getDate(o),
-          type: o.novaVisit?.visitType ?? '',
+          type: o.novaVisit!.visitType!,
           onTap: () {
             onItemTap(o);
           },
@@ -170,7 +199,7 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -216,6 +245,25 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
     );
   }
 
+  Widget buildLayer2xx() {
+    var padding = MediaQuery.of(context).padding;
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Flexible(
+              child: buildContent(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildLayer2() {
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0),
@@ -231,17 +279,27 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
   }
 
   Widget buildLayer1() {
-    return Container(
-      width: double.infinity,
-      height: 160.0,
-      color: kMedicalRecordBgColor,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          width: double.infinity,
+          height: 160.0,
+          color: kMedicalRecordBgColor,
+        ),
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            color: const Color(0xFFF5F5F5),
+          ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         // brightness: Brightness.dark,
         systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
@@ -252,6 +310,7 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
         leading: const BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
+      backgroundColor: kMedicalRecordBgColor,
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
@@ -275,45 +334,47 @@ class MedicalHistoryGroupItem extends StatelessWidget {
   final void Function() onTap;
 
   const MedicalHistoryGroupItem({
-    super.key, 
+    Key? key,
     required this.date,
     required this.type,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                date,
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                  color: Color(0xFF727272),
+    return Material(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    fontFamily: kBodyFont,
+                    color: Color(0xFF727272),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Text(
-                type,
-                style: const TextStyle(
-                  fontSize: 17.0,
-                  fontFamily: kBodyFont,
-                  color: Color(0xFFBBBBBB),
+              Expanded(
+                child: Text(
+                  type,
+                  style: const TextStyle(
+                    fontSize: 17.0,
+                    fontFamily: kBodyFont,
+                    color: Color(0xFFBBBBBB),
+                  ),
                 ),
               ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios_outlined,
-              color: kMedicalRecordBgColor,
-            ),
-          ],
+              const Icon(
+                Icons.arrow_forward_ios_outlined,
+                color: kMedicalRecordBgColor,
+              ),
+            ],
+          ),
         ),
       ),
     );

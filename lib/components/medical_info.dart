@@ -9,9 +9,9 @@ class MedicalInfo extends StatelessWidget {
   final PatientVisit patientVisit;
 
   const MedicalInfo({
-    super.key, 
+    Key? key,
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   String getRegistrationTime() {
     String? t = patientVisit.novaVisit?.registrationTime;
@@ -28,10 +28,6 @@ class MedicalInfo extends StatelessWidget {
   }
 
   String getRegistrationDate() {
-    if (patientVisit.novaVisit?.registrationDate == null) {
-      return '';
-    }
-
     DateTime dt = DateTime.parse(patientVisit.novaVisit!.registrationDate!);
     return formatDate(dt.toLocal(), [dd, ' ', M, ' ', yyyy]);
   }
@@ -47,7 +43,7 @@ class MedicalInfo extends StatelessWidget {
             color: Color(0xFFD6D6D6),
           ),
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(191, 191, 191, 1),
             offset: Offset(0, 2),
@@ -61,10 +57,10 @@ class MedicalInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(top: 15.0, left: 15.0),
@@ -79,6 +75,7 @@ class MedicalInfo extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(width: 15.0),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(top: 15.0),
@@ -111,6 +108,7 @@ class MedicalInfo extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 15.0),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 15.0),
@@ -126,10 +124,10 @@ class MedicalInfo extends StatelessWidget {
               ),
             ],
           ),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(top: 30.0, left: 15.0),
@@ -144,6 +142,7 @@ class MedicalInfo extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(width: 15.0),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(top: 30.0),
@@ -176,6 +175,7 @@ class MedicalInfo extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 15.0),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 15.0, bottom: 20.0),

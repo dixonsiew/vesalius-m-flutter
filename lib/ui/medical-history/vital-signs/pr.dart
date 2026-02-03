@@ -16,9 +16,9 @@ class PR extends StatefulWidget {
   final String date;
 
   const PR({
-    super.key, 
+    Key? key,
     required this.date,
-  });
+  }) : super(key: key);
 
   @override
   State<PR> createState() => _PRState();
@@ -78,7 +78,7 @@ class _PRState extends State<PR> {
       padding: const EdgeInsets.only(top: 20.0),
       child: Container(
         height: MediaQuery.of(context).size.height,
-        color: kMedicalRecordBgColor,
+        color: Colors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -99,7 +99,7 @@ class _PRState extends State<PR> {
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(5.0)),
                   color: Colors.white,
-                  boxShadow: [
+                  boxShadow: <BoxShadow>[
                     BoxShadow(
                       color: Color.fromRGBO(133, 133, 133, 0.29),
                       offset: Offset(5, 4),
@@ -132,7 +132,7 @@ class _PRState extends State<PR> {
             color: Color(0xFFD6D6D6),
           ),
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(191, 191, 191, 1),
             offset: Offset(0, 2),
@@ -193,9 +193,9 @@ class HistoryItem extends StatelessWidget {
   final NovaPatientVitalSignsDetail data;
 
   const HistoryItem({
-    super.key, 
+    Key? key,
     required this.data,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +213,7 @@ class HistoryItem extends StatelessWidget {
             ),
           ),
           Text(
-            data.value1 ?? '',
+            '${data.value1} bpm',
             style: const TextStyle(
               fontSize: 18.0,
               fontFamily: kBodyFont,

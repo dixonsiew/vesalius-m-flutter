@@ -6,8 +6,11 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
-import 'package:vesalius_m_flutter/components/doctor/doctor_detail_content.dart';
-import 'package:vesalius_m_flutter/components/doctor/doctor_detail_header.dart';
+import 'package:vesalius_m_flutter/components/doctor/doctor_availability_content.dart';
+import 'package:vesalius_m_flutter/components/doctor/doctor_language_content.dart';
+import 'package:vesalius_m_flutter/components/doctor/doctor_qualification_content.dart';
+import 'package:vesalius_m_flutter/components/doctor/doctor_speciality_content.dart';
+import 'package:vesalius_m_flutter/components/doctor/doctor_suite_content.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
@@ -21,9 +24,9 @@ class DoctorDetail extends StatefulWidget {
   final String mcr;
 
   const DoctorDetail({
-    super.key, 
-    this.mcr = '',
-  });
+    Key? key, 
+    required this.mcr,
+  }) : super(key: key);
 
   @override
   State<DoctorDetail> createState() => _DoctorDetailState();
@@ -45,7 +48,7 @@ class _DoctorDetailState extends State<DoctorDetail> {
       setState(() {
         isLoading = true;
       });
-      final dlg = CustomDialog.of(context);
+      CustomDialog dlg = CustomDialog.of(context);
       var branchDetails = DataManager.branchDetails;
       var o = await getDoctorByMCR(branchDetails!.branch!.branchId!, widget.mcr);
       if (o == null) {
@@ -91,326 +94,207 @@ class _DoctorDetailState extends State<DoctorDetail> {
   }
 
   void launchAction(DoctorContact o) async {
+    CustomDialog dlg = CustomDialog.of(context);
     String s = o.contactType == 'Contact No' ? 'tel' : 'mailto';
     String? v = o.contactValue;
-    final dlg = CustomDialog.of(context);
     if (o.contactType == 'Contact No') {
       v = o.contactValue.replaceWhitespacesUsingRegex('');
     }
 
     String url = '$s:$v';
-    final uri = Uri.parse(url);
+    Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
 
     else {
-      dlg.showCustomDialog('Failed', 'Unable to launch contact: ${o.contactValue}', 'Dismiss');
+      await dlg.showCustomDialog('Failed', 'Unable to launch contact: ${o.contactValue}', 'Dismiss');
     }
   }
 
   List<Widget> buildContactList() {
-    List<Widget> ls = [
-      const DetailHeader(title: 'Contact Information'),
-    ];
+    List<Widget> ls = [];
 
-    for (int i = 0; i < doctorInfo!.doctorContact!.length; i++) {
-      final o = doctorInfo!.doctorContact![i];
-      final w = Padding(
-        padding: const EdgeInsets.only(top: 2.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  launchAction(o);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[600],
-                  elevation: 5.0,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      o.contactType == 'Contact No' ? Icons.call : Icons.email,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 5.0),
-                    Text(
-                      o.contactValue ?? '',
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        fontFamily: kBodyFont,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    if (doctorInfo != null && doctorInfo!.doctorContact != null && doctorInfo!.doctorContact!.isNotEmpty) {
+      for (int i = 0; i < doctorInfo!.doctorContact!.length; i++) {
+        final o = doctorInfo!.doctorContact![i];
+        final w = Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              launchAction(o);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kHomeBgColor,
+              elevation: 5.0,
+              minimumSize: const Size(double.maxFinite, 50.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
             ),
-          ],
-        ),
-      );
-      ls.add(w);
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  o.contactType == 'Contact No' ? Icons.call : Icons.email,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 5.0),
+                Text(
+                  o.contactType == 'Contact No' ? 'Call' : 'Email',
+                  style: const TextStyle(
+                    fontSize: 16.0,
+                    fontFamily: kBodyFont,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        ls.add(w);
+        if (i < doctorInfo!.doctorContact!.length - 1) {
+          ls.add(const SizedBox(width: 15.0));
+        }
+      }
     }
 
     return ls;
   }
 
   Widget buildContact() {
-    if (doctorInfo != null && doctorInfo?.doctorContact != null && doctorInfo!.doctorContact!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0, bottom: 50.0),
+    return Expanded(
+      child: Container(
+        color: const Color(0xFFF2F2F2),
+        height: MediaQuery.of(context).size.height,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: buildContactList(),
-        ),
-      );
-    }
-
-    else {
-      return Container();
-    }
-  }
-
-  List<Widget> buildAvailabilityList() {
-    List<Widget> ls = [
-      const DetailHeader(title: 'Available Hours'),
-    ];
-
-    for (int i = 0; i < doctorInfo!.doctorClinicHours!.length; i++) {
-      final o = doctorInfo!.doctorClinicHours![i];
-      String a = o.byAppointmentOnly ?? false ? '*' : '';
-      String s = '${o.dayStartTime} - ${o.dayEndTime}$a';
-      final w = Padding(
-        padding: const EdgeInsets.only(left: 10.0, top: 5.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 5.0,
-              height: 5.0,
-              margin: const EdgeInsets.only(right: 15.0, top: 8.0),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black,
-              ),
-            ),
-            Flexible(
-              child: SizedBox(
-                width: 100.0,
-                child: Text(
-                  o.dayOfTheWeek ?? '',
-                  style: const TextStyle(
-                    fontSize: 16.0,
-                    fontFamily: kBodyFont,
-                    color: Color(0xFF4B4B4B),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                s,
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontFamily: kBodyFont,
-                  color: Color(0xFF4B4B4B),
-                ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, right: 15.0, bottom: 20.0),
+              child: Row(
+                children: buildContactList(),
               ),
             ),
           ],
         ),
-      );
-      ls.add(w);
-    }
+      ),
+    );
+  }
 
-    ls.add(
-      const Padding(
-        padding: EdgeInsets.only(top: 5.0),
-        child: Text(
-          '*By Appointment Basis',
-          style: TextStyle(
+  List<Widget> buildDoctorContent(BuildContext context) {
+    List<DoctorSpecialities>? specialtyList = doctorInfo!.doctorSpecialities;
+
+    List<Widget> ls = [
+      Text(
+        '${doctorInfo!.name}'.trim(),
+        style: const TextStyle(
+          fontSize: 20.0,
+          fontFamily: kTitleFont,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    ];
+
+    if (specialtyList != null) {
+      for (int i = 0; i < specialtyList.length; i++) {
+        Widget w = Text(
+          specialtyList[i].specialities ?? '',
+          style: const TextStyle(
             fontSize: 14.0,
             fontFamily: kBodyFont,
+            fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
+            color: Colors.white,
           ),
+        );
+        ls.add(w);
+      }
+    }
+
+    return ls;
+  }
+
+  Widget buildContentList() {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 320,
+      child: Scrollbar(
+        child: ListView(
+          children: [
+            DoctorLanguageContent(doctorInfo: doctorInfo),
+            const Divider(
+              color: Color(0xFFE0E0E0),
+              height: 1.0,
+              thickness: 1.0,
+            ),
+            DoctorQualificationContent(doctorInfo: doctorInfo),
+            const Divider(
+              color: Color(0xFFE0E0E0),
+              height: 1.0,
+              thickness: 1.0,
+            ),
+            DoctorSpecialityContent(doctorInfo: doctorInfo),
+            const Divider(
+              color: Color(0xFFE0E0E0),
+              height: 1.0,
+              thickness: 1.0,
+            ),
+            DoctorSuiteContent(doctorInfo: doctorInfo),
+            const Divider(
+              color: Color(0xFFE0E0E0),
+              height: 1.0,
+              thickness: 1.0,
+            ),
+            DoctorAvailabilityContent(doctorInfo: doctorInfo),
+            const Divider(
+              color: Color(0xFFE0E0E0),
+              height: 1.0,
+              thickness: 1.0,
+            ),
+          ],
         ),
       ),
     );
-
-    return ls;
-  }
-
-  Widget buildAvailability() {
-    if (doctorInfo != null && doctorInfo?.doctorClinicHours != null && doctorInfo!.doctorClinicHours!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: buildAvailabilityList(),
-        ),
-      );
-    }
-    
-    else {
-      return Container();
-    }
-  }
-
-  List<Widget> buildSuiteList() {
-    List<Widget> ls = [
-      const DetailHeader(title: 'Suite No. / Floor'),
-    ];
-
-    for (int i = 0; i < doctorInfo!.doctorClinicLocation!.length; i++) {
-      final o = doctorInfo!.doctorClinicLocation![i];
-      final w = DetailContent(text: o.location ?? '');
-      ls.add(w);
-    }
-
-    return ls;
-  }
-
-  Widget buildSuite() {
-    if (doctorInfo != null && doctorInfo?.doctorClinicLocation != null && doctorInfo!.doctorClinicLocation!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: buildSuiteList(),
-        ),
-      );
-    }
-    
-    else {
-      return Container();
-    }
-  }
-
-  List<Widget> buildSpecialityList() {
-    List<Widget> ls = [
-      const DetailHeader(title: 'Specialities'),
-    ];
-
-    for (int i = 0; i < doctorInfo!.doctorSpecialities!.length; i++) {
-      final o = doctorInfo!.doctorSpecialities![i];
-      final w = DetailContent(text: o.specialities ?? '');
-      ls.add(w);
-    }
-
-    return ls;
-  }
-
-  Widget buildSpeciality() {
-    if (doctorInfo != null && doctorInfo?.doctorSpecialities != null && doctorInfo!.doctorSpecialities!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: buildSpecialityList(),
-        ),
-      );
-    }
-    
-    else {
-      return Container();
-    }
-  }
-
-  List<Widget> buildQualificationList() {
-    List<Widget> ls = [
-      const DetailHeader(title: 'Qualificatons'),
-    ];
-
-    for (int i = 0; i < doctorInfo!.doctorQualifications!.length; i++) {
-      final o = doctorInfo!.doctorQualifications![i];
-      final w = DetailContent(text: o.qualification ?? '');
-      ls.add(w);
-    }
-
-    return ls;
-  }
-
-  Widget buildQualification() {
-    if (doctorInfo != null && doctorInfo?.doctorQualifications != null && doctorInfo!.doctorQualifications!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: buildQualificationList(),
-        ),
-      );
-    }
-    
-    else {
-      return Container();
-    }
-  }
-
-  List<Widget> buildLanguageList() {
-    List<Widget> ls = [
-      const DetailHeader(title: 'Languages Spoken'),
-    ];
-
-    for (int i = 0; i < doctorInfo!.doctorSpokenLanguage!.length; i++) {
-      final o = doctorInfo!.doctorSpokenLanguage![i];
-      final w = DetailContent(text: o.spokenLanguage ?? '');
-      ls.add(w);
-    }
-
-    return ls;
-  }
-
-  Widget buildLanguage() {
-    if (doctorInfo != null && doctorInfo?.doctorSpokenLanguage != null && doctorInfo!.doctorSpokenLanguage!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: buildLanguageList(),
-        ),
-      );
-    }
-    
-    else {
-      return Container();
-    }
   }
 
   Widget buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(15.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 100.0,
-            height: 100.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: getDoctorImage(),
-                fit: BoxFit.cover,
+    return Container(
+      color: kSearchDoctorBgColor,
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 100.0,
+                    height: 100.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      image: DecorationImage(
+                        image: getDoctorImage(),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 15.0, top: 10.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: buildDoctorContent(context),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 5.0),
-              child: Text(
-                doctorInfo?.name ?? '',
-                style: const TextStyle(
-                  fontSize: 20.0,
-                  fontFamily: kBodyFont,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -433,18 +317,13 @@ class _DoctorDetailState extends State<DoctorDetail> {
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
         child: SafeArea(
-          child: isLoading ? Container() : Scrollbar(
-            child: ListView(
-              children: [
-                buildHeader(),
-                buildLanguage(),
-                buildQualification(),
-                buildSpeciality(),
-                buildSuite(),
-                buildAvailability(),
-                buildContact(),
-              ],
-            ),
+          child: isLoading ? Container() : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              buildHeader(),
+              buildContentList(),
+              buildContact(),
+            ],
           ),
         ),
       ),

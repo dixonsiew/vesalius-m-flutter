@@ -6,9 +6,9 @@ class DetailHeader extends StatelessWidget {
   final String title;
 
   const DetailHeader({
-    super.key, 
+    Key? key,
     required this.title,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class DetailHeader extends StatelessWidget {
       padding: const EdgeInsets.all(10.0),
       margin: const EdgeInsets.only(bottom: 10.0),
       width: double.infinity,
-      color: kSearchDoctorBgColor,
+      color: kHomeBgColor,
       child: Text(
         title,
         style: const TextStyle(

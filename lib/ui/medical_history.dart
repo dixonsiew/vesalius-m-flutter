@@ -10,7 +10,7 @@ class MedicalHistory extends StatefulWidget {
   
   static const String routeName = 'MedicalHistory';
 
-  const MedicalHistory({super.key});
+  const MedicalHistory({Key? key}) : super(key: key);
 
   @override
   State<MedicalHistory> createState() => _MedicalHistoryState();
@@ -25,7 +25,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         MedicalHistoryItem(
           name: 'Vital Signs',
           onTap: () {
-            Navigator.of(context).pushNamed(VitalSigns.routeName);
+            Navigator.pushNamed(context, VitalSigns.routeName);
           },
         ),
         const Divider(
@@ -36,7 +36,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         MedicalHistoryItem(
           name: 'Prescription',
           onTap: () {
-            Navigator.of(context).push( 
+            Navigator.push(context, 
               MaterialPageRoute(
                 builder: (context) => const MedicalHistoryGroup(
                   title: 'Prescription',
@@ -54,7 +54,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         MedicalHistoryItem(
           name: 'Investigation',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(context, 
               MaterialPageRoute(
                 builder: (context) => const MedicalHistoryGroup(
                   title: 'Investigation',
@@ -72,7 +72,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         MedicalHistoryItem(
           name: 'Bill Summary',
           onTap: () {
-            Navigator.of(context).push( 
+            Navigator.push(context, 
               MaterialPageRoute(
                 builder: (context) => const MedicalHistoryGroup(
                   title: 'Bill Summary',
@@ -90,7 +90,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         MedicalHistoryItem(
           name: 'Referral Letter',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(context, 
               MaterialPageRoute(
                 builder: (context) => const MedicalHistoryGroup(
                   title: 'Referral Letter',
@@ -108,7 +108,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         MedicalHistoryItem(
           name: 'Health Screening Report',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(context, 
               MaterialPageRoute(
                 builder: (context) => const MedicalHistoryGroup(
                   title: 'Health Screening Report',
@@ -129,7 +129,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(5.0)),
           color: Colors.white,
-          boxShadow: [
+          boxShadow: <BoxShadow>[
             BoxShadow(
               color: Color.fromRGBO(133, 133, 133, 0.29),
               offset: Offset(5, 4),
@@ -217,7 +217,7 @@ class _MedicalHistoryState extends State<MedicalHistory> {
         leading: const BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: kMedicalRecordBgColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -236,38 +236,42 @@ class MedicalHistoryItem extends StatelessWidget {
   final void Function() onTap;
 
   const MedicalHistoryItem({
-    super.key, 
+    Key? key,
     required this.name,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-                color: Color(0xFF727272),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: const [
-                Icon(
-                  Icons.arrow_forward_ios_outlined,
-                  color: kMedicalRecordBgColor,
+    return Material(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    fontFamily: kBodyFont,
+                    color: Color(0xFF727272),
+                  ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(
+                    Icons.arrow_forward_ios_outlined,
+                    color: kMedicalRecordBgColor,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

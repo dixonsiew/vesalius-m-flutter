@@ -13,10 +13,10 @@ class AllergiesGroup extends StatelessWidget {
   final List<Allergy> list;
 
   const AllergiesGroup({
-    super.key, 
+    Key? key,
     required this.title,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +70,9 @@ class AllergiesGroupItem extends StatelessWidget {
   final Allergy allergy;
 
   const AllergiesGroupItem({
-    super.key,
+    Key? key,
     required this.allergy,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +160,6 @@ class AllergiesGroupItem extends StatelessWidget {
               allergy.reaction == null || allergy.reaction == '' ? '-' : allergy.reaction!,
               style: const TextStyle(
                 fontSize: 20.0,
-                fontFamily: kBodyFont,
                 color: Color.fromARGB(255, 100, 100, 100),
               ),
             ),

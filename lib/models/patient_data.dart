@@ -203,7 +203,7 @@ class PatientDetails {
   });
 
   factory PatientDetails.fromJson(Map<String, dynamic> json) {
-    final ls = json['documents'] as List? ?? [];
+    var ls = json['documents'] as List? ?? [];
     List<Document> lx = ls.map<Document>((x) => Document.fromJson(x)).toList();
 
     return PatientDetails(
@@ -600,23 +600,23 @@ class PatientVisit {
   });
 
   factory PatientVisit.fromJson(Map<String, dynamic> json) {
-    final ls = json['novaBills'] as List? ?? [];
+    var ls = json['novaBills'] as List? ?? [];
     List<NovaBill> lx = ls.map<NovaBill>((x) => NovaBill.fromJson(x)).toList();
 
-    final lm = json['novaVisitVitalSignsDetailList'] as List? ?? [];
-    List<NovaVisitVitalSignsDetail> ly = lm.map<NovaVisitVitalSignsDetail>((x) => NovaVisitVitalSignsDetail.fromJson(x)).toList();
+    ls = json['novaVisitVitalSignsDetailList'] as List? ?? [];
+    List<NovaVisitVitalSignsDetail> ly = ls.map<NovaVisitVitalSignsDetail>((x) => NovaVisitVitalSignsDetail.fromJson(x)).toList();
 
-    final ln = json['novaVisitInvestigationDetailList'] as List? ?? [];
-    List<NovaVisitInvestigationDetail> la = ln.map<NovaVisitInvestigationDetail>((x) => NovaVisitInvestigationDetail.fromJson(x)).toList();
+    ls = json['novaVisitInvestigationDetailList'] as List? ?? [];
+    List<NovaVisitInvestigationDetail> la = ls.map<NovaVisitInvestigationDetail>((x) => NovaVisitInvestigationDetail.fromJson(x)).toList();
 
-    final lo = json['novaVisitReferralLetterList'] as List? ?? [];
-    List<NovaVisitReferralLetter> lb = lo.map<NovaVisitReferralLetter>((x) => NovaVisitReferralLetter.fromJson(x)).toList();
+    ls = json['novaVisitReferralLetterList'] as List? ?? [];
+    List<NovaVisitReferralLetter> lb = ls.map<NovaVisitReferralLetter>((x) => NovaVisitReferralLetter.fromJson(x)).toList();
 
-    final lp = json['novaHealthScreeningRptList'] as List? ?? [];
-    List<NovaHealthScreeningRpt> lc = lp.map<NovaHealthScreeningRpt>((x) => NovaHealthScreeningRpt.fromJson(x)).toList();
+    ls = json['novaHealthScreeningRptList'] as List? ?? [];
+    List<NovaHealthScreeningRpt> lc = ls.map<NovaHealthScreeningRpt>((x) => NovaHealthScreeningRpt.fromJson(x)).toList();
 
-    final lq = json['novaVisitPatientRxList'] as List? ?? [];
-    List<NovaVisitPatientRx> ld = lq.map<NovaVisitPatientRx>((x) => NovaVisitPatientRx.fromJson(x)).toList();
+    ls = json['novaVisitPatientRxList'] as List? ?? [];
+    List<NovaVisitPatientRx> ld = ls.map<NovaVisitPatientRx>((x) => NovaVisitPatientRx.fromJson(x)).toList();
 
     return PatientVisit(
       novaBills: lx,
@@ -631,12 +631,12 @@ class PatientVisit {
 
   Map<String, dynamic> toJson() =>
     {
-      'novaBills': novaBills == null ? null : novaBills!.map((x) => x.toJson()).toList(),
+      'novaBills': novaBills?.map((x) => x.toJson()).toList(),
       'novaVisit': novaVisit?.toJson(),
-      'novaVisitVitalSignsDetailList': novaVisitVitalSignsDetailList == null ? null : novaVisitVitalSignsDetailList!.map((x) => x.toJson()).toList(),
-      'novaVisitInvestigationDetailList': novaVisitInvestigationDetailList == null ? null : novaVisitInvestigationDetailList!.map((x) => x.toJson()).toList(),
-      'novaVisitReferralLetterList': novaVisitReferralLetterList == null ? null : novaVisitReferralLetterList!.map((x) => x.toJson()).toList(),
-      'novaHealthScreeningRptList': novaHealthScreeningRptList == null ? null : novaHealthScreeningRptList!.map((x) => x.toJson()).toList(),
+      'novaVisitVitalSignsDetailList': novaVisitVitalSignsDetailList?.map((x) => x.toJson()).toList(),
+      'novaVisitInvestigationDetailList': novaVisitInvestigationDetailList?.map((x) => x.toJson()).toList(),
+      'novaVisitReferralLetterList': novaVisitReferralLetterList?.map((x) => x.toJson()).toList(),
+      'novaHealthScreeningRptList': novaHealthScreeningRptList?.map((x) => x.toJson()).toList(),
     };
 }
 
@@ -758,7 +758,7 @@ class VitalSignsHistory {
   });
 
   factory VitalSignsHistory.fromJson(Map<String, dynamic> json) {
-    final ls = json['vitalSignsData'] as List? ?? [];
+    var ls = json['vitalSignsData'] as List? ?? [];
     List<VitalSignsData> lx = ls.map<VitalSignsData>((x) => VitalSignsData.fromJson(x)).toList();
 
     return VitalSignsHistory(
@@ -779,7 +779,7 @@ class LabHistory {
   });
 
   factory LabHistory.fromJson(Map<String, dynamic> json) {
-    final ls = json['labData'] as List? ?? [];
+    var ls = json['labData'] as List? ?? [];
     List<LabData> lx = ls.map<LabData>((x) => LabData.fromJson(x)).toList();
 
     return LabHistory(
@@ -866,7 +866,7 @@ class NovaVisitInvestigationDetail {
   });
 
   factory NovaVisitInvestigationDetail.fromJson(Map<String, dynamic> json) {
-    final ls = json['panelDetail'] as List? ?? [];
+    var ls = json['panelDetail'] as List? ?? [];
     List<PanelDetail> lx = ls.map<PanelDetail>((x) => PanelDetail.fromJson(x)).toList();
 
     return NovaVisitInvestigationDetail(
@@ -900,7 +900,7 @@ class NovaVisitInvestigationDetail {
       'resultClob': resultClob,
       'panelCode': panelCode,
       'panelDescription': panelDescription,
-      'panelDetail': panelDetail == null ? null : panelDetail!.map((x) => x.toJson()).toList(),
+      'panelDetail': panelDetail?.map((x) => x.toJson()).toList(),
     };
 }
 

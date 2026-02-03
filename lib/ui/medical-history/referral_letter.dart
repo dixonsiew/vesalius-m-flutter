@@ -14,9 +14,9 @@ class ReferralLetter extends StatefulWidget {
   final PatientVisit patientVisit;
 
   const ReferralLetter({
-    super.key, 
+    Key? key,
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   @override
   State<ReferralLetter> createState() => _ReferralLetterState();
@@ -93,7 +93,7 @@ class _ReferralLetterState extends State<ReferralLetter> {
           data: o.referralLetter,
           style: {
             'html': Style(
-              fontSize: const FontSize(15.0, units: 'pt'),
+              fontSize: FontSize(15.0),
               fontFamily: kBodyFont,
             ),
           }
@@ -142,8 +142,8 @@ class _ReferralLetterState extends State<ReferralLetter> {
         'Referral Letter',
         style: TextStyle(
           fontSize: 15.0,
-          fontWeight: FontWeight.bold,
           fontFamily: kBodyFont,
+          fontWeight: FontWeight.bold,
         ),
       ),
 
@@ -159,7 +159,7 @@ class _ReferralLetterState extends State<ReferralLetter> {
           data: o.referralLetter,
           style: {
             'html': Style(
-              fontSize: const FontSize(15.0, units: 'pt'),
+              fontSize: FontSize(15.0),
               fontFamily: kBodyFont,
             ),
           }

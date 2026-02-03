@@ -101,7 +101,7 @@ class UserDetails {
   });
 
   factory UserDetails.fromJson(Map<String, dynamic> json) {
-    final ls = json['userBranches'] as List;
+    var ls = json['userBranches'] as List;
     List<UserBranch> lx = ls.map((x) => UserBranch.fromJson(x)).toList();
 
     return UserDetails(

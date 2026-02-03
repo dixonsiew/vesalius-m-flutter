@@ -10,11 +10,11 @@ class AuthManager {
   static String? username;
   static bool isLogin = false;
 
-  static Future<void> set(String mtoken, String role, bool misFirstTimeLogin, String musername, bool misLogin) async {
-    token = mtoken;
-    isFirstTimeLogin = misFirstTimeLogin;
-    username = musername;
-    isLogin = misLogin;
+  static Future<void> set(String vtoken, String role, bool visFirstTimeLogin, String vusername, bool visLogin) async {
+    token = vtoken;
+    isFirstTimeLogin = visFirstTimeLogin;
+    username = vusername;
+    isLogin = visLogin;
     final SharedPreferences prefs = await _prefs;
     await prefs.setString('GmsToken', token!);
     await prefs.setString('role', role);
@@ -32,8 +32,8 @@ class AuthManager {
     isLogin = prefs.getBool('isLogin') ?? false;
   }
 
-  static Future<void> setIsLogin(bool misLogin) async {
-    isLogin = misLogin;
+  static Future<void> setIsLogin(bool visLogin) async {
+    isLogin = visLogin;
     final SharedPreferences prefs = await _prefs;
     await prefs.setBool('isLogin', isLogin);
   }

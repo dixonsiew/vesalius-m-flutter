@@ -2,26 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:vesalius_m_flutter/constants.dart';
 
 class FrontLayer extends StatelessWidget {
 
   const FrontLayer({
-    super.key, 
+    Key? key,
     required this.title,
     required this.content,
-    required this.hospitalInformationId,
-    required this.data,
-    required this.isBookmarked,
-    required this.onToggleBookmark,
-  });
+  }) : super(key: key);
 
   final String title;
   final String content;
-  final String hospitalInformationId;
-  final Map data;
-  final bool isBookmarked;
-  final Future<void> Function(bool, String, Map) onToggleBookmark;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +28,7 @@ class FrontLayer extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 18.0, bottom: 5.0),
@@ -50,45 +42,18 @@ class FrontLayer extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          Html(
-            data: content,
-            style: {
-              'span': Style(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
+            child: Text(
+              content,
+              style: const TextStyle(
+                height: 1.5,
                 color: Colors.white,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: 16.0,
                 fontWeight: FontWeight.bold,
               ),
-              'p': Style(
-                color: Colors.white,
-                fontSize: const FontSize(16.0, units: 'pt'),
-                fontWeight: FontWeight.bold,
-              ),
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10.0),
-            child: SizedBox(
-              width: 50.0,
-              height: 50.0,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                ),
-                child: IconButton(
-                  icon: isBookmarked ? 
-                  const Icon(
-                    Icons.bookmark_sharp,
-                    color: kPrimaryColor,
-                  ) : 
-                  const Icon(
-                    Icons.bookmark_outline_sharp,
-                  ),
-                  onPressed: () {
-                    onToggleBookmark(isBookmarked, hospitalInformationId, data);
-                  },
-                ),
-              ),
+              textAlign: TextAlign.left,
             ),
           ),
         ],
@@ -99,18 +64,18 @@ class FrontLayer extends StatelessWidget {
 
 class BackgroundLayer extends StatelessWidget {
 
-  final String title;
-  final String content;
-  final bool isBookmarked;
-  final String? image;
-
   const BackgroundLayer({
-    super.key, 
+    Key? key,
     required this.title,
     required this.content,
     required this.isBookmarked,
     required this.image,
-  });
+  }) : super(key: key);
+
+  final String title;
+  final String content;
+  final bool isBookmarked;
+  final String image;
 
   @override
   Widget build(BuildContext context) {
@@ -123,10 +88,10 @@ class BackgroundLayer extends StatelessWidget {
         //   colors: [Color.fromRGBO(0, 0, 0, 0.3), Color.fromRGBO(0, 0, 0, 0.3)],
         // ),
         color: Colors.transparent,
-        image: image == null ? null : DecorationImage(
+        image: DecorationImage(
           fit: BoxFit.cover,
           image: MemoryImage(
-            base64Decode(image!),
+            base64Decode(image),
           ),
         ),
       ),
@@ -150,12 +115,12 @@ class BackgroundLayer extends StatelessWidget {
             style: {
               'span': Style(
                 color: Colors.transparent,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: FontSize(16.0),
                 fontWeight: FontWeight.bold,
               ),
               'p': Style(
                 color: Colors.transparent,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: FontSize(16.0),
                 fontWeight: FontWeight.bold,
               ),
             },

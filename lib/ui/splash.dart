@@ -8,7 +8,7 @@ class Splash extends StatefulWidget {
 
   static const String routeName = 'Splash';
 
-  const Splash({super.key});
+  const Splash({Key? key}) : super(key: key);
 
   @override
   State<Splash> createState() => _SplashState();
@@ -23,12 +23,11 @@ class _SplashState extends State<Splash> {
   }
 
   Future<Timer> startTime() async {
-    var duration = const Duration(seconds: 5);
-    return Timer(duration, navigationPage);
+    return Timer(const Duration(seconds: 5), navigationPage);
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacementNamed(Home.routeName);
+    Navigator.pushReplacementNamed(context, Home.routeName);
   }
 
   @override

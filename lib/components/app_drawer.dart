@@ -15,7 +15,7 @@ import 'package:vesalius_m_flutter/ui/user_list.dart';
 
 class AppDrawer extends StatefulWidget {
 
-  const AppDrawer({super.key});
+  const AppDrawer({Key? key}) : super(key: key);
 
   @override
   State<AppDrawer> createState() => _AppDrawerState();
@@ -26,7 +26,7 @@ class _AppDrawerState extends State<AppDrawer> {
   bool isAuth = false;
   PatientDetails? patientDetails;
   UserBranch? branch;
-  String version = '';
+  String? version;
 
   @override
   void initState() {
@@ -38,31 +38,31 @@ class _AppDrawerState extends State<AppDrawer> {
     version = '';
     await AuthManager.load();
     var x = await DataManager.getPatientDetails();
-    var mbranch = await guestModeAutoSelectBranch();
+    var vbranch = await guestModeAutoSelectBranch();
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {
       isAuth = AuthManager.isLogin;
       patientDetails = x;
-      branch = mbranch;
+      branch = vbranch;
       version = packageInfo.version;
     });
   }
 
   Future<UserBranch?> guestModeAutoSelectBranch() async {
-    UserBranch? mbranch;
+    UserBranch? vbranch;
     if (!AuthManager.isLogin) {
       var ls = await getPublicBranchList();
       if (ls.isNotEmpty) {
         await DataManager.setBranchDetails(ls.first);
-        mbranch = DataManager.branchDetails;
+        vbranch = DataManager.branchDetails;
       }
     }
 
     else {
-      mbranch = DataManager.branchDetails;
+      vbranch = DataManager.branchDetails;
     }
 
-    return mbranch;
+    return vbranch;
   }
 
   Future<bool> onSignOut() async {
@@ -143,7 +143,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         height: 50.0,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop(true);
+                            Navigator.pop(context, true);
                           },
                           child: const Text(
                             'Sure',
@@ -173,7 +173,7 @@ class _AppDrawerState extends State<AppDrawer> {
   List<Widget> buildAuthList() {
     String s = 'Guest';
     if (isAuth && patientDetails != null) {
-      var name = patientDetails?.name;
+      var name = patientDetails!.name;
       s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}'.trim();
     }
 
@@ -200,8 +200,12 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          Navigator.of(context).pop();
-          await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BranchList()));
+          Navigator.pop(context);
+          await Navigator.push(context,
+            MaterialPageRoute(
+              builder: (context) => const BranchList()
+            )
+          );
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
@@ -232,7 +236,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   const SizedBox(width: 10.0),
                   const Icon(
                     Icons.arrow_forward_ios_outlined,
-                    color: kPrimaryColor,
+                    color: kHomeBgColor,
                   ),
                   const SizedBox(width: 10.0),
                 ],
@@ -251,15 +255,19 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          Navigator.of(context).pop();
-          await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UserList()));
+          Navigator.pop(context);
+          await Navigator.push(context,
+            MaterialPageRoute(
+              builder: (context) => const UserList()
+            )
+          );
         },
-        child: Padding(
-          padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
+        child: const Padding(
+          padding: EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Switch User',
                   style: TextStyle(
@@ -271,10 +279,10 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
+                children: [
                   Icon(
                     Icons.arrow_forward_ios_outlined,
-                    color: kPrimaryColor,
+                    color: kHomeBgColor,
                   ),
                   SizedBox(width: 10.0),
                 ],
@@ -312,15 +320,15 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () {
-          Navigator.of(context).pop();
-          Navigator.of(context).pushNamed(ChangePassword.routeName);
+          Navigator.pop(context);
+          Navigator.pushNamed(context, ChangePassword.routeName);
         },
-        child: Padding(
-          padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
+        child: const Padding(
+          padding: EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Change Password',
                   style: TextStyle(
@@ -332,10 +340,10 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
+                children: [
                   Icon(
                     Icons.arrow_forward_ios_outlined,
-                    color: kPrimaryColor,
+                    color: kHomeBgColor,
                   ),
                   SizedBox(width: 10.0),
                 ],
@@ -354,20 +362,20 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          final nav = Navigator.of(context);
+          NavigatorState nav = Navigator.of(context);
           bool b = await onSignOut();
           if (b) {
             await DataManager.clear();
             AppointmentManager.stop();
-            nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+            await nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
+        child: const Padding(
+          padding: EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Sign Out',
                   style: TextStyle(
@@ -379,10 +387,10 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
+                children: [
                   Icon(
                     Icons.arrow_forward_ios_outlined,
-                    color: kPrimaryColor,
+                    color: kHomeBgColor,
                   ),
                   SizedBox(width: 10.0),
                 ],
@@ -420,7 +428,7 @@ class _AppDrawerState extends State<AppDrawer> {
   List<Widget> buildDefaultList() {
     String s = 'Guest';
     if (isAuth && patientDetails != null) {
-      var name = patientDetails?.name;
+      var name = patientDetails!.name;
       s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}'.trim();
     }
 
@@ -447,8 +455,12 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          Navigator.of(context).pop();
-          final b = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BranchList())) ?? false;
+          Navigator.pop(context);
+          final b = await Navigator.push(context,
+            MaterialPageRoute(
+              builder: (context) => const BranchList()
+            )
+          ) ?? false;
           if (b) {
             await DataManager.getBranchDetails();
           }
@@ -482,7 +494,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   const SizedBox(width: 10.0),
                   const Icon(
                     Icons.arrow_forward_ios_outlined,
-                    color: kPrimaryColor,
+                    color: kHomeBgColor,
                   ),
                   const SizedBox(width: 10.0),
                 ],

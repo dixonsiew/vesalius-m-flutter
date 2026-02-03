@@ -8,9 +8,9 @@ class HDLChart extends StatefulWidget {
   final List<LabData> list;
 
   const HDLChart({
-    super.key, 
+    Key? key,
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<HDLChart> createState() => _HDLChartState();
@@ -33,11 +33,11 @@ class _HDLChartState extends State<HDLChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'HDL (mmol/L)',
               style: TextStyle(
@@ -62,25 +62,25 @@ class _HDLChartState extends State<HDLChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: CategoryAxis(
+      primaryXAxis: const CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: ChartTitle(
+      title: const ChartTitle(
         text: 'HDL (mmol/L)',
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontSize: 14.0,
           fontFamily: kTitleFont,
           fontWeight: FontWeight.bold,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +91,7 @@ class _HDLChartState extends State<HDLChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<HDLData, String>>[
+      series: <CartesianSeries<HDLData, String>>[
         LineSeries<HDLData, String>(
           dataSource: createData(),
           xValueMapper: (HDLData m, _) => m.date,
