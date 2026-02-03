@@ -1,0 +1,9 @@
+Google Developer Account
+ 
+Login: ihpmobileapp@gmail.com
+Password: AppIHP@308
+
+Apple Developer Account
+
+Apple ID: ihpmobileapp@gmail.com
+Password: AppIHP@308

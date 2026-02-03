@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:dio_brotli_transformer/dio_brotli_transformer.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 
 class ApiHelper {
   
-  static final Dio _dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 15), contentType: Headers.jsonContentType));
-  static final Dio _tokenDio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 15), contentType: Headers.jsonContentType));
+  static final Dio _dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 55), contentType: Headers.jsonContentType, headers: { 'accept-encoding': 'br' }));
+  static final Dio _tokenDio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 55), contentType: Headers.jsonContentType, headers: { 'accept-encoding': 'br' }));
 
   static Dio get dio {
     (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
@@ -17,6 +18,7 @@ class ApiHelper {
       };
       return client;
     };
+    _dio.transformer = DioBrotliTransformer();
     return _dio;
   }
 
@@ -30,7 +32,7 @@ class ApiHelper {
     };
     _tokenDio.interceptors.add(InterceptorsWrapper(
       onRequest: (RequestOptions options, RequestInterceptorHandler handler) async {
-        options.headers['Authorization'] = 'Bearer ${AuthManager.token}';
+        options.headers['Authorization'] = 'Bearer ${AuthManager.instance.token}';
         return handler.next(options);
       },
       onResponse:(Response response, ResponseInterceptorHandler handler) async {
@@ -40,6 +42,7 @@ class ApiHelper {
         return handler.next(e);//continue
       }
     ));
+    _tokenDio.transformer = DioBrotliTransformer();
     return _tokenDio;
   }
 }

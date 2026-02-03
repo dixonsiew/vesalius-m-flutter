@@ -1,3 +1,7 @@
 {
-    "dart.flutterSdkPath": "C:\\apps\\flutter2"
+  "editor.formatOnSave": false,
+  "[dart]": {
+    "editor.formatOnSave": false
+  },
+  "dart.flutterSdkPath": "/Users/novamsc/Downloads/flutter"
 }
