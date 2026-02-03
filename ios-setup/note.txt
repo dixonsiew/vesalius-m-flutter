@@ -1,0 +1,11 @@
+issuer id
+a23da65e-b0f5-4700-9097-fda318314587
+
+key name
+vesalius-m-dev-metro-appstore
+
+key id
+9BKJ5BR5UR
+
+Password for certificate:
+R8gsAV2F

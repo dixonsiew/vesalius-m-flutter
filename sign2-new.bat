@@ -1,2 +1,2 @@
 @echo off
-call apksigner.bat sign -v --min-sdk-version 19 --out vesalius-m-x.aab --ks gms-nova.keystore --ks-pass pass:"$Abc12345" --key-pass pass:"$Abc12345" --ks-key-alias Nova build\app\outputs\bundle\release\app-release.aab
+call apksigner.bat sign -v --min-sdk-version 19 --out vesalius-m-metro.aab --ks gms-nova.keystore --ks-pass pass:"$Abc12345" --key-pass pass:"$Abc12345" --ks-key-alias Nova build\app\outputs\bundle\release\app-release.aab
