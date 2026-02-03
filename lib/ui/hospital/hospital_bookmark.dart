@@ -10,9 +10,9 @@ import 'package:vesalius_m_flutter/models/storage_data_manager.dart';
 
 class HospitalBookmark extends StatefulWidget {
 
-  static const String routeName = 'HospitalBookmark';
+  static const String routeName = '/HospitalBookmark';
 
-  const HospitalBookmark({super.key});
+  const HospitalBookmark({Key? key}) : super(key: key);
 
   @override
   State<HospitalBookmark> createState() => _HospitalBookmarkState();
@@ -34,7 +34,6 @@ class _HospitalBookmarkState extends State<HospitalBookmark> {
   }
 
   Future<void> toggleBookmark(bool isBookmarked, String hospitalInformationId, Map m) async {
-    final dlg = CustomDialog.of(context);
     if (!isBookmarked) {
       String userMode = await getUserMode();
       await StorageDataManager.addHospitalBookmarkStorage(userMode, m);
@@ -42,7 +41,7 @@ class _HospitalBookmarkState extends State<HospitalBookmark> {
     }
 
     else {
-      bool b = await dlg.showConfirmDialog('Delete Bookmark', 'Are you sure you want to delete this bookmark?', 'Cancel', 'Sure');
+      bool b = await showConfirmDialog00('Delete Bookmark', 'Are you sure you want to delete this bookmark?', 'Cancel', 'Sure');
       if (b) {
         await StorageDataManager.delHospitalInformationFromStorage(hospitalInformationId);
         await getDoctorAndHospitalFromStorage();
@@ -144,7 +143,7 @@ class _HospitalBookmarkState extends State<HospitalBookmark> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kSearchHospitalBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kSearchHospitalBgColor),
         backgroundColor: kSearchHospitalBgColor,
         toolbarHeight: kAppToolbarHeight,
         leadingWidth: 100.0,

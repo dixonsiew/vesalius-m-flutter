@@ -7,14 +7,14 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class Prescription extends StatefulWidget {
   
-  static const String routeName = 'Prescription';
+  static const String routeName = '/Prescription';
 
   final PatientVisit patientVisit;
 
   const Prescription({
-    super.key, 
+    Key? key, 
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   @override
   State<Prescription> createState() => _PrescriptionState();
@@ -204,7 +204,7 @@ class _PrescriptionState extends State<Prescription> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,

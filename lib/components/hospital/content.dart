@@ -7,14 +7,14 @@ import 'package:vesalius_m_flutter/constants.dart';
 class FrontLayer extends StatelessWidget {
 
   const FrontLayer({
-    super.key, 
+    Key? key, 
     required this.title,
     required this.content,
     required this.hospitalInformationId,
     required this.data,
     required this.isBookmarked,
     required this.onToggleBookmark,
-  });
+  }) : super(key: key);
 
   final String title;
   final String content;
@@ -99,18 +99,17 @@ class FrontLayer extends StatelessWidget {
 
 class BackgroundLayer extends StatelessWidget {
 
-  final String title;
-  final String content;
-  final bool isBookmarked;
-  final String? image;
-
-  const BackgroundLayer({
-    super.key, 
+  const BackgroundLayer({Key? key, 
     required this.title,
     required this.content,
     required this.isBookmarked,
     required this.image,
-  });
+  }) : super(key: key);
+
+  final String title;
+  final String content;
+  final bool isBookmarked;
+  final String? image;
 
   @override
   Widget build(BuildContext context) {

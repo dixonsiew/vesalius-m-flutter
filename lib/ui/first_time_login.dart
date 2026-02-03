@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/bottom_red.dart';
@@ -14,9 +15,9 @@ import 'home.dart';
 
 class FirstTimeLogin extends StatefulWidget {
   
-  static const String routeName = 'FirstTimeLogin';
+  static const String routeName = '/FirstTimeLogin';
 
-  const FirstTimeLogin({super.key});
+  const FirstTimeLogin({Key? key}) : super(key: key);
 
   @override
   State<FirstTimeLogin> createState() => _FirstTimeLoginState();
@@ -25,14 +26,18 @@ class FirstTimeLogin extends StatefulWidget {
 class _FirstTimeLoginState extends State<FirstTimeLogin> {
 
   bool isLoading = false;
-
   final formKey = GlobalKey<FormState>();
   final txtcode = TextEditingController();
 
+  @override
+  void dispose() {
+    txtcode.dispose();
+    super.dispose();
+  }
+
   void logout() async {
-    final nav = Navigator.of(context);
     await DataManager.clear();
-    nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+    Get.offAllNamed(Home.routeName);
   }
 
   void onVerify() async {
@@ -40,21 +45,20 @@ class _FirstTimeLoginState extends State<FirstTimeLogin> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
       await postVerificationCode(txtcode.text);
       await DataManager.removeItem('isFirstTimeLogin');
       await AuthManager.setIsLogin(true);
       setState(() {
         isLoading = false;
       });
-      nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+      Get.offAllNamed(Home.routeName);
     }
 
     catch (error) {
       setState(() {
         isLoading = false;
       });
-      CustomDialog.of(context).showCustomDialog('Verifying Failed', 'Please enter a valid code', 'Dismiss');
+      showCustomDialog('Verifying Failed', 'Please enter a valid code', 'Dismiss');
     }
   }
 

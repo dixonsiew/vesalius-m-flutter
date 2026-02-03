@@ -10,9 +10,9 @@ class BMIChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const BMIChart({
-    super.key, 
+    Key? key, 
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<BMIChart> createState() => _BMIChartState();
@@ -39,23 +39,18 @@ class _BMIChartState extends State<BMIChart> {
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'BMI (kg/m\u00B2)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -75,10 +70,8 @@ class _BMIChartState extends State<BMIChart> {
       ),
       title: ChartTitle(
         text: 'BMI (kg/m\u00B2)',
-        textStyle: const TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
       legend: Legend(
@@ -111,7 +104,7 @@ class _BMIChartState extends State<BMIChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

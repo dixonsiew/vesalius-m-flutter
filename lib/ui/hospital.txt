@@ -14,7 +14,7 @@ import 'package:vesalius_m_flutter/ui/hospital/hospital-bookmark.dart';
 
 class Hospital extends StatefulWidget {
 
-  static final String routeName = 'Hospital';
+  static const String routeName = 'Hospital';
 
   @override
   _HospitalState createState() => _HospitalState();

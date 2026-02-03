@@ -8,9 +8,9 @@ class HeightChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const HeightChart({
-    super.key, 
+    Key? key, 
     required this.list,
-  });
+  }) : super(key: key);
 
   @override
   State<HeightChart> createState() => _HeightChartState();
@@ -37,23 +37,18 @@ class _HeightChartState extends State<HeightChart> {
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Height (cm)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -71,10 +66,8 @@ class _HeightChartState extends State<HeightChart> {
       ),
       title: ChartTitle(
         text: 'Height (cm)',
-        textStyle: const TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
       legend: Legend(
@@ -107,7 +100,7 @@ class _HeightChartState extends State<HeightChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

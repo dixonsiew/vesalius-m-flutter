@@ -9,14 +9,13 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class Investigation extends StatefulWidget {
   
-  static const String routeName = 'Investigation';
+  static const String routeName = '/Investigation000';
 
   final PatientVisit patientVisit;
 
-  const Investigation({
-    super.key, 
+  const Investigation({Key? key, 
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   @override
   State<Investigation> createState() => _InvestigationState();
@@ -37,7 +36,7 @@ class _InvestigationState extends State<Investigation> {
     var lx = widget.patientVisit.novaVisitInvestigationDetailList ?? [];
     for (int i = 0; i < lx.length; i++) {
       final o = lx[i];
-      String s = o.investigationType!.toLowerCase();
+      String s = o.investigationType?.toLowerCase() ?? '';
       if (map.containsKey(s)) {
         var ls = map[s]!;
         ls.add(o);
@@ -241,7 +240,7 @@ class _InvestigationState extends State<Investigation> {
           if (x.resultClob != null) {
             lk.add(
               Html(
-                data: x.resultClob,
+                data: x.resultClob ?? '',
                 style: {
                   'html': Style(
                     fontSize: const FontSize(16.0, units: 'pt'),
@@ -327,7 +326,7 @@ class _InvestigationState extends State<Investigation> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,

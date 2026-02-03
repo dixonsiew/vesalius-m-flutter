@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_calendar_carousel/classes/marked_date.dart';
-import 'package:flutter_calendar_carousel/classes/multiple_marked_dates.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
@@ -18,14 +17,14 @@ import 'appointment_free_slot.dart';
 
 class AddAppointment extends StatefulWidget {
 
-  static const String routeName = 'AddAppointment';
+  static const String routeName = '/AddAppointment';
 
   final DoctorInfo? doctorInfo;
 
   const AddAppointment({
-    super.key, 
+    Key? key, 
     this.doctorInfo,
-  });
+  }) : super(key: key);
 
   @override
   State<AddAppointment> createState() => _AddAppointmentState();
@@ -34,12 +33,12 @@ class AddAppointment extends StatefulWidget {
 class _AddAppointmentState extends State<AddAppointment> {
 
   String? selectedDoctorMcr;
-  String selectedSpecialtyCode = '';
-  String selectedSpecialtyName = '';
+  String? selectedSpecialtyCode = '';
+  String? selectedSpecialtyName = '';
   String? selectedDoctorName = 'Select Doctor';
   String selectedCaseType = 'New Case';
   DateTime? selectedDate;
-  TimeOfDay? selectedTime;
+  late TimeOfDay? selectedTime;
   bool isLoading = false;
 
   @override
@@ -61,8 +60,8 @@ class _AddAppointmentState extends State<AddAppointment> {
         selectedDoctorMcr = o?.mcr;
         selectedDoctorName = o?.name;
         if (specialty != null) {
-          selectedSpecialtyCode = specialty.specialtyCode!;
-          selectedSpecialtyName = specialty.specialtyDesc!;
+          selectedSpecialtyCode = specialty.specialtyCode;
+          selectedSpecialtyName = specialty.specialtyDesc;
         }
       });
     }
@@ -103,7 +102,6 @@ class _AddAppointmentState extends State<AddAppointment> {
   void onCheckAvailability() async {
     final formatDate = DateFormat('d-MMM-y');
     String dts = '06:00';
-    final dlg = CustomDialog.of(context);
 
     if (selectedTime != null) {
       final now = DateTime.now();
@@ -123,30 +121,25 @@ class _AddAppointmentState extends State<AddAppointment> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
       var branchDetails = DataManager.branchDetails;
       var lx = await getVesaliusNextAvailableSlot(branchDetails!.branch!.branchId!, branchDetails.prn!, m);
       setState(() {
         isLoading = false;
       });
       if (lx.isEmpty) {
-        dlg.showCustomDialog('Failed', 'There is no available slot on your request date / time.', 'Dismiss');
+        showCustomDialog('Failed', 'There is no available slot on your request date / time.', 'Dismiss');
       }
 
       else {
-        nav.push(
-          MaterialPageRoute(
-            builder: (context) => AppointmentFreeSlot(
-              selectedDate: selectedDate,
-              selectedTime: selectedTime,
-              selectedDoctorName: selectedDoctorName,
-              selectedSpecialtyName: selectedSpecialtyName,
-              selectedCaseType: getSelectedCaseType(),
-              isUpdate: false,
-              list: lx,
-            ),
-          )
-        );
+        Get.to(() => AppointmentFreeSlot(
+          selectedDate: selectedDate,
+          selectedTime: selectedTime,
+          selectedDoctorName: selectedDoctorName,
+          selectedSpecialtyName: selectedSpecialtyName,
+          selectedCaseType: getSelectedCaseType(),
+          isUpdate: false,
+          list: lx,
+        ));
       }
     }
 
@@ -154,7 +147,7 @@ class _AddAppointmentState extends State<AddAppointment> {
       setState(() {
         isLoading = false;
       });
-      dlg.showCustomDialog('Failed', 'Sorry, no appointment slots available based on the selection criteria. Please reset and search again.', 'Dismiss');
+      showCustomDialog('Failed', 'Sorry, no appointment slots available based on the selection criteria. Please reset and search again.', 'Dismiss');
     }
   }
 
@@ -267,7 +260,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                   fontFamily: kBodyFont,
                 ),
               ), 
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Get.back(),
             ),
             CupertinoButton(
               child: const Text(
@@ -279,7 +272,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                   fontWeight: FontWeight.bold,
                 ),
               ), 
-              onPressed: () => Navigator.of(context).pop(currCaseType),
+              onPressed: () => Get.back(result: currCaseType),
             ),
           ],
         ),
@@ -403,7 +396,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                         Expanded(
                           child: TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              Get.back();
                             },
                             child: const Text(
                               'Dismiss',
@@ -422,7 +415,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                         Expanded(
                           child: TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop(currCaseType);
+                              Get.back(result: currCaseType);
                             },
                             child: const Text(
                               'Okay',
@@ -465,39 +458,25 @@ class _AddAppointmentState extends State<AddAppointment> {
 
   CalendarCarousel<Event> getCalendar() {
     final minDate = getMinDate();
-    List<MarkedDate> ld = [];
-    ld.addAll(
-      [
-        MarkedDate(textStyle: const TextStyle(color: Colors.white), color: const Color(0xFFFF5050), date: DateTime(2022, 1, 24)),
-        MarkedDate(textStyle: const TextStyle(color: Colors.white), color: const Color(0xFFFF5050), date: DateTime(2022, 1, 26)),
-      ]
-    );
-    MultipleMarkedDates mx = MultipleMarkedDates(markedDates: ld);
 
     final calendarCarousel = CalendarCarousel<Event>(
       height: 420.0,
-      multipleMarkedDates: mx,
-      prevDaysTextStyle: const TextStyle(color: Color(0xFFC0BFBF)),
       headerTextStyle: const TextStyle(
         fontSize: 16.0,
         fontFamily: kBodyFont,
-        color: Color(0xFFA41D2A),
+        color: Color(0xFF8C8C8C),
       ),
       selectedDayBorderColor: kAppointmentBgColor,
-      selectedDayButtonColor: const Color(0xFF002E50),
-      dayButtonColor: const Color(0xFFE1EDFF),
+      selectedDayButtonColor: kAppointmentBgColor,
       daysTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: Color(0xFF4E4E4E),
+        color: Colors.black,
       ),
-      todayButtonColor: const Color(0xFF44A1E4),
       todayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: Colors.white,
       ),
       selectedDayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: Colors.white,
       ),
       weekdayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
@@ -505,7 +484,7 @@ class _AddAppointmentState extends State<AddAppointment> {
       weekendTextStyle: const TextStyle(
         fontFamily: kBodyFont,
       ),
-      iconColor: const Color(0xFFA41D2A),
+      iconColor: Colors.black,
       daysHaveCircularBorder: false,
       thisMonthDayBorderColor: const Color(0xFF8C8C8C),
       selectedDateTime: selectedDate ?? minDate,
@@ -566,7 +545,7 @@ class _AddAppointmentState extends State<AddAppointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
         automaticallyImplyLeading: false,
@@ -587,7 +566,7 @@ class _AddAppointmentState extends State<AddAppointment> {
               color: Colors.white,
             ),
             onPressed: () {
-              Navigator.of(context).pop();
+              Get.back();
             }
           ),
         ],
@@ -632,7 +611,7 @@ class _AddAppointmentState extends State<AddAppointment> {
                                 ),
                               ),
                               Text(
-                                selectedSpecialtyName,
+                                selectedSpecialtyName ?? '',
                                 style: const TextStyle(
                                   fontSize: 16.0,
                                   fontWeight: FontWeight.bold,

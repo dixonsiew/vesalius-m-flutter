@@ -11,14 +11,14 @@ import 'package:vesalius_m_flutter/services/data_service.dart';
 
 class PR extends StatefulWidget {
   
-  static const String routeName = 'VitalSigns/PR';
+  static const String routeName = '/VitalSigns/PR';
 
   final String date;
 
   const PR({
-    super.key, 
+    Key? key, 
     required this.date,
-  });
+  }) : super(key: key);
 
   @override
   State<PR> createState() => _PRState();
@@ -99,7 +99,7 @@ class _PRState extends State<PR> {
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(5.0)),
                   color: Colors.white,
-                  boxShadow: [
+                  boxShadow: <BoxShadow>[
                     BoxShadow(
                       color: Color.fromRGBO(133, 133, 133, 0.29),
                       offset: Offset(5, 4),
@@ -132,7 +132,7 @@ class _PRState extends State<PR> {
             color: Color(0xFFD6D6D6),
           ),
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(191, 191, 191, 1),
             offset: Offset(0, 2),
@@ -150,7 +150,7 @@ class _PRState extends State<PR> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -193,9 +193,9 @@ class HistoryItem extends StatelessWidget {
   final NovaPatientVitalSignsDetail data;
 
   const HistoryItem({
-    super.key, 
+    Key? key, 
     required this.data,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

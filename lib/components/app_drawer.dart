@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
@@ -9,13 +10,13 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 import 'package:vesalius_m_flutter/ui/branch_list.dart';
-import 'package:vesalius_m_flutter/ui/change_password.dart';
+import 'package:vesalius_m_flutter/ui/profile/change_password.dart';
 import 'package:vesalius_m_flutter/ui/home.dart';
 import 'package:vesalius_m_flutter/ui/user_list.dart';
 
 class AppDrawer extends StatefulWidget {
 
-  const AppDrawer({super.key});
+  const AppDrawer({Key? key}) : super(key: key);
 
   @override
   State<AppDrawer> createState() => _AppDrawerState();
@@ -26,7 +27,7 @@ class _AppDrawerState extends State<AppDrawer> {
   bool isAuth = false;
   PatientDetails? patientDetails;
   UserBranch? branch;
-  String version = '';
+  String? version;
 
   @override
   void initState() {
@@ -66,7 +67,7 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   Future<bool> onSignOut() async {
-    return await CustomDialog.of(context).showConfirmDialog('Confirm to sign out', 'Are you sure you want to sign out?', 'Cancel', 'Sure');
+    return await showConfirmDialog00('Confirm to sign out', 'Are you sure you want to sign out?', 'Cancel', 'Sure');
   }
 
   Future<bool> onSignOutBak() async {
@@ -121,7 +122,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         height: 50.0,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            Get.back();
                           },
                           child: const Text(
                             'Cancel',
@@ -143,7 +144,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         height: 50.0,
                         child: TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop(true);
+                            Get.back(result: true);
                           },
                           child: const Text(
                             'Sure',
@@ -173,7 +174,7 @@ class _AppDrawerState extends State<AppDrawer> {
   List<Widget> buildAuthList() {
     String s = 'Guest';
     if (isAuth && patientDetails != null) {
-      var name = patientDetails?.name;
+      var name = patientDetails!.name;
       s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}'.trim();
     }
 
@@ -200,8 +201,8 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          Navigator.of(context).pop();
-          await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BranchList()));
+          Get.back();
+          await Get.to(() => const BranchList());
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
@@ -251,8 +252,8 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          Navigator.of(context).pop();
-          await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UserList()));
+          Get.back();
+          await Get.to(() => const UserList());
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
@@ -312,8 +313,8 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () {
-          Navigator.of(context).pop();
-          Navigator.of(context).pushNamed(ChangePassword.routeName);
+          Get.back();
+          Get.toNamed(ChangePassword.routeName);
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 15.0, top: 25.0, bottom: 25.0),
@@ -354,12 +355,11 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          final nav = Navigator.of(context);
           bool b = await onSignOut();
           if (b) {
             await DataManager.clear();
             AppointmentManager.stop();
-            nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+            Get.offAllNamed(Home.routeName);
           }
         },
         child: Padding(
@@ -420,7 +420,7 @@ class _AppDrawerState extends State<AppDrawer> {
   List<Widget> buildDefaultList() {
     String s = 'Guest';
     if (isAuth && patientDetails != null) {
-      var name = patientDetails?.name;
+      var name = patientDetails!.name;
       s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}'.trim();
     }
 
@@ -447,8 +447,8 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       InkWell(
         onTap: () async {
-          Navigator.of(context).pop();
-          final b = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BranchList())) ?? false;
+          Get.back();
+          final b = await Get.to(() => const BranchList()) ?? false;
           if (b) {
             await DataManager.getBranchDetails();
           }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
@@ -7,28 +8,28 @@ import 'confirm_appointment.dart';
 
 class AppointmentFreeSlot extends StatefulWidget {
   
-  static const String routeName = 'AppointmentFreeSlot';
+  static const String routeName = '/AppointmentFreeSlot';
 
   final DateTime? selectedDate;
   final TimeOfDay? selectedTime;
   final String? selectedSpecialtyName;
   final String? selectedDoctorName;
   final String? selectedCaseType;
-  final bool isUpdate;
+  final bool? isUpdate;
   final FutureAppointment? appointment;
-  final List<AvailableSlot> list;
+  final List<AvailableSlot>? list;
 
   const AppointmentFreeSlot({
-    super.key, 
+    Key? key, 
     this.selectedDate,
     this.selectedTime,
     this.selectedSpecialtyName,
     this.selectedDoctorName,
     this.selectedCaseType,
-    this.isUpdate = false,
+    this.isUpdate,
     this.appointment,
-    this.list = const[],
-  });
+    this.list,
+  }) : super(key: key);
 
   @override
   State<AppointmentFreeSlot> createState() => _AppointmentFreeSlotState();
@@ -89,25 +90,21 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
       ),
     ];
 
-    for (var o in widget.list) {
+    widget.list?.forEach((o) {
       final w = Padding(
         padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
         child: InkWell(
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ConfirmAppointment(
-                  selectedDate: getDate(o.date!),
-                  selectedTime: getTime(o.startTime!),
-                  selectedSpecialtyName: widget.selectedSpecialtyName ?? '',
-                  selectedDoctorName: o.doctorName ?? '',
-                  selectedCaseType: widget.selectedCaseType ?? '',
-                  slotNumber: o.slotNumber ?? '',
-                  isUpdate: widget.isUpdate,
-                  appointment: widget.appointment,
-                ),
-              )
-            );
+            Get.to(() => ConfirmAppointment(
+              selectedDate: getDate(o.date!),
+              selectedTime: getTime(o.startTime!),
+              selectedSpecialtyName: widget.selectedSpecialtyName,
+              selectedDoctorName: o.doctorName,
+              selectedCaseType: widget.selectedCaseType,
+              slotNumber: o.slotNumber,
+              isUpdate: widget.isUpdate,
+              appointment: widget.appointment,
+            ));
           },
           child: Container(
             color: Colors.white,
@@ -149,7 +146,7 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
         ),
       );
       lx.add(w);
-    }
+    });
     return lx;
   }
 
@@ -158,7 +155,7 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
         automaticallyImplyLeading: false,
@@ -179,7 +176,7 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
               color: Colors.white,
             ),
             onPressed: () {
-              Navigator.of(context).pop();
+              Get.back();
             }
           ),
         ],

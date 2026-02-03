@@ -6,9 +6,9 @@ class DetailHeader extends StatelessWidget {
   final String title;
 
   const DetailHeader({
-    super.key, 
+    Key? key, 
     required this.title,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

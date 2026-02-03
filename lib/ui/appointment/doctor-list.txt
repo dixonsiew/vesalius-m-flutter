@@ -12,7 +12,7 @@ import 'package:vesalius_m_flutter/helpers.dart';
 
 class DoctorList extends StatefulWidget {
   
-  static final String routeName = 'DoctorList';
+  static const String routeName = 'DoctorList';
 
   final String specialtyCode;
 

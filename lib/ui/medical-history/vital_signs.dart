@@ -1,6 +1,7 @@
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -17,9 +18,9 @@ import 'package:vesalius_m_flutter/ui/medical-history/vital-signs/weight.dart';
 
 class VitalSigns extends StatefulWidget {
 
-  static const String routeName = 'VitalSigns';
+  static const String routeName = '/VitalSigns000';
 
-  const VitalSigns({super.key});
+  const VitalSigns({Key? key}) : super(key: key);
 
   @override
   State<VitalSigns> createState() => _VitalSignsState();
@@ -46,7 +47,7 @@ class _VitalSignsState extends State<VitalSigns> {
       var lx = await getVesaliusPatientVisit(branchDetails!.branch!.branchId!, branchDetails.prn!, 5);
       setState(() {
         list = lx;
-        patientVisit = lx.isNotEmpty ? lx[0] : null;
+        patientVisit = lx.isNotEmpty ? lx.first : null;
         isLoading = false;
       });
     }
@@ -81,7 +82,7 @@ class _VitalSignsState extends State<VitalSigns> {
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(5.0)),
           color: Colors.white,
-          boxShadow: [
+          boxShadow: <BoxShadow>[
             BoxShadow(
               color: Color.fromRGBO(133, 133, 133, 0.29),
               offset: Offset(5, 4),
@@ -147,7 +148,7 @@ class _VitalSignsState extends State<VitalSigns> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         backgroundColor: kMedicalRecordBgColor,
         leadingWidth: 100.0,
         leading: const BackBtn(color: Colors.white),
@@ -199,7 +200,7 @@ class _VitalSignsState extends State<VitalSigns> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -239,26 +240,26 @@ class _VitalSignsState extends State<VitalSigns> {
 
 class VitalSignsItem extends StatelessWidget {
 
-  final String title;
-  final String code;
-  final NovaVisitVitalSignsDetail data;
-  final PatientVisit patientVisit;
+  final String? title;
+  final String? code;
+  final NovaVisitVitalSignsDetail? data;
+  final PatientVisit? patientVisit;
 
   const VitalSignsItem({
-    super.key, 
-    required this.title,
-    required this.code,
-    required this.data,
-    required this.patientVisit,
-  });
+    Key? key, 
+    this.title,
+    this.code,
+    this.data,
+    this.patientVisit,
+  }) : super(key: key);
 
   String getRegistrationDate() {
-    DateTime dt = DateTime.parse(patientVisit.novaVisit!.registrationDate!);
+    DateTime dt = DateTime.parse(patientVisit!.novaVisit!.registrationDate!);
     return formatDate(dt.toLocal(), [yyyy, '-', m, '-', dd]);
   }
 
   Widget buildPRValue() {
-    if (data.value1 == null || data.value1 == '') {
+    if (data?.value1 == null || data?.value1 == '') {
       return const Text(
         '-',
         style: TextStyle(
@@ -286,7 +287,7 @@ class VitalSignsItem extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '${data.value1}',
+            '${data?.value1}',
             style: const TextStyle(
               color: Colors.black,
               fontSize: 24.0,
@@ -312,7 +313,7 @@ class VitalSignsItem extends StatelessWidget {
   }
 
   Widget buildBPValue() {
-    if (data.unit == null || data.unit == '') {
+    if (data?.unit == null || data?.unit == '') {
       return const Text(
         '-',
         style: TextStyle(
@@ -331,7 +332,7 @@ class VitalSignsItem extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '${data.value1}/${data.value2}',
+            '${data?.value1}/${data?.value2}',
             style: const TextStyle(
               color: Colors.black,
               fontSize: 24.0,
@@ -357,7 +358,7 @@ class VitalSignsItem extends StatelessWidget {
   }
 
   Widget buildBMIValue() {
-    if (data.value1 == null || data.value1 == '') {
+    if (data?.value1 == null || data?.value1 == '') {
       return const Text(
         '-',
         style: TextStyle(
@@ -376,7 +377,7 @@ class VitalSignsItem extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '${data.value1}',
+            '${data?.value1}',
             style: const TextStyle(
               color: Colors.black,
               fontSize: 24.0,
@@ -410,7 +411,7 @@ class VitalSignsItem extends StatelessWidget {
         SizedBox(
           width: 85.0,
           child: Text(
-            title,
+            title ?? '',
             style: const TextStyle(
               color: Colors.black,
               fontSize: 18.0,
@@ -420,18 +421,24 @@ class VitalSignsItem extends StatelessWidget {
         ),
         const SizedBox(width: 20.0),
         Expanded(child: buildPRValue()),
-        data.value1 == null || data.value1 == '' ? Container() : ElevatedButton(
+        data?.value1 == null || data?.value1 == '' ? Container() : ElevatedButton(
           onPressed: () {
             if (code == 'PR') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => PR(date: getRegistrationDate())));
+              Get.to(() => PR(
+                date: getRegistrationDate(),
+              ));
             }
 
             else if (code == 'WT') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => Weight(date: getRegistrationDate())));
+              Get.to(() => Weight(
+                date: getRegistrationDate(),
+              ));
             }
             
             else if (code == 'HT') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => Height(date: getRegistrationDate())));
+              Get.to(() => Height(
+                date: getRegistrationDate(),
+              ));
             }
           },
           style: ElevatedButton.styleFrom(
@@ -455,7 +462,7 @@ class VitalSignsItem extends StatelessWidget {
         SizedBox(
           width: 85.0,
           child: Text(
-            title,
+            title ?? '',
             style: const TextStyle(
               color: Colors.black,
               fontSize: 18.0,
@@ -465,9 +472,11 @@ class VitalSignsItem extends StatelessWidget {
         ),
         const SizedBox(width: 20.0),
         Expanded(child: buildBMIValue()),
-        data.value1 == null || data.value1 == '' ? Container() : ElevatedButton(
+        data?.value1 == null || data?.value1 == '' ? Container() : ElevatedButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => BMI(date: getRegistrationDate())));
+            Get.to(() => BMI(
+              date: getRegistrationDate(),
+            ));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: kSecondaryColor,
@@ -490,7 +499,7 @@ class VitalSignsItem extends StatelessWidget {
         SizedBox(
           width: 85.0,
           child: Text(
-            title,
+            title ?? '',
             style: const TextStyle(
               color: Colors.black,
               fontSize: 18.0,
@@ -500,9 +509,11 @@ class VitalSignsItem extends StatelessWidget {
         ),
         const SizedBox(width: 20.0),
         Expanded(child: buildBPValue()),
-        data.unit == null || data.unit == '' ? Container() : ElevatedButton(
+        data?.unit == null || data?.unit == '' ? Container() : ElevatedButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => BP(date: getRegistrationDate())));
+            Get.to(() => BP(
+              date: getRegistrationDate(),
+            ));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: kSecondaryColor,

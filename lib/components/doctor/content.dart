@@ -1,20 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/doctor_data.dart';
-import 'package:vesalius_m_flutter/ui/appointment/add_appointment.dart';
+import 'package:vesalius_m_flutter/ui/appointment/new_appointment.dart';
 import 'package:vesalius_m_flutter/ui/doctor/doctor_detail.dart';
 
 class DoctorItem extends StatelessWidget {
   
   const DoctorItem({
-    super.key, 
+    Key? key, 
     required this.data,
     required this.isBookmarked,
     required this.onToggleBookmark,
-  });
+  }) : super(key: key);
 
   final DoctorInfo data;
   final bool isBookmarked;
@@ -26,28 +27,71 @@ class DoctorItem extends StatelessWidget {
     List<Widget> ls = [
       Text(
         '${o.name}'.trim(),
-        style: const TextStyle(
-          fontSize: 20.0,
+        style: kMainTextStyle.copyWith(
           fontFamily: kBodyFont,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF8E9093),
+          fontWeight: FontWeight.w700,
         ),
       ),
+      const SizedBox(height: 8.0),
     ];
 
     if (specialtyList != null) {
       for (int i = 0; i < specialtyList.length; i++) {
         Widget w = Text(
-          specialtyList[i].specialities ?? '',
-          style: const TextStyle(
-            fontSize: 17.0,
+          specialtyList[i].specialities!,
+          style: kMainTextStyle.copyWith(
             fontFamily: kBodyFont,
-            color: Color(0xFF949494),
+            fontSize: 12.0,
+            fontWeight: FontWeight.w500,
           ),
         );
         ls.add(w);
+        ls.add(const SizedBox(height: 5.0));
       }
     }
+
+    Widget l = Row(
+      children: [
+        Image.asset(
+          'images/icon/location1.png',
+          width: 12.0,
+          height: 12.0,
+          fit: BoxFit.contain,
+        ),
+        const SizedBox(width: 8.0),
+        Text(
+          'Room 212, Level 2',
+          style: kMainTextStyle.copyWith(
+            fontFamily: kBodyFont,
+            fontSize: 12.0,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+    ls.add(l);
+
+    // final r = Row(
+    //   crossAxisAlignment: CrossAxisAlignment.start,
+    //   children: [
+    //     Image.asset(
+    //       'images/imgs/star.png',
+    //       width: 8.0,
+    //       height: 7.67,
+    //       fit: BoxFit.cover,
+    //     ),
+    //     SizedBox(width: 4.0),
+    //     Text(
+    //       '4.9 (120 Reviews)',
+    //       style: kBodyTextStyle.copyWith(
+    //         fontSize: 10.0,
+    //         fontWeight: FontWeight.w600,
+    //         color: Color(0xFF4E4E4E),
+    //       ),
+    //     ),
+    //   ],
+    // );
+    //ls.add(r);
 
     return ls;
   }
@@ -77,173 +121,129 @@ class DoctorItem extends StatelessWidget {
     String mcr = data.mcr!;
 
     List<Widget> ls = [
-      Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0, bottom: 20.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 100.0,
-                    height: 100.0,
-                    margin: EdgeInsets.only(top: data.image != null && data.image != '' ? 10.0 : 0.0),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: getDoctorImage(data),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 5.0, top: 10.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: buildDoctorContent(context, data),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                isBookmarked ? Icons.bookmark_sharp : Icons.bookmark_outline_sharp,
-                color: kSearchDoctorBgColor,
-              ),
-              onPressed: () async {
-                await onToggleBookmark(isBookmarked, mcr, data);
-              },
-            ),
-          ],
-        ),
-      ),
-    ];
-
-    if (AuthManager.isLogin) {
-      ls.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 1,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => DoctorDetail(mcr: mcr)));
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFF097099),
-                    minimumSize: const Size(double.maxFinite, 50.0),
-                    shape: const BeveledRectangleBorder(),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(
-                        Icons.list,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 5.0),
-                      Text(
-                        'Details',
-                        style: TextStyle(
-                          fontSize: 17.0,
-                          fontFamily: kBodyFont,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 2.0,
-                color: const Color(0xFFE0E0E0),
-              ),
-              Expanded(
-                flex: 2,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddAppointment(doctorInfo: data)));
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFFC81E5D),
-                    minimumSize: const Size(double.maxFinite, 50.0),
-                    shape: const BeveledRectangleBorder(),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(
-                        Icons.calendar_today,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 5.0),
-                      Text(
-                        'Make Appointment',
-                        style: TextStyle(
-                          fontSize: 17.0,
-                          fontFamily: kBodyFont,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        )
-      );
-    }
-
-    else {
-      ls.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-          child: TextButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => DoctorDetail(mcr: mcr),
-                )
-              );
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: const Color(0xFF097099),
-              minimumSize: const Size(double.maxFinite, 50.0),
-              shape: const BeveledRectangleBorder(),
-            ),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(
-                  Icons.list,
-                  color: Colors.white,
+              children: [
+                Container(
+                  width: 64.0,
+                  height: 64.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: getDoctorImage(data),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  margin: const EdgeInsets.only(top: 17.0),
                 ),
-                SizedBox(width: 5.0),
-                Text(
-                  'Details',
-                  style: TextStyle(
-                    fontSize: 17.0,
-                    fontFamily: kBodyFont,
-                    color: Colors.white,
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10.0, top: 16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: buildDoctorContent(context, data),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        )
+          IconButton(
+            icon: Icon(
+              isBookmarked ? Icons.bookmark_sharp : Icons.bookmark_outline_sharp,
+              color: kMainColor,
+            ),
+            onPressed: () async {
+              await onToggleBookmark(isBookmarked, mcr, data);
+            },
+          ),
+        ],
+      ),
+    ];
+
+    if (AuthManager.isLogin) {
+      final r = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          OutlinedButton(
+            onPressed: () {
+
+            }, 
+            style: OutlinedButton.styleFrom(
+              foregroundColor: kMainColor,
+              backgroundColor: Colors.white,
+              minimumSize: const Size(80.0, 32.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+              side: const BorderSide(
+                color: kMainColor,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'images/icon/call.png',
+                  width: 12.0,
+                  height: 12.0,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(width: 6.0),
+                Text(
+                  'Call',
+                  style: kMainTextStyle.copyWith(
+                    fontSize: 10.0,
+                    color: kMainColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 5.0),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                Get.to(() => NewAppointment(doctorInfo: data));
+              },
+              style: ElevatedButton.styleFrom(
+                elevation: 5.0,
+                backgroundColor: kMainColor,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 32.0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'images/icon/calendar.png',
+                    width: 12.0,
+                    height: 12.0,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(width: 6.0),
+                  Text(
+                    'Make Appointment',
+                    style: kMainTextStyle.copyWith(
+                      fontSize: 10.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
+      final p = Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: r,
+      );
+      ls.add(p);
     }
 
     return ls;
@@ -251,69 +251,30 @@ class DoctorItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: buildContents(context),
-      ),
-    );
-  }
-
-  Widget build000(BuildContext context) {
-    String mcr = data.mcr!;
-
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: Color.fromRGBO(224, 224, 224, 0.596),
+    return Padding(
+      padding: const EdgeInsets.only(left: 25.0, right: 25.0, bottom: 16.0),
+      child: InkWell(
+        onTap: () {
+          Get.to(() => DoctorDetail(mcr: data.mcr!));
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.only(left: 16.0, bottom: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromRGBO(219, 219, 219, 0.3),
+                blurRadius: 8.0,
+              ),
+            ],
           ),
-          bottom: BorderSide(
-            color: Color.fromRGBO(224, 224, 224, 0.599),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: buildContents(context),
           ),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0, bottom: 15.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            IconButton(
-              icon: Icon(
-                isBookmarked ? Icons.bookmark_sharp : Icons.bookmark_outline_sharp,
-                color: kSearchDoctorBgColor,
-              ),
-              onPressed: () async {
-                await onToggleBookmark(isBookmarked, mcr, data);
-              },
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5.0, top: 10.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: buildDoctorContent(context, data),
-                ),
-              ),
-            ),
-            Container(
-              width: 100.0,
-              height: 100.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: getDoctorImage(data),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

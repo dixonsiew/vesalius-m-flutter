@@ -1,19 +1,29 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'constants.dart';
 
 extension StringExtension on String? {
-  String capitalize() {
-    return "${this?[0].toUpperCase()}${this?.substring(1).toLowerCase()}";
+
+  String? capitalize() {
+    if (this == null) {
+      return null;
+    }
+
+    return "${this![0].toUpperCase()}${this?.substring(1).toLowerCase()}";
   }
 
-  String titleCase() {
+  String? titleCase() {
+    if (this == null) {
+      return null;
+    }
+
     var a = this?.split(' ');
     List<String> ls = [];
     for (int i = 0; i < a!.length; i++) {
-      ls.add(a[i].capitalize());
+      ls.add(a[i].capitalize!);
     }
 
     return ls.join(' ');
@@ -32,6 +42,26 @@ extension StringExtension on String? {
   }
 }
 
+void handleError(DioError error, void Function() onYes) async {
+  String msg = error.message;
+  if (error.type == DioErrorType.connectTimeout) {
+    msg = 'Connection Timeout';
+  }
+
+  else if (error.type == DioErrorType.receiveTimeout) {
+    msg = 'Receive Timeout';
+  }
+
+  else if (error.type == DioErrorType.response) {
+    msg = 'Error occurred - ${error.response!.statusCode}';
+  }
+
+  bool b = await showConfirmDialog00('Error', '$msg. Do you want to retry ?', 'No', 'Yes');
+  if (b) {
+    onYes();
+  }
+}
+
 String formatDateTime(String ds) {
   String s = ds;
   DateTime? dt = DateTime.tryParse(ds);
@@ -44,208 +74,38 @@ String formatDateTime(String ds) {
   return s;
 }
 
-class CustomDialog {
-
-  final BuildContext context;
-
-  CustomDialog._(this.context);
-
-  static CustomDialog of(BuildContext context) {
-    return CustomDialog._(context);
-  }
-
-  void handleError(DioException error, void Function() onYes) async {
-    String msg = error.message ?? 'Unknown';
-    if (error.type == DioExceptionType.connectionTimeout) {
-      msg = 'Connection Timeout';
-    }
-
-    else if (error.type == DioExceptionType.receiveTimeout) {
-      msg = 'Receive Timeout';
-    }
-
-    else if (error.type == DioExceptionType.badResponse) {
-      msg = 'Error occurred - ${error.response?.statusCode}';
-    }
-
-    bool b = await showConfirmDialog('Error', '$msg. Do you want to retry ?', 'No', 'Yes');
-    if (b) {
-      onYes();
-    }
-  }
-
-  Future<void> showCustomDialog(String title, String subTitle, String btnText) async {
-    await showCupertinoDialog(
-      context: context, 
-      builder: (_) => CupertinoAlertDialog(
-        title: Text(
-          title,
+Future<void> showCustomDialog(String title, String subTitle, String btnText) async {
+  await Get.dialog(CupertinoAlertDialog(
+    title: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18.0,
+        fontFamily: kBodyFont,
+      ),
+    ),
+    content: Text(
+      subTitle,
+      style: const TextStyle(
+        fontSize: 16.0,
+        fontFamily: kBodyFont,
+        color: Color(0xFF727272),
+      ),
+    ),
+    actions: [
+      CupertinoButton(
+        child: Text(
+          btnText,
           style: const TextStyle(
+            color: kMainColor,
             fontSize: 18.0,
             fontFamily: kBodyFont,
+            fontWeight: FontWeight.bold,
           ),
-        ),
-        content: Text(
-          subTitle,
-          style: const TextStyle(
-            fontSize: 16.0,
-            fontFamily: kBodyFont,
-            color: Color(0xFF727272),
-          ),
-        ),
-        actions: [
-          CupertinoButton(
-            child: Text(
-              btnText,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-                fontWeight: FontWeight.bold,
-              ),
-            ), 
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
+        ), 
+        onPressed: () => Get.back(),
       ),
-    );
-  }
-
-  Future<bool> showConfirmDialog(String title, String subTitle, String btnNoText, String btnYesText) async {
-    return await showCupertinoDialog(
-      context: context, 
-      builder: (_) => CupertinoAlertDialog(
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontFamily: kBodyFont,
-          ),
-        ),
-        content: Text(
-          subTitle,
-          style: const TextStyle(
-            fontSize: 16.0,
-            fontFamily: kBodyFont,
-            color: Color(0xFF727272),
-          ),
-        ),
-        actions: [
-          CupertinoButton(
-            child: Text(
-              btnNoText,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-              ),
-            ), 
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          CupertinoButton(
-            child: Text(
-              btnYesText,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-                fontWeight: FontWeight.bold,
-              ),
-            ), 
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    ) ?? false;
-  }
-
-  Future<String> showConfirmDialogWithInput(String title, String subTitle, String btnNoText, String btnYesText, String hintText) async {
-    final inputController = TextEditingController();
-    bool validated = false;
-
-    String s = await showCupertinoDialog(
-      context: context, 
-      builder: (_) => StatefulBuilder(
-        builder: (context, setState) => CupertinoAlertDialog(
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18.0,
-              fontFamily: kBodyFont,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                subTitle,
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontFamily: kBodyFont,
-                  color: Color(0xFF727272),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: inputController.text == '' && validated ? 5.0 : 25.0),
-
-              inputController.text == '' && validated ? 
-              Padding(
-                padding: const EdgeInsets.only(bottom: 25.0),
-                child: Text(
-                  '$hintText is required!',
-                  style: const TextStyle(
-                    fontSize: 14.0,
-                    fontFamily: kBodyFont,
-                  ),
-                ),
-              ) : Container(),
-
-              CupertinoTextField(
-                controller: inputController,
-                cursorColor: const Color(0xFF999494),
-                placeholder: 'Reason',
-              ),
-            ],
-          ),
-          actions: [
-            CupertinoButton(
-              child: Text(
-                btnNoText,
-                style: const TextStyle(
-                  color: kPrimaryColor,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                ),
-              ), 
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            CupertinoButton(
-              child: Text(
-                btnYesText,
-                style: const TextStyle(
-                  color: kPrimaryColor,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                  fontWeight: FontWeight.bold,
-                ),
-              ), 
-              onPressed: () {
-                setState(() {
-                  validated = true;
-                });
-                if (inputController.text != '') {
-                  Navigator.of(context).pop(inputController.text);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    ) ?? '';
-    inputController.dispose();
-    return s;
-  }
+    ],
+  ));
 }
 
 Future<void> showCustomDialogBak(String title, String subTitle, String btnText, BuildContext context) async {
@@ -298,7 +158,7 @@ Future<void> showCustomDialogBak(String title, String subTitle, String btnText, 
                 height: 50.0,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Get.back();
                   },
                   child: Text(
                     btnText,
@@ -316,6 +176,140 @@ Future<void> showCustomDialogBak(String title, String subTitle, String btnText, 
       );
     }
   );
+}
+
+Future<bool> showConfirmDialog(String text) async {
+  return await Get.dialog(AlertDialog(
+    contentPadding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 25.0, bottom: 35.0),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    backgroundColor: Colors.white,
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: InkWell(
+            onTap: () {
+              Get.back();
+            },
+            child: Image.asset(
+              'images/icon/close.png',
+              width: 16.0,
+              height: 16.0,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        Text(
+          text,
+          style: kBodyTextStyle.copyWith(
+            fontSize: 16.0,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 38.0),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {
+                  Get.back(result: false);
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kMainColor,
+                  backgroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 40.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                  side: const BorderSide(
+                    color: kMainColor,
+                  ),
+                ),
+                child: Text(
+                  'No',
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700,
+                    color: kMainColor,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 17.0),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.back(result: true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kMainColor,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 40.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                ),
+                child: Text(
+                  'Yes',
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  )) ?? false;
+}
+
+Future<bool> showConfirmDialog00(String title, String subTitle, String btnNoText, String btnYesText) async {
+  return await Get.dialog(CupertinoAlertDialog(
+    title: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18.0,
+        fontFamily: kBodyFont,
+      ),
+    ),
+    content: Text(
+      subTitle,
+      style: const TextStyle(
+        fontSize: 16.0,
+        fontFamily: kBodyFont,
+        color: Color(0xFF727272),
+      ),
+    ),
+    actions: [
+      CupertinoButton(
+        child: Text(
+          btnNoText,
+          style: const TextStyle(
+            color: kPrimaryColor,
+            fontSize: 18.0,
+            fontFamily: kBodyFont,
+          ),
+        ), 
+        onPressed: () => Get.back(result: false),
+      ),
+      CupertinoButton(
+        child: Text(
+          btnYesText,
+          style: const TextStyle(
+            color: kPrimaryColor,
+            fontSize: 18.0,
+            fontFamily: kBodyFont,
+            fontWeight: FontWeight.bold,
+          ),
+        ), 
+        onPressed: () => Get.back(result: true),
+      ),
+    ],
+  )) ?? false;
 }
 
 Future<bool> showConfirmDialogBak(String title, String subTitle, String btnNoText, String btnYesText, BuildContext context) async {
@@ -368,7 +362,7 @@ Future<bool> showConfirmDialogBak(String title, String subTitle, String btnNoTex
                   Expanded(
                     child: TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Get.back();
                       },
                       child: Text(
                         btnNoText,
@@ -387,7 +381,7 @@ Future<bool> showConfirmDialogBak(String title, String subTitle, String btnNoTex
                   Expanded(
                     child: TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop(true);
+                        Get.back(result: true);
                       },
                       child: Text(
                         btnYesText,
@@ -407,6 +401,89 @@ Future<bool> showConfirmDialogBak(String title, String subTitle, String btnNoTex
       );
     }
   ) ?? false;
+}
+
+Future<String?> showConfirmDialogWithInput(String title, String subTitle, String btnNoText, String btnYesText, String hintText) async {
+  final inputController = TextEditingController();
+  bool validated = false;
+
+  return await Get.dialog(StatefulBuilder(
+    builder: (context, setState) => CupertinoAlertDialog(
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18.0,
+          fontFamily: kBodyFont,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            subTitle,
+            style: const TextStyle(
+              fontSize: 16.0,
+              fontFamily: kBodyFont,
+              color: Color(0xFF727272),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: inputController.text == '' && validated ? 5.0 : 25.0),
+
+          inputController.text == '' && validated ? 
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25.0),
+            child: Text(
+              '$hintText is required!',
+              style: const TextStyle(
+                fontSize: 14.0,
+                fontFamily: kBodyFont,
+              ),
+            ),
+          ) : Container(),
+
+          CupertinoTextField(
+            controller: inputController,
+            cursorColor: const Color(0xFF999494),
+            placeholder: 'Reason',
+          ),
+        ],
+      ),
+      actions: [
+        CupertinoButton(
+          child: Text(
+            btnNoText,
+            style: const TextStyle(
+              color: kPrimaryColor,
+              fontSize: 18.0,
+              fontFamily: kBodyFont,
+            ),
+          ), 
+          onPressed: () => Get.back(),
+        ),
+        CupertinoButton(
+          child: Text(
+            btnYesText,
+            style: const TextStyle(
+              color: kPrimaryColor,
+              fontSize: 18.0,
+              fontFamily: kBodyFont,
+              fontWeight: FontWeight.bold,
+            ),
+          ), 
+          onPressed: () {
+            setState(() {
+              validated = true;
+            });
+            if (inputController.text != '') {
+              Get.back(result: inputController.text);
+            }
+          },
+        ),
+      ],
+    ),
+  ));
 }
 
 Future<String> showConfirmDialogWithInputBak(String title, String subTitle, String btnNoText, String btnYesText, String hintText, BuildContext context) async {
@@ -497,7 +574,7 @@ Future<String> showConfirmDialogWithInputBak(String title, String subTitle, Stri
                       Expanded(
                         child: TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            Get.back();
                           },
                           child: Text(
                             btnNoText,
@@ -520,7 +597,7 @@ Future<String> showConfirmDialogWithInputBak(String title, String subTitle, Stri
                               validated = true;
                             });
                             if (inputController.text != '') {
-                              Navigator.of(context).pop(inputController.text);
+                              Get.back(result: inputController.text);
                             }
                           },
                           child: Text(

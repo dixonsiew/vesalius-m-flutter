@@ -1,6 +1,7 @@
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -17,16 +18,16 @@ import 'bill_summary.dart';
 
 class MedicalHistoryGroup extends StatefulWidget {
   
-  static const String routeName = 'MedicalHistoryGroup';
+  static const String routeName = '/MedicalHistoryGroup';
 
   final String title;
   final int pageId;
 
   const MedicalHistoryGroup({
-    super.key, 
+    Key? key, 
     required this.title,
     required this.pageId,
-  });
+  }) : super(key: key);
 
   @override
   State<MedicalHistoryGroup> createState() => _MedicalHistoryGroupState();
@@ -86,23 +87,33 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
 
   void onItemTap(PatientVisit o) {
     if (widget.pageId == 4) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => BillSummary(patientVisit: o)));
+      Get.to(() => BillSummary(
+        patientVisit: o,
+      ));
     }
 
     else if (widget.pageId == 3) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => Investigation(patientVisit: o)));
+      Get.to(() => Investigation(
+        patientVisit: o,
+      ));
     }
 
     else if (widget.pageId == 2) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => Prescription(patientVisit: o)));
+      Get.to(() => Prescription(
+        patientVisit: o,
+      ));
     }
 
     else if (widget.pageId == 6) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ReferralLetter(patientVisit: o)));
+      Get.to(() => ReferralLetter(
+        patientVisit: o,
+      ));
     }
 
     else if (widget.pageId == 7) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => HealthScreenRpt(patientVisit: o)));
+      Get.to(() => HealthScreenRpt(
+        patientVisit: o,
+      ));
     }
   }
 
@@ -114,7 +125,7 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
         final o = list[i];
         return MedicalHistoryGroupItem(
           date: getDate(o),
-          type: o.novaVisit?.visitType ?? '',
+          type: o.novaVisit!.visitType!,
           onTap: () {
             onItemTap(o);
           },
@@ -170,7 +181,7 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -189,19 +200,27 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
   }
 
   Widget buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'images/icon/page-header-icon/medical-record.png',
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 20.0, top: 20.0),
+          child: Container(
             width: 80.0,
             height: 60.0,
-            fit: BoxFit.contain,
+            decoration: const BoxDecoration(
+              shape: BoxShape.rectangle,
+              image: DecorationImage(
+                image: AssetImage('images/icon/page-header-icon/medical-record.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
-          Flexible(
+        ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 20.0, top: 25.0),
             child: Text(
               widget.title,
               style: const TextStyle(
@@ -211,21 +230,26 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget buildLayer2() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-      child: Column(
-        children: [
-          buildHeader(),
-          Flexible(
-            child: buildContent(),
-          ),
-        ],
+    var padding = MediaQuery.of(context).padding;
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Flexible(
+              child: buildContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -244,7 +268,7 @@ class _MedicalHistoryGroupState extends State<MedicalHistoryGroup> {
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -275,11 +299,11 @@ class MedicalHistoryGroupItem extends StatelessWidget {
   final void Function() onTap;
 
   const MedicalHistoryGroupItem({
-    super.key, 
+    Key? key, 
     required this.date,
     required this.type,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

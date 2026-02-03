@@ -9,14 +9,14 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class ReferralLetter extends StatefulWidget {
   
-  static const String routeName = 'ReferralLetter';
+  static const String routeName = '/ReferralLetter';
 
   final PatientVisit patientVisit;
 
   const ReferralLetter({
-    super.key, 
+    Key? key, 
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   @override
   State<ReferralLetter> createState() => _ReferralLetterState();
@@ -217,7 +217,7 @@ class _ReferralLetterState extends State<ReferralLetter> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,

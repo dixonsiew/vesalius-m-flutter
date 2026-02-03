@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -14,9 +15,9 @@ import 'home.dart';
 
 class UserList extends StatefulWidget {
   
-  static const String routeName = 'User';
+  static const String routeName = '/User';
 
-  const UserList({super.key});
+  const UserList({Key? key}) : super(key: key);
 
   @override
   State<UserList> createState() => _UserListState();
@@ -24,7 +25,7 @@ class UserList extends StatefulWidget {
 
 class _UserListState extends State<UserList> {
 
-  List<String> list = [];
+  late List<String> list;
   UserDetails? userDetails;
   bool isDelete = false;
   bool isLoading = false;
@@ -40,7 +41,6 @@ class _UserListState extends State<UserList> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
       var muserDetails = await DataManager.getUserDetails();
       var lx = await StorageDataManager.getData();
       setState(() {
@@ -49,7 +49,7 @@ class _UserListState extends State<UserList> {
         isLoading = false;
       });
       if (lx.isEmpty) {
-        nav.pushNamedAndRemoveUntil(SignIn.routeName, (route) {
+        Get.offAllNamed(SignIn.routeName, predicate: (route) {
           if (route.settings.name == Home.routeName) {
             return true;
           }
@@ -67,19 +67,18 @@ class _UserListState extends State<UserList> {
   }
 
   void confirmDeleteUser(String email) async {
-    final nav = Navigator.of(context);
     await StorageDataManager.delUser(email);
     var lx = await StorageDataManager.getData();
     setState(() {
       list = lx;
     });
     if (lx.isEmpty) {
-      nav.popUntil(ModalRoute.withName(Home.routeName));
+      Get.until(ModalRoute.withName(Home.routeName));
     }
   }
 
   void onDeleteUser(String email) async {
-    bool b = await CustomDialog.of(context).showConfirmDialog('Confirm to Delete', 'Are you sure you want to delete this user from the list?', 'Cancel', 'Sure');
+    bool b = await showConfirmDialog00('Confirm to Delete', 'Are you sure you want to delete this user from the list?', 'Cancel', 'Sure');
     if (b) {
       confirmDeleteUser(email);
     }
@@ -135,7 +134,7 @@ class _UserListState extends State<UserList> {
                 ),
               ),
               onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignIn(email: email)));
+                Get.to(() => SignIn(email: email));
               },
             ),
           ),

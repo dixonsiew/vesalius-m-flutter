@@ -9,6 +9,7 @@ class AuthManager {
   static bool isFirstTimeLogin = false;
   static String? username;
   static bool isLogin = false;
+  static bool isAppStarted = false;
 
   static Future<void> set(String mtoken, String role, bool misFirstTimeLogin, String musername, bool misLogin) async {
     token = mtoken;

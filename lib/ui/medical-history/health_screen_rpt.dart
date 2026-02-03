@@ -4,7 +4,7 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -17,14 +17,14 @@ import 'package:vesalius_m_flutter/services/data_service.dart';
 
 class HealthScreenRpt extends StatelessWidget {
 
-  static const String routeName = 'HealthScreenRpt';
+  static const String routeName = '/HealthScreenRpt';
 
   final PatientVisit patientVisit;
 
   const HealthScreenRpt({
-    super.key, 
+    Key? key, 
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   Widget buildContent() {
     return Padding(
@@ -60,7 +60,7 @@ class HealthScreenRpt extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -99,9 +99,9 @@ class HealthScreenRptItem extends StatefulWidget {
   final NovaHealthScreeningRpt novaHealthScreeningRpt;
 
   const HealthScreenRptItem({
-    super.key, 
+    Key? key, 
     required this.novaHealthScreeningRpt,
-  });
+  }) : super(key: key);
 
   @override
   State<HealthScreenRptItem> createState() => _HealthScreenRptItemState();
@@ -112,9 +112,9 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
   bool isDownloading = false;
   double? percent;
 
-  String? getDate() {
+  String getDate() {
     if (widget.novaHealthScreeningRpt.reportDate == null) {
-      return null;
+      return '-';
     }
 
     DateTime dt = DateFormat('y-M-d').parse(widget.novaHealthScreeningRpt.reportDate!.substring(0, 10));
@@ -143,7 +143,7 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
       isDownloading = false;
     });
     //print(file.path);
-    await OpenFilex.open(file.path);
+    await OpenFile.open(file.path);
   }
 
   List<Widget> buildList() {
@@ -158,7 +158,7 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
       const SizedBox(height: 5.0),
       DataLabel(
         label: 'Report Date: ',
-        data: getDate() ?? '-',
+        data: getDate(),
       ),
       const SizedBox(height: 5.0),
       RawMaterialButton(

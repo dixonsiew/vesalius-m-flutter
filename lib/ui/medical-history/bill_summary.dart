@@ -8,14 +8,14 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class BillSummary extends StatelessWidget {
   
-  static const String routeName = 'BillSummary';
+  static const String routeName = '/BillSummary';
 
   final PatientVisit patientVisit;
 
   const BillSummary({
-    super.key, 
+    Key? key, 
     required this.patientVisit,
-  });
+  }) : super(key: key);
 
   List<Widget> buildBillContent() {
     List<Widget> lx = [];
@@ -85,7 +85,7 @@ class BillSummary extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -124,13 +124,13 @@ class BillInfo extends StatelessWidget {
   final NovaBill novaBill;
 
   const BillInfo({
-    super.key, 
+    Key? key, 
     required this.novaBill,
-  });
+  }) : super(key: key);
 
-  String getAmount() {
-    double a = novaBill.amount!.toDouble();
-    return a.toStringAsFixed(2);
+  String? getAmount() {
+    double? a = novaBill.amount?.toDouble();
+    return a?.toStringAsFixed(2);
   }
 
   String getPayer() {
@@ -156,11 +156,7 @@ class BillInfo extends StatelessWidget {
     return formatDate(dt, [h, ':', nn, ' ', am]);
   }
 
-  String? getBillDate() {
-    if (novaBill.billDate == null) {
-      return null;
-    }
-
+  String getBillDate() {
     DateTime dt = DateTime.parse(novaBill.billDate!);
     return formatDate(dt.toLocal(), [dd, ' ', M, ' ', yyyy]);
   }

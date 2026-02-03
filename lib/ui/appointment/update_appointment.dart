@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
@@ -15,14 +16,14 @@ import 'appointment_free_slot.dart';
 
 class UpdateAppointment extends StatefulWidget {
 
-  static const String routeName = 'UpdateAppointment';
+  static const String routeName = '/UpdateAppointment';
 
   final FutureAppointment appointment;
 
   const UpdateAppointment({
-    super.key, 
+    Key? key, 
     required this.appointment
-  });
+  }) : super(key: key);
 
   @override
   State<UpdateAppointment> createState() => _UpdateAppointmentState();
@@ -99,11 +100,11 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
     }
 
     final minDate = DateTime(dt.year, dt.month, dt.day);
-    DateTime vminDate = minDate;
+    DateTime mminDate = minDate;
 
     if (selectedDate != null) {
       if (selectedDate!.isBefore(minDate)) {
-        vminDate = selectedDate!;
+        mminDate = selectedDate!;
       }
     }
 
@@ -136,7 +137,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
       daysHaveCircularBorder: false,
       thisMonthDayBorderColor: const Color(0xFF8C8C8C),
       selectedDateTime: selectedDate ?? minDate,
-      minSelectedDate: vminDate,
+      minSelectedDate: mminDate,
       onDayPressed: (date, events) {
         var w = DateFormat('EEEE').format(date);
         if (w != 'Sunday' && date.compareTo(minDate) >= 0) {
@@ -210,32 +211,26 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
-      final dlg = CustomDialog.of(context);
       var branchDetails = DataManager.branchDetails;
       var lx = await getVesaliusNextAvailableSlot(branchDetails!.branch!.branchId!, branchDetails.prn!, m);
       setState(() {
         isLoading = false;
       });
       if (lx.isEmpty) {
-        dlg.showCustomDialog('Failed', 'There is no available slot on your request date / time.', 'Dismiss');
+        showCustomDialog('Failed', 'There is no available slot on your request date / time.', 'Dismiss');
       }
 
       else {
-        nav.push(
-          MaterialPageRoute(
-            builder: (context) => AppointmentFreeSlot(
-              selectedDate: selectedDate!,
-              selectedTime: selectedTime!,
-              selectedDoctorName: widget.appointment.doctorName!,
-              selectedSpecialtyName: widget.appointment.specialty!,
-              selectedCaseType: widget.appointment.caseType!,
-              isUpdate: true,
-              appointment: widget.appointment,
-              list: lx,
-            ),
-          )
-        );
+        Get.to(() => AppointmentFreeSlot(
+          selectedDate: selectedDate,
+          selectedTime: selectedTime,
+          selectedDoctorName: widget.appointment.doctorName,
+          selectedSpecialtyName: widget.appointment.specialty,
+          selectedCaseType: widget.appointment.caseType,
+          isUpdate: true,
+          appointment: widget.appointment,
+          list: lx,
+        ));
       }
     }
 
@@ -251,7 +246,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
         automaticallyImplyLeading: false,
@@ -272,7 +267,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
               color: Colors.white,
             ),
             onPressed: () {
-              Navigator.of(context).pop();
+              Get.back();
             }
           ),
         ],
@@ -537,9 +532,6 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
                       fillColor: kAppointmentBgColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
                       constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                      onPressed: () {
-                        onCheckAvailability();
-                      },
                       child: const Text(
                         'Check Available Slot',
                         style: TextStyle(
@@ -548,6 +540,9 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
                           fontFamily: kBodyFont,
                         ),
                       ),
+                      onPressed: () {
+                        onCheckAvailability();
+                      },
                     ),
                   ),
                 ],

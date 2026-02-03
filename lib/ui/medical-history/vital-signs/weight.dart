@@ -11,14 +11,14 @@ import 'package:vesalius_m_flutter/services/data_service.dart';
 
 class Weight extends StatefulWidget {
   
-  static const String routeName = 'VitalSigns/WT';
+  static const String routeName = '/VitalSigns/WT';
 
   final String date;
 
   const Weight({
-    super.key, 
+    Key? key, 
     required this.date,
-  });
+  }) : super(key: key);
 
   @override
   State<Weight> createState() => _WeightState();
@@ -99,7 +99,7 @@ class _WeightState extends State<Weight> {
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(5.0)),
                   color: Colors.white,
-                  boxShadow: [
+                  boxShadow: <BoxShadow>[
                     BoxShadow(
                       color: Color.fromRGBO(133, 133, 133, 0.29),
                       offset: Offset(5, 4),
@@ -132,7 +132,7 @@ class _WeightState extends State<Weight> {
             color: Color(0xFFD6D6D6),
           ),
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(191, 191, 191, 1),
             offset: Offset(0, 2),
@@ -150,7 +150,7 @@ class _WeightState extends State<Weight> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,  
@@ -193,9 +193,9 @@ class HistoryItem extends StatelessWidget {
   final NovaPatientVitalSignsDetail data;
 
   const HistoryItem({
-    super.key,
+    Key? key, 
     required this.data,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

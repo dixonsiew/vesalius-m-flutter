@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:provider/provider.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:vesalius_m_flutter/components/app_drawer.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
+import 'package:vesalius_m_flutter/components/bottom_bar.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
@@ -14,24 +17,22 @@ import 'package:vesalius_m_flutter/models/appointment_manager.dart';
 import 'package:vesalius_m_flutter/models/appointment_model.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/notification_manager.dart';
 import 'package:vesalius_m_flutter/models/patient_data.dart';
 import 'package:vesalius_m_flutter/models/user_details.dart';
-import 'package:vesalius_m_flutter/services/data_service.dart';
-import 'package:vesalius_m_flutter/ui/allergies.dart';
-import 'package:vesalius_m_flutter/ui/appointment.dart';
-import 'package:vesalius_m_flutter/ui/doctor.dart';
-import 'package:vesalius_m_flutter/ui/health_dashboard.dart';
-import 'package:vesalius_m_flutter/ui/hospital.dart';
-import 'package:vesalius_m_flutter/ui/medical_history.dart';
-import 'package:vesalius_m_flutter/ui/profile.dart';
-import 'package:vesalius_m_flutter/ui/sign_up.dart';
-import 'package:vesalius_m_flutter/ui/user_list.dart';
+import 'package:vesalius_m_flutter/services/auth_service.dart';
+
+import 'appointment/appointment_detail.dart';
+import 'doctor.dart';
+import 'hospital/our_story.dart';
+import 'package.dart';
+import 'patient_survey.dart';
 
 class Home extends StatefulWidget {
 
-  static const String routeName = 'Home';
+  static const String routeName = '/Home';
 
-  const Home({super.key});
+  const Home({Key? key}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -40,11 +41,12 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   bool isLoading = false;
+  bool isSearch = false;
   bool isAuth = false;
   PatientDetails? patientDetails;
   FutureAppointment? appointment;
   UserBranch? branch;
-  final GlobalKey<ScaffoldState> drawerKey = GlobalKey();
+  final searchController = TextEditingController();
 
   @override
   void initState() {
@@ -52,66 +54,94 @@ class _HomeState extends State<Home> {
     load();
   }
 
-  void load() async {
+  Future<void> load() async {
     setState(() {
       isLoading = true;
     });
     AppointmentManager.start(context);
     await AuthManager.load();
+    await DataManager.getUserDetails();
     var x = await DataManager.getPatientDetails();
     var branchDetails = await DataManager.getBranchDetails();
     if (branchDetails != null && branchDetails.branch != null && AuthManager.isLogin) {
       await AppointmentManager.getValidAppointment(branchDetails.branch!.branchId!);
     }
 
+    await initPlatformState();
+
     setState(() {
       isAuth = AuthManager.isLogin;
       patientDetails = x;
       isLoading = false;
     });
-
-    await initPlatformState();
   }
 
   Future<void> initPlatformState() async {
     if (!mounted) return;
 
-    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+    OneSignal.shared.setLogLevel(OSLogLevel.info, OSLogLevel.none);
 
     OneSignal.shared.setRequiresUserPrivacyConsent(false);
 
-    // var settings = {
-    //   OSiOSSettings.autoPrompt: false,
-    //   OSiOSSettings.promptBeforeOpeningPushUrl: true
-    // };
-
-    OneSignal.shared.setNotificationWillShowInForegroundHandler((OSNotificationReceivedEvent event) {
-      final notification = event.notification;
-      final x = notification.additionalData;
-      String d = "Received notification: \n${notification.jsonRepresentation().replaceAll("\\n", "\n")}";
-    });
+    OneSignal.shared.setNotificationWillShowInForegroundHandler(NotificationManager.notificationWillShowInForegroundHandler);
 
     OneSignal.shared.setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+      final notification = result.notification;
       String d = "Opened notification: \n${result.notification.jsonRepresentation().replaceAll("\\n", "\n")}";
+      print(d);
+      if (AuthManager.isLogin) {
+        if (notification.additionalData!['type'] == 'survey') {
+          Get.toNamed(PatientSurvey.routeName);
+        }
+
+        else {
+          Get.toNamed(AppointmentDetail.routeName);
+        }
+      }
     });
 
-    // NOTE: Replace with your own app ID from https://www.onesignal.com
-    await OneSignal.shared.setAppId(kOneSignalAppID);
-
-    // OneSignal.shared.setInFocusDisplayType(OSNotificationDisplayType.notification);
-    
-    await clearOneSignal();
+    if (Platform.isIOS) {
+      await OneSignal.shared.promptUserForPushNotificationPermission(fallbackToSettings: true);
+    }
 
     if (AuthManager.isLogin) {
       OneSignal.shared.sendTag('user', DataManager.userDetails!.userId!);
-    }
+      String playerId = '';
+      OSDeviceState? deviceState = await OneSignal.shared.getDeviceState();
+      if (deviceState != null) {
+        String? userId = deviceState.userId;
+        playerId = userId ?? '';
+      }
 
-    // bool requiresConsent = await OneSignal.shared.requiresUserPrivacyConsent();
+      if (playerId.isNotEmpty) {
+        await updatePlayerId(playerId);
+      }
+    }
   }
 
-  Future<void> clearOneSignal() async {
-    await OneSignal.shared.deleteTag('user');
-    await OneSignal.shared.deleteTag('guest-ticket');
+  String get name {
+    var x = patientDetails!.name;
+    String s = '${x?.title} ${x?.firstName} ${x?.middleName} ${x?.lastName}'.trim();
+    return s;
+  }
+
+  String get greetings {
+    var h = DateTime.now().hour;
+    String s = 'Good';
+    String b = 'Night';
+    if (h < 12) {
+      b = 'Morning';
+    }
+
+    else if (h >= 12 && h < 17) {
+      b = 'Afternoon';
+    }
+
+    else if (h >= 17 && h <= 19) {
+      b = 'Evening';
+    }
+
+    return '$s $b';
   }
 
   String getTime(String s) {
@@ -239,7 +269,7 @@ class _HomeState extends State<Home> {
                   fontFamily: kBodyFont,
                 ),
               ),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Get.back(),
             ),
             CupertinoButton(
               child: const Text(
@@ -251,7 +281,7 @@ class _HomeState extends State<Home> {
                   fontWeight: FontWeight.bold,
                 ),
               ), 
-              onPressed: () => Navigator.of(context).pop(branch),
+              onPressed: () => Get.back(result: branch),
             ),
           ],
         ),
@@ -263,241 +293,409 @@ class _HomeState extends State<Home> {
   }
 
   Future<bool> onWillPop() async {
-    return await CustomDialog.of(context).showConfirmDialog('Confirm to exit', 'Are you sure you want to exit ?', 'Cancel', 'Sure');
+    return await showConfirmDialog('Are you sure you want to exit ?');
   }
 
-  List<Widget> buildDefaultList() {
-    List<Widget> lx = [
-      const SizedBox(height: 20.0),
-      HomeCard(
-        title: 'Doctor Information',
-        desc: 'Search Doctors Information',
-        image: 'search-doctor',
-        onTap: () async {
-          var branch = DataManager.branchDetails;
-          final nav = Navigator.of(context);
-          if (branch == null) {
-            final lx = await getPublicBranchList();
-            if (lx.length > 1) {
-              await selectBranch(lx);
-            }
-
-            else {
-              await DataManager.setBranchDetails(lx[0]);
-            }
-          }
-          await nav.pushNamed(Doctor.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Hospital Information',
-        desc: 'View Hospital Information',
-        image: 'search-hospital',
-        onTap: () async {
-          var branch = DataManager.branchDetails;
-          final nav = Navigator.of(context);
-          if (branch == null) {
-            var lx = await getPublicBranchList();
-            if (lx.length > 1) {
-              await selectBranch(lx);
-            }
-
-            else {
-              await DataManager.setBranchDetails(lx[0]);
-            }
-          }
-          await nav.pushNamed(Hospital.routeName);
-        },
-      ),
-      // HomeCard(
-      //   title: 'Queue Number',
-      //   desc: 'Queue Number and Notifications',
-      //   image: 'ticket',
-      //   onTap: () {
-          
-      //   },
-      // ),
-    ];
-
-    return lx;
-  }
-
-  List<Widget> buildAuthList() {
-    String s = '';
-    if (isAuth && patientDetails != null) {
-      var name = patientDetails!.name;
-      s = '${name?.title} ${name?.firstName} ${name?.middleName} ${name?.lastName}';
-    }
-
-    List<Widget> lx = [
-      Padding(
-        padding: const EdgeInsets.only(left: 20.0, top: 20.0, bottom: 20.0),
-        child: Text(
-          s,
-          style: const TextStyle(
-            color: Color(0xFF424242),
-            fontSize: 18.0,
-            fontFamily: kBodyFont,
+  Widget buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 25.0, right: 25.0),
+      child: TextField(
+        controller: searchController,
+        autofocus: false,
+        cursorColor: kMainColor,
+        style: const TextStyle(
+          fontFamily: kBodyFont,
+          fontSize: 16.0,
+          color: Color(0xFF002E50),
+        ),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          hintText: "Search By Speciality, Doctor Name",
+          hintStyle: kBodyTextStyle.copyWith(
+            color: const Color(0xFFB1B1B1),
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 25.0, right: 15.0),
+            child: IconButton(
+              icon: const Icon(
+                Icons.search,
+                color: kMainColor,
+              ),
+              onPressed: () {
+                Get.to(() => Doctor(keyword: searchController.text));
+              },
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 17.0, horizontal: 8.0),
+          enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(
+              color: Color.fromRGBO(234, 234, 234, 0.21),
+            ),
+            borderRadius: BorderRadius.circular(50.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(
+              color: Color.fromRGBO(234, 234, 234, 0.21),
+            ),
+            borderRadius: BorderRadius.circular(50.0),
           ),
         ),
       ),
-
-      // HomeCard(
-      //   title: 'Queue Number',
-      //   desc: 'Queue Number and Notifications',
-      //   image: 'ticket',
-      //   onTap: () {
-          
-      //   },
-      // ),
-      Provider.of<AppointmentModel>(context).hasAppointment == false ?
-      HomeCard(
-        title: 'Appointment',
-        desc: 'You currently have no Upcoming Appointments',
-        image: 'appointment',
-        onTap: () {
-          Navigator.of(context).pushNamed(Appointment.routeName);
-        },
-      ) :
-      HomeCard(
-        title: 'Appointment',
-        desc: 'Upcoming Appointment',
-        image: 'appointment',
-        extraInfo: getAppointmentSchedule(),
-        onTap: () {
-          Navigator.of(context).pushNamed(Appointment.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Health Dashboard',
-        desc: 'View your health trending',
-        image: 'dashboard-icon',
-        onTap: () {
-          Navigator.of(context).pushNamed(HealthDashboard.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Allergies and Alerts',
-        desc: 'View Drug Allergies and Medical Alerts',
-        image: 'allergies',
-        onTap: () {
-          Navigator.of(context).pushNamed(Allergies.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Visit History',
-        desc: 'View Your Medical History',
-        image: 'medical-record',
-        onTap: () {
-          Navigator.of(context).pushNamed(MedicalHistory.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Doctor Information',
-        desc: 'Search Doctors Information',
-        image: 'search-doctor',
-        onTap: () async {
-          await Navigator.of(context).pushNamed(Doctor.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Hospital Information',
-        desc: 'View Hospital Information',
-        image: 'search-hospital',
-        onTap: () {
-          Navigator.of(context).pushNamed(Hospital.routeName);
-        },
-      ),
-      HomeCard(
-        title: 'Profile Details',
-        desc: 'View Your Personal Info',
-        image: 'profile-details',
-        onTap: () {
-          Navigator.of(context).pushNamed(Profile.routeName);
-        },
-      ),
-    ];
-
-    return lx;
+    );
   }
 
   Widget buildContent() {
     if (isLoading) {
       return Container();
     }
-    
-    if (isAuth) {
-      return Scrollbar(
-        child: ListView(
-          shrinkWrap: true,
-          children: buildAuthList(),
-        ),
-      );
-    }
 
-    else {
-      return Column(
-        children: [
-          Expanded(
-            child: Column(
-              children: buildDefaultList(),
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        const SizedBox(height: 14.0),
+        Padding(
+          padding: const EdgeInsets.only(left: 25.0),
+          child: Text(
+            '$greetings,\n$name',
+            style: kMainTextStyle.copyWith(
+              fontSize: 24.0,
+              fontWeight: FontWeight.w700,
+              color: kMainColor,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-            child: RawMaterialButton(
-              elevation: 5.0,
-              fillColor: kPrimaryBtnBgColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-              constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-              onPressed: () {
-                Navigator.of(context).pushNamed(UserList.routeName);
-              },
-              child: const Text(
-                'Sign In',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                  fontWeight: FontWeight.bold,
-                ),
+        ),
+        const SizedBox(height: 20.0),
+        buildSearch(),
+        const SizedBox(height: 20.0),
+        Padding(
+          padding: const EdgeInsets.only(left: 25.0),
+          child: Text(
+            'Upcoming Appointment',
+            style: kLabelTextStyle.copyWith(
+              fontFamily: kMainFont,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: InkWell(
+            onTap: () {
+              Get.toNamed(AppointmentDetail.routeName);
+            },
+            child: Container(
+              padding: const EdgeInsets.only(top: 15.0, bottom: 16.0),
+              decoration: BoxDecoration(
+                color: kMainColor,
+                borderRadius: BorderRadius.circular(5.0),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromRGBO(235, 235, 235, 0.7),
+                    blurRadius: 7.0,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const SizedBox(width: 16.0),
+                      Image.asset(
+                        'images/imgs/pic.png',
+                        width: 48.0,
+                        height: 48.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(width: 8.0),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Tan Sri Dato' Dr. Yahya Awang",
+                              style: kBodyTextStyle.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Consultant Cardiothoracic Surgeon',
+                              style: kBodyTextStyle.copyWith(
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Image.asset(
+                        'images/icon/right.png',
+                        width: 16.0,
+                        height: 16.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(width: 16.0),
+                    ],
+                  ),
+                  const SizedBox(height: 8.85),
+                  const Divider(
+                    height: 1.0,
+                    thickness: 1.0,
+                    color: Color.fromRGBO(255, 255, 255, 0.8),
+                  ),
+                  const SizedBox(height: 12.0),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 17.0),
+                      Image.asset(
+                        'images/icon/clock.png',
+                        width: 14.0,
+                        height: 14.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(width: 8.0),
+                      Text(
+                        '01 Oct 2021, 9:00 AM',
+                        style: kBodyTextStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 11.0),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 17.0),
+                      Image.asset(
+                        'images/icon/location.png',
+                        width: 11.0,
+                        height: 15.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(width: 8.0),
+                      Text(
+                        'Room 212, Level 2',
+                        style: kBodyTextStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0, bottom: 30.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        const SizedBox(height: 20.0),
+        Padding(
+          padding: const EdgeInsets.only(left: 25.0, bottom: 15.0),
+          child: Text(
+            'Services',
+            style: kLabelTextStyle.copyWith(
+              fontFamily: kMainFont,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 31.0),
+          child: SizedBox(
+            height: 230.0,
+            child: GridView.count(
+              crossAxisCount: 3,
+              crossAxisSpacing: 15.0,
+              mainAxisSpacing: 20.0,
               children: [
-                const Text(
-                  'Don\'t have an account? ',
-                  style: TextStyle(
-                    color: kPrimaryColor,
-                    fontSize: 16.0,
-                    fontFamily: kBodyFont,
+                /* InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, HealthDashboard.routeName);
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/health-dashboard.png',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      SizedBox(height: 5.0),
+                      Text(
+                        'Health\nDashboard',
+                        style: kTitleTextStyle.copyWith(
+                          fontSize: 12.0,
+                          color: Color(0xFF4E4E4E),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
                 InkWell(
                   onTap: () {
-                    Navigator.of(context).pushNamed(SignUp.routeName);
+                    Navigator.pushNamed(context, Allergies.routeName);
                   },
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      color: kPrimaryColor,
-                      fontSize: 16.0,
-                      fontFamily: kBodyFont,
-                      decoration: TextDecoration.underline,
-                    ),
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/allergies-alerts.png',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      SizedBox(height: 5.0),
+                      Text(
+                        'Allergies &\nAlerts',
+                        style: kTitleTextStyle.copyWith(
+                          fontSize: 12.0,
+                          color: Color(0xFF4E4E4E),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, VisitHistory.routeName);
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/visit-history.png',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      SizedBox(height: 5.0),
+                      Text(
+                        'Visit History',
+                        style: kTitleTextStyle.copyWith(
+                          fontSize: 12.0,
+                          color: Color(0xFF4E4E4E),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ), */
+                InkWell(
+                  onTap: () {
+                    Get.toNamed(Doctor.routeName);
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/doctor-information.png',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 5.0),
+                      Flexible(
+                        child: Text(
+                          'Doctor\nInformation',
+                          style: kTitleTextStyle.copyWith(
+                            fontSize: 12.0,
+                            color: const Color(0xFF4E4E4E),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Get.toNamed(OurStory.routeName);
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/hospital-information.png',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 5.0),
+                      Flexible(
+                        child: Text(
+                          'Hospital\nInformation',
+                          style: kTitleTextStyle.copyWith(
+                            fontSize: 12.0,
+                            color: const Color(0xFF4E4E4E),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Get.toNamed(PatientSurvey.routeName);
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/feedback.gif',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 5.0),
+                      Flexible(
+                        child: Text(
+                          'Share\nFeedback',
+                          style: kTitleTextStyle.copyWith(
+                            fontSize: 12.0,
+                            color: const Color(0xFF4E4E4E),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Get.toNamed(Package.routeName);
+                  },
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'images/imgs/packages.png',
+                        width: 56.0,
+                        height: 56.0,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 5.0),
+                      Flexible(
+                        child: Text(
+                          'Screen\nPackages',
+                          style: kTitleTextStyle.copyWith(
+                            fontSize: 12.0,
+                            color: const Color(0xFF4E4E4E),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      );
-    }
+        ),
+      ],
+    );
   }
 
   @override
@@ -505,159 +703,23 @@ class _HomeState extends State<Home> {
     return WillPopScope(
       onWillPop: onWillPop,
       child: Scaffold(
-        key: drawerKey,
-        backgroundColor: const Color(0xFFF5F5F5),
         appBar: AppBar(
-          // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-          systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: Color(0xFFF5F5F5)),
-          toolbarHeight: kAppToolbarHeight,
-          backgroundColor: const Color(0xFFF5F5F5),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.menu,
-              color: kPrimaryColor,
-            ),
-            onPressed: () {
-              drawerKey.currentState?.openDrawer();
-            },
-          ),
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: const Text(
-            'Home',
-            style: TextStyle(
-              color: kPrimaryColor,
-              fontFamily: kTitleFont,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: Color(0xFFF8F8F8)),
+          toolbarHeight: 0.0,
+          backgroundColor: const Color(0xFFF8F8F8),
+          elevation: 0.0,
         ),
+        backgroundColor: const Color(0xFFF8F8F8),
         body: ModalProgressHUD(
           inAsyncCall: isLoading,
           progressIndicator: const AppActivityIndicator(),
           child: SafeArea(
-            child: Container(
-              color: const Color(0xFFF5F5F5),
+            child: Scrollbar(
               child: buildContent(),
             ),
           ),
         ),
-        drawer: const AppDrawer(),
-      ),
-    );
-  }
-}
-
-class HomeCard extends StatelessWidget {
-
-  final String title;
-  final String desc;
-  final String image;
-  final String? extraInfo;
-  final void Function() onTap;
-
-  const HomeCard({
-    super.key, 
-    required this.title,
-    required this.desc,
-    required this.image,
-    required this.onTap,
-    this.extraInfo,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 11.0),
-      child: Material(
-        elevation: 5.0,
-        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-        color: Colors.white,
-        child: Container(
-          padding: const EdgeInsets.all(10.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(8.0)),
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromRGBO(133, 133, 133, 0.29),
-                offset: Offset(3, 3),
-                blurRadius: 0,
-                spreadRadius: 0,
-              ),
-            ]
-          ),
-          child: InkWell(
-            onTap: onTap,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 10.0, right: 25.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Color(0xFF424242),
-                            fontSize: 18.0,
-                            fontFamily: kBodyFont,
-                          ),
-                        ),
-                        const SizedBox(height: 3.0),
-                        const Divider(
-                          color: Color(0xFFDEDEDE),
-                          height: 1.0,
-                          thickness: 1.0,
-                        ),
-                        const SizedBox(height: 2.0),
-                        Text(
-                          desc,
-                          style: const TextStyle(
-                            color: kDescriptionColor,
-                            fontSize: 11.0,
-                            fontFamily: kBodyFont,
-                          ),
-                        ),
-                        extraInfo == null ? Container() : Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Text(
-                            extraInfo ?? '',
-                            style: const TextStyle(
-                              color: Color(0xFF5F5E5E),
-                              fontSize: 16.0,
-                              fontFamily: kBodyFont,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 15.0),
-                  child: Container(
-                    width: 72.0,
-                    height: 72.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: AssetImage('images/icon/home-page-icon/$image.png'),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        bottomNavigationBar: const BottomBar(index: 0),
       ),
     );
   }

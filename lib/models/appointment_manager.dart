@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -29,12 +28,12 @@ class AppointmentManager {
     var branchDetails = DataManager.branchDetails;
     if (branchDetails != null) {
       try {
-        AppointmentModel m = Provider.of<AppointmentModel>(context, listen: false);
+        final ctx = context.read<AppointmentModel>();
         var lx = await getVesaliusFutureAppointments(branchId, branchDetails.prn!);
         if (lx.isNotEmpty) {
           appointment = lx.first;
           hasAppointment = true;
-          m.setAppointment(appointment);
+          ctx.setAppointment(appointment);
           await startAppointmentMonitor(appointment!);
         }
 
@@ -43,7 +42,10 @@ class AppointmentManager {
         }
       }
       
-      catch (_) {}
+      catch (error) {
+        print('AppointmentManager.getValidAppointment');
+        print(error);
+      }
     }
     
     else {
@@ -66,6 +68,8 @@ class AppointmentManager {
     await getAndUpdateAppointment();
     tx = Timer.periodic(const Duration(milliseconds: 2000000), (ti) async { // 2000000
       await getAndUpdateAppointment();
+      print('AppointmentManager._startAppointmentMonitor');
+      print(appointment);
     });
   }
 
@@ -73,36 +77,40 @@ class AppointmentManager {
     var branchDetails = DataManager.branchDetails;
     if (branchDetails != null) {
       try {
-        AppointmentModel m = Provider.of<AppointmentModel>(context, listen: false);
+        final ctx = context.read<AppointmentModel>();
         var lx = await getVesaliusFutureAppointments(branchDetails.branch!.branchId!, branchDetails.prn!);
         if (lx.isNotEmpty) {
           appointment = lx.first;
           hasAppointment = true;
-          m.setAppointment(appointment);
+          ctx.setAppointment(appointment);
           await DataManager.setItem('appointment', appointment);
         }
 
         else {
           appointment = null;
           hasAppointment = false;
-          m.setAppointment(null);
+          ctx.setAppointment(null);
         }
       }
 
-      catch (_) {}
+      catch (error) {
+        print('AppointmentManager.getAndUpdateAppointment');
+        print(error);
+      }
     }
   }
 
   static void stopAppointmentMonitor() async {
+    print('AppointmentManager.stopAppointmentMonitor');
     if (tx != null) {
       tx!.cancel();
     }
     
     appointment = null;
     hasAppointment = false;
-    AppointmentModel m = Provider.of<AppointmentModel>(context, listen: false);
+    final ctx = context.read<AppointmentModel>();
     await DataManager.removeItem('appointment');
-    m.setAppointment(null);
+    ctx.setAppointment(null);
   }
 
   static void start(BuildContext mcontext) {

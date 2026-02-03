@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -14,9 +15,9 @@ import 'home.dart';
 
 class BranchList extends StatefulWidget {
   
-  static const String routeName = 'Branch';
+  static const String routeName = '/Branch';
 
-  const BranchList({super.key});
+  const BranchList({Key? key}) : super(key: key);
 
   @override
   State<BranchList> createState() => _BranchListState();
@@ -75,12 +76,10 @@ class _BranchListState extends State<BranchList> {
   }
 
   Future<void> confirmChangeHospital(UserBranch o) async {
-    final dlg = CustomDialog.of(context);
     try {
       setState(() {
         isLoading = true;
       });
-      final nav = Navigator.of(context);
       var patientDetails = await getVesaliusPatientData(o.branch!.branchId!, o.prn!);
       DataManager.setPrn(o.prn!);
       await DataManager.setPatientDetails(patientDetails);
@@ -88,14 +87,14 @@ class _BranchListState extends State<BranchList> {
       setState(() {
         isLoading = false;
       });
-      await nav.pushNamedAndRemoveUntil(Home.routeName, (route) => false);
+      await Get.offNamedUntil(Home.routeName, (route) => false);
     }
     
     catch (error) {
       setState(() {
         isLoading = false;
       });
-      dlg.showCustomDialog('Failed', 'Unable to get patient details. Please try again later.', 'Dismiss');
+      showCustomDialog('Failed', 'Unable to get patient details. Please try again later.', 'Dismiss');
     }
   }
 
@@ -103,9 +102,8 @@ class _BranchListState extends State<BranchList> {
     final o = userBranch.branch;
     return InkWell(
       onTap: () async {
-        final nav = Navigator.of(context);
         if (AuthManager.isLogin) {
-          bool b = await CustomDialog.of(context).showConfirmDialog('Change Hospital', 'Are you sure want to change the hospital to:\n${o?.branchName}', 'Cancel', 'Sure');
+          bool b = await showConfirmDialog00('Change Hospital', 'Are you sure want to change the hospital to:\n${o?.branchName}', 'Cancel', 'Sure');
           if (b) {
             confirmChangeHospital(userBranch);
           }
@@ -113,7 +111,7 @@ class _BranchListState extends State<BranchList> {
 
         else {
           await DataManager.setBranchDetails(userBranch);
-          nav.pop(true);
+          Get.back(result: true);
         }
       },
       child: Container(
@@ -173,7 +171,7 @@ class _BranchListState extends State<BranchList> {
         child: RefreshIndicator(
           key: refreshIndicatorKey,
           onRefresh: onRefresh,
-          color: kPrimaryColor,
+          color: kMainColor,
           child: SafeArea(
             child: Scrollbar(
               child: ListView.builder(

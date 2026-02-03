@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_validator/form_validator.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/bottom_red.dart';
-import 'package:vesalius_m_flutter/components/top_red.dart';
+import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
@@ -23,9 +23,9 @@ extension EmailValidator on String {
 
 class SignUp extends StatefulWidget {
 
-  static const String routeName = 'SignUp';
+  static const String routeName = '/SignUp';
 
-  const SignUp({super.key});
+  const SignUp({Key? key}) : super(key: key);
 
   @override
   State<SignUp> createState() => _SignUpState();
@@ -33,375 +33,97 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
 
-  bool valid = false;
+  bool isValid = false;
   bool isLoading = false;
   DateTime? dobdt;
-
+  bool isPwd = false;
   final formKey = GlobalKey<FormState>();
   final txtfullname = TextEditingController();
-  final txtdob = TextEditingController();
   final txtic = TextEditingController();
+  final txtdob = TextEditingController();
   final txtemail = TextEditingController();
+  final txtpwd = TextEditingController();
+
+  @override
+  void dispose() {
+    txtfullname.dispose();
+    txtic.dispose();
+    txtdob.dispose();
+    txtemail.dispose();
+    txtpwd.dispose();
+    super.dispose();
+  }
 
   void validate(String s) {
     bool b = formKey.currentState!.validate();
 
     if (s.isEmpty) {
       setState(() {
-        valid = false;
+        isValid = false;
       });
     }
 
     else {
       setState(() {
-        valid = b;
+        isValid = b;
       });
     }
   }
 
-  void onSignUp() async {
-    final dlg = CustomDialog.of(context);
-    try {
-      setState(() {
-        isLoading = true;
-      });
-      var branchDetails = DataManager.branchDetails;
-      num branchId = branchDetails == null ? 1 : branchDetails.branch!.branchId!;
-      var m = await signUp(branchId, txtdob.text, txtemail.text, txtfullname.text, txtic.text);
-      setState(() {
-        isLoading = false;
-      });
-      dlg.showCustomDialog('Successful', m['successMessage'], 'Dismiss');
-    }
-
-    on DioException catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      if (error.type == DioExceptionType.badResponse) {
-        var mx = error.response?.data as Map;
-        if (mx.containsKey('errorMessage')) {
-          dlg.showCustomDialog('Failed', mx['errorMessage'], 'Dismiss');
-        }
-
-        else if (mx.containsKey('message')) {
-          dlg.showCustomDialog('Failed', mx['message'], 'Dismiss');
-        }
-        
-        else {
-          dlg.showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
-        }
-      }
-
-      else {
-        dlg.showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
-      }
-    }
-  }
-
-  Widget buildForm() {
-    var padding = MediaQuery.of(context).padding;
-
-    return SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height - padding.top - padding.bottom,
-        color: Colors.white,
-        child: Stack(
-          fit: StackFit.expand,
+  Future<void> showSuccess() async {
+    await showDialog(
+      context: context, 
+      builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 29.0, bottom: 20.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        backgroundColor: Colors.white,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const TopRed(),
-            const BottomRed(),
-
-            Stack(
-              alignment: AlignmentDirectional.topEnd,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: kPrimaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
+            Image.asset(
+              'images/icon/tick.png',
+              width: 54.0,
+              height: 54.0,
+              fit: BoxFit.cover,
             ),
-
-            Center(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 72.0,
-                      height: 72.0,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        image: DecorationImage(
-                          image: AssetImage('images/imgs/nova.png'),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-                      child: Text(
-                        'Enter your personal details',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 24.0,
-                          fontFamily: kTitleFont,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('Fullname is required').minLength(1, 'Fullname is required').build(),
-                        controller: txtfullname,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Fullname',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.account_circle,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('NRIC / Passport is required').minLength(1, 'NRIC / Passport is required').build(),
-                        controller: txtic,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'NRIC / Passport',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.contacts,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        onTap: () async {
-                          DateTime? dob = await showDatePicker(
-                            context: context,
-                            initialDate: dobdt ?? DateTime.now(),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now(),
-                            locale: const Locale('en', 'AU'),
-                            fieldHintText: 'DD/MM/YYYY',
-                            builder: (context, child) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  colorScheme: const ColorScheme.light(
-                                    primary: kPrimaryColor,
-                                  ),
-                                ),
-                                child: child!,
-                              );
-                            }
-                          );
-                          if (dob != null) {
-                            String dobDay = '${dob.day}';
-                            dobDay = dobDay.padLeft(2, '0');
-                            String dobMonth = '${dob.month}';
-                            dobMonth = dobMonth.padLeft(2, '0');
-                            txtdob.text = '$dobDay/$dobMonth/${dob.year}';
-                            dobdt = DateTime(dob.year, dob.month, dob.day);
-                          }
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('DOB is required').minLength(10, 'DOB is required').build(),
-                        controller: txtdob,
-                        readOnly: true,
-                        showCursor: true,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'DOB (DD/MM/YYYY)',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.event,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('Email is required').minLength(1, 'Email is required').email('Email is invalid').build(),
-                        controller: txtemail,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Email',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
-                          ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.email,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-                      child: RawMaterialButton(
-                        elevation: 5.0,
-                        fillColor: kPrimaryBtnBgColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                        onPressed: valid ? onSignUp : null,
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontFamily: kBodyFont,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'For hospital registered patient only',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30.0),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Already a user?',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(SignIn.routeName);
-                      },
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ],
+            const SizedBox(height: 17.0),
+            Text(
+              'Sign Up Successfully',
+              style: kLabelTextStyle.copyWith(
+                fontFamily: kMainFont,
+                fontSize: 16.0,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Your account is created.',
+              style: kBodyTextStyle.copyWith(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFB1B1B1),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                Get.back();
+                Get.offAllNamed(SignIn.routeName);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kMainColor,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 48.0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+              ),
+              child: Text(
+                'Sign In',
+                style: kMainTextStyle.copyWith(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -411,24 +133,482 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
+  void onSignUp() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      var branchDetails = DataManager.branchDetails;
+      num branchId = branchDetails == null ? 1 : branchDetails.branch!.branchId!;
+      await signUp(branchId, txtdob.text, txtemail.text, txtfullname.text, txtic.text);
+      setState(() {
+        isLoading = false;
+      });
+      await showSuccess();
+      //showCustomDialog('Successful', m['successMessage'], 'Dismiss', context);
+    }
+
+    on DioError catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      if (error.type == DioErrorType.response) {
+        var mx = error.response?.data as Map;
+        if (mx.containsKey('errorMessage')) {
+          showCustomDialog('Failed', mx['errorMessage'], 'Dismiss');
+        }
+
+        else if (mx.containsKey('message')) {
+          showCustomDialog('Failed', mx['message'], 'Dismiss');
+        }
+        
+        else {
+          showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
+        }
+      }
+
+      else {
+        showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
+      }
+    }
+  }
+
+  Widget buildForm() {
+    return Stack(
+      children: [
+        Form(
+          key: formKey,
+          child: Scrollbar(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const SizedBox(height: 25.0),
+                  Text(
+                    'Full Name',
+                    style: kLabelTextStyle.copyWith(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onChanged: validate,
+                    validator: ValidationBuilder().required('Fullname is required').minLength(1, 'Fullname is required').build(),
+                    controller: txtfullname,
+                    cursorColor: const Color(0xFF002E50),
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                      fontSize: 16.0,
+                      color: Color(0xFF002E50),
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.all(15.0),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'e.g.John Smith',
+                      hintStyle: kBodyTextStyle.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB1B1B1),
+                      ),
+                      errorStyle: const TextStyle(
+                        fontFamily: kBodyFont,
+                        color: Color(0xFFFA4954),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'NRIC / Passport',
+                    style: kLabelTextStyle.copyWith(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onChanged: validate,
+                    validator: ValidationBuilder().required('NRIC / Passport is required').minLength(1, 'NRIC / Passport is required').build(),
+                    controller: txtic,
+                    cursorColor: const Color(0xFF002E50),
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                      fontSize: 16.0,
+                      color: Color(0xFF002E50),
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.all(15.0),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Enter NRIC / Passport',
+                      hintStyle: kBodyTextStyle.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB1B1B1),
+                      ),
+                      errorStyle: const TextStyle(
+                        fontFamily: kBodyFont,
+                        color: Color(0xFFFA4954),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'Date of Birth',
+                    style: kLabelTextStyle.copyWith(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  TextFormField(
+                    onTap: () async {
+                      DateTime? dob = await showDatePicker(
+                        context: context,
+                        initialDate: dobdt == null ? DateTime.now() : dobdt!,
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                        locale: const Locale('en', 'AU'),
+                        fieldHintText: 'DD/MM/YYYY',
+                        helpText: '',
+                        confirmText: 'SELECT DATE',
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: kMainColor,
+                              ),
+                              dialogTheme: DialogTheme(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        }
+                      );
+                      if (dob != null) {
+                        String dobDay = '${dob.day}';
+                        dobDay = dobDay.padLeft(2, '0');
+                        String dobMonth = '${dob.month}';
+                        dobMonth = dobMonth.padLeft(2, '0');
+                        txtdob.text = '$dobDay/$dobMonth/${dob.year}';
+                        dobdt = DateTime(dob.year, dob.month, dob.day);
+                      }
+                    },
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onChanged: validate,
+                    validator: ValidationBuilder().required('DOB is required').minLength(10, 'DOB is required').build(),
+                    controller: txtdob,
+                    readOnly: true,
+                    showCursor: true,
+                    cursorColor: const Color(0xFF002E50),
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                      fontSize: 16.0,
+                      color: Color(0xFF002E50),
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.all(15.0),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'DOB (DD/MM/YYYY)',
+                      hintStyle: kBodyTextStyle.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB1B1B1),
+                      ),
+                      errorStyle: const TextStyle(
+                        fontFamily: kBodyFont,
+                        color: Color(0xFFFA4954),
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.event,
+                        color: Color(0xFF8C8C8C),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      disabledBorder: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                        borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'Email',
+                    style: kLabelTextStyle.copyWith(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onChanged: validate,
+                    validator: ValidationBuilder().required('Email is required').minLength(1, 'Email is required').email('Email is invalid').build(),
+                    controller: txtemail,
+                    cursorColor: const Color(0xFF002E50),
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                      fontSize: 16.0,
+                      color: Color(0xFF002E50),
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.all(15.0),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'e.g.JohnSmith@abc.com',
+                      hintStyle: kBodyTextStyle.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB1B1B1),
+                      ),
+                      errorStyle: const TextStyle(
+                        fontFamily: kBodyFont,
+                        color: Color(0xFFFA4954),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  Text(
+                    'Password',
+                    style: kLabelTextStyle.copyWith(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onChanged: validate,
+                    validator: ValidationBuilder().required('Password is required').minLength(1, 'Password is required').build(),
+                    controller: txtpwd,
+                    obscureText: isPwd,
+                    cursorColor: const Color(0xFF002E50),
+                    style: const TextStyle(
+                      fontFamily: kBodyFont,
+                      fontSize: 16.0,
+                      color: Color(0xFF002E50),
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.all(15.0),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Enter Password',
+                      hintStyle: kBodyTextStyle.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB1B1B1),
+                      ),
+                      errorStyle: const TextStyle(
+                        fontFamily: kBodyFont,
+                        color: Color(0xFFFA4954),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isPwd ? Icons.visibility_off : Icons.visibility,
+                          color: const Color(0xFF8C8C8C),
+                        ),
+                        color: const Color(0xFF8C8C8C),
+                        onPressed: () {
+                          setState(() {
+                            isPwd = !isPwd;
+                          });
+                        },            
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color.fromRGBO(219, 219, 219, 0.2)),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: const BorderSide(color: Color(0xFFFA4954)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 180.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 48.0),
+            color: const Color(0xFFF8F8F8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    '*For hospital registered patient only',
+                    style: kBodyTextStyle.copyWith(
+                      color: const Color(0xFFA41D2B),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 33.0),
+                  child: ElevatedButton(
+                    onPressed: isValid ? onSignUp : null,
+                    style: ElevatedButton.styleFrom(
+                      elevation: 5.0,
+                      backgroundColor: kMainColor,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48.0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                    ),
+                    child: Text(
+                      'Sign Up',
+                      style: kMainTextStyle.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already an existing user? ',
+                      style: kBodyTextStyle.copyWith(
+                        fontFamily: kMainFont,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.offAllNamed(SignIn.routeName);
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: kMainColor,
+                      ),
+                      child: Text(
+                        'Sign In',
+                        style: kMainTextStyle.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w700,
+                          color: kMainColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5.0),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kPrimaryBgColor),
-        toolbarHeight: 0.0,
-        backgroundColor: Colors.white,
-        elevation: 5.0,
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: Color(0xFFF8F8F8)),
+        toolbarHeight: kAppToolbarHeight,
+        automaticallyImplyLeading: false,
+        leadingWidth: 100.0,
+        backgroundColor: const Color(0xFFF8F8F8),
+        leading: const BackBtn(color: Color(0xFF002E50)),
+        centerTitle: true,
+        title: Text(
+          'Sign Up',
+          style: kMainTextStyle.copyWith(
+            fontSize: 16.0,
+            color: const Color(0xFF002E50),
+          ),
+        ),
+        elevation: 0.0,
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F8F8),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(),
         child: SafeArea(
-          child: Scrollbar(
-            child: buildForm(),
-          ),
+          child: buildForm(),
         ),
       ),
     );
