@@ -1,3 +1,7 @@
+import 'package:hive/hive.dart';
+
+part 'doctor_data.g.dart';
+
 class Name {
 
   String? firstName;
@@ -114,9 +118,13 @@ class Nationality {
     };
 }
 
+@HiveType(typeId: 19)
 class Specialty {
 
+  @HiveField(0)
   String? specialtyCode;
+
+  @HiveField(1)
   String? specialtyDesc;
 
   Specialty({
@@ -177,16 +185,26 @@ class AppImage {
     };
 }
 
-class DoctorSpecialities {
+@HiveType(typeId: 14)
+class DoctorSpecialities extends HiveObject {
 
-  num? doctorId;
-  num? displaySequence;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
+  int? displaySequence;
+
+  @HiveField(2)
   String? specialities;
+
+  @HiveField(3)
+  String? subspecialty;
 
   DoctorSpecialities({
     this.doctorId,
     this.displaySequence,
     this.specialities,
+    this.subspecialty,
   });
 
   factory DoctorSpecialities.fromJson(Map<String, dynamic> json) {
@@ -194,6 +212,7 @@ class DoctorSpecialities {
       doctorId: json['doctorId'],
       displaySequence: json['displaySequence'],
       specialities: json['specialities'],
+      subspecialty: json['subspecialty'],
     );
   }
 
@@ -202,41 +221,73 @@ class DoctorSpecialities {
       'doctorId': doctorId,
       'displaySequence': displaySequence,
       'specialities': specialities,
+      'subspecialty': subspecialty,
     };
+
+  @override
+  String toString() {
+    String s = specialities ?? '';
+    String ws = subspecialty ?? '';
+    if (ws.isEmpty) {
+      return s;
+    }
+
+    return '$s / $ws';
+  }
 }
 
-class DoctorSpecialty {
+@HiveType(typeId: 18)
+class DoctorSpecialty extends HiveObject {
 
-  num? doctorId;
-  Specialty? specialty;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
   bool? primarySpecialty;
+
+  @HiveField(2)
+  Specialty? specialty;
 
   DoctorSpecialty({
     this.doctorId,
-    this.specialty,
     this.primarySpecialty,
+    this.specialty,
   });
 
   factory DoctorSpecialty.fromJson(Map<String, dynamic> json) {
     return DoctorSpecialty(
       doctorId: json['doctorId'],
-      specialty: Specialty.fromJson(json['specialty']),
       primarySpecialty: json['primarySpecialty'],
+      specialty: Specialty.fromJson(json['specialty']),
     );
   }
 
   Map<String, dynamic> toJson() =>
     {
       'doctorId': doctorId,
-      'specialty': specialty?.toJson(),
       'primarySpecialty': primarySpecialty,
+      'specialty': specialty?.toJson(),
     };
+
+  // factory DoctorSpecialty.fromObjectbox(DoctorSpecialtyModel o) {
+  //   return DoctorSpecialty(
+  //     doctorId: o.doctorId,
+  //     primarySpecialty: o.primarySpecialty,
+  //     specialty: o.specialty.target,
+  //   );
+  // }
 }
 
-class DoctorSpokenLanguage {
+@HiveType(typeId: 12)
+class DoctorSpokenLanguage extends HiveObject {
 
-  num? doctorId;
-  num? displaySequence;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
+  int? displaySequence;
+
+  @HiveField(2)
   String? spokenLanguage;
 
   DoctorSpokenLanguage({
@@ -261,10 +312,16 @@ class DoctorSpokenLanguage {
     };
 }
 
-class DoctorQualification {
+@HiveType(typeId: 13)
+class DoctorQualification extends HiveObject {
 
-  num? doctorId;
-  num? displaySequence;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
+  int? displaySequence;
+
+  @HiveField(2)
   String? qualification;
 
   DoctorQualification({
@@ -289,20 +346,29 @@ class DoctorQualification {
     };
 }
 
-class DoctorClinicLocation {
+@HiveType(typeId: 15)
+class DoctorClinicLocation extends HiveObject {
 
-  num? doctorId;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
   String? location;
+
+  @HiveField(2)
+  String? building;
 
   DoctorClinicLocation({
     this.doctorId,
     this.location,
+    this.building,
   });
 
   factory DoctorClinicLocation.fromJson(Map<String, dynamic> json) {
     return DoctorClinicLocation(
       doctorId: json['doctorId'],
       location: json['location'],
+      building: json['building'],
     );
   }
 
@@ -310,16 +376,44 @@ class DoctorClinicLocation {
     {
       'doctorId': doctorId,
       'location': location,
+      'building': building,
     };
+
+  @override
+  String toString() {
+    String s = '';
+    if (building == null) {
+      s = location ?? '';
+    }
+
+    else {
+      String loc = location ?? '';
+      s = '$building\n$loc';
+    }
+
+    return s;
+  }
 }
 
-class DoctorClinicHours {
+@HiveType(typeId: 16)
+class DoctorClinicHours extends HiveObject {
 
-  num? doctorId;
-  num? displaySequence;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
+  int? displaySequence;
+
+  @HiveField(2)
   String? dayOfTheWeek;
+
+  @HiveField(3)
   String? dayStartTime;
+
+  @HiveField(4)
   String? dayEndTime;
+
+  @HiveField(5)
   bool? byAppointmentOnly;
 
   DoctorClinicHours({
@@ -353,11 +447,19 @@ class DoctorClinicHours {
     };
 }
 
-class DoctorContact {
+@HiveType(typeId: 17)
+class DoctorContact extends HiveObject {
 
-  num? doctorId;
-  num? displaySequence;
+  @HiveField(0)
+  int? doctorId;
+
+  @HiveField(1)
+  int? displaySequence;
+
+  @HiveField(2)
   String? contactType;
+
+  @HiveField(3)
   String? contactValue;
 
   DoctorContact({
@@ -385,64 +487,206 @@ class DoctorContact {
     };
 }
 
-class DoctorInfo {
+class DoctorAppointment {
 
+  String apptDayOfWeek;
+  String apptSlotType;
+  String apptSessionType;
+  String apptStartTime;
+  String apptEndTime;
+
+  DoctorAppointment({
+    required this.apptDayOfWeek,
+    required this.apptSlotType,
+    required this.apptSessionType,
+    required this.apptStartTime,
+    required this.apptEndTime,
+  });
+
+  factory DoctorAppointment.fromJson(Map<String, dynamic> json) {
+    return DoctorAppointment(
+      apptDayOfWeek: json['apptDayOfWeek'],
+      apptSlotType: json['apptSlotType'],
+      apptSessionType: json['apptSessionType'],
+      apptStartTime: json['apptStartTime'],
+      apptEndTime: json['apptEndTime'],
+    );
+  }
+
+  Map<String, dynamic> toJson() =>
+    {
+      'apptDayOfWeek': apptDayOfWeek,
+      'apptSlotType': apptSlotType,
+      'apptSessionType': apptSessionType,
+      'apptStartTime': apptStartTime,
+      'apptEndTime': apptEndTime,
+    };
+}
+
+// class DoctorInfoModel {
+
+//   @Id()
+//   int id = 0;
+//   String user = '';
+//   int doctorId = 0;
+//   String? mcr;
+//   String? name;
+//   String? gender;
+//   String? nationality;
+//   String? image;
+//   String? allowAppointment;
+//   String? qualifications;
+//   String? registrationNum;
+
+//   final doctorSpokenLanguage = ToMany<DoctorSpokenLanguage>();
+
+//   final doctorQualifications = ToMany<DoctorQualification>();
+
+//   final doctorSpecialities = ToMany<DoctorSpecialities>();
+
+//   final doctorClinicLocation = ToMany<DoctorClinicLocation>();
+
+//   final doctorClinicHours = ToMany<DoctorClinicHours>();
+
+//   final doctorContact = ToMany<DoctorContact>();
+
+//   final doctorSpecialty = ToMany<DoctorSpecialtyModel>();
+
+//   @Property(type: PropertyType.date) // Store as int in milliseconds
+//   DateTime? date;
+
+//   void set(String user, DoctorInfo o) {
+//     this.user = user;
+//     doctorId = o.doctorId;
+//     mcr = o.mcr;
+//     name = o.name;
+//     gender = o.gender;
+//     nationality = o.nationality;
+//     image = o.image;
+//     allowAppointment = o.allowAppointment;
+//     qualifications = o.qualifications;
+//     registrationNum = o.registrationNum;
+//     doctorSpokenLanguage.addAll(o.doctorSpokenLanguage);
+//     doctorQualifications.addAll(o.doctorQualifications);
+//     doctorSpecialities.addAll(o.doctorSpecialities);
+//     doctorClinicLocation.addAll(o.doctorClinicLocation);
+//     doctorClinicHours.addAll(o.doctorClinicHours);
+//     doctorContact.addAll(o.doctorContact);
+//     doctorSpecialty.addAll(o.doctorSpecialty.map((x) => DoctorSpecialtyModel()..target = x).toList());
+//     date = DateTime.now();
+//   }
+// }
+
+@HiveType(typeId: 11)
+class DoctorInfo extends HiveObject {
+
+  @HiveField(0)
+  int doctorId;
+
+  @HiveField(1)
   String? mcr;
+
+  @HiveField(2)
   String? name;
+
+  @HiveField(3)
   String? gender;
+
+  @HiveField(4)
   String? nationality;
+
+  @HiveField(5)
   String? image;
-  List<DoctorSpokenLanguage>? doctorSpokenLanguage;
-  List<DoctorQualification>? doctorQualifications;
-  List<DoctorSpecialities>? doctorSpecialities;
-  List<DoctorClinicLocation>? doctorClinicLocation;
-  List<DoctorClinicHours>? doctorClinicHours;
-  List<DoctorContact>? doctorContact;
-  List<DoctorSpecialty>? doctorSpecialty;
+
+  @HiveField(17)
+  String? showMakeAppointmentButton;
+
+  @HiveField(6)
+  String? allowAppointment;
+
+  @HiveField(7)
+  String? qualifications;
+
+  @HiveField(8)
+  String? registrationNum;
+
+  @HiveField(9)
+  List<DoctorSpokenLanguage> doctorSpokenLanguage;
+
+  @HiveField(10)
+  List<DoctorQualification> doctorQualifications;
+
+  @HiveField(11)
+  List<DoctorSpecialities> doctorSpecialities;
+
+  @HiveField(12)
+  List<DoctorClinicLocation> doctorClinicLocation;
+
+  @HiveField(13)
+  List<DoctorClinicHours> doctorClinicHours;
+
+  @HiveField(14)
+  List<DoctorContact> doctorContact;
+
+  @HiveField(15)
+  List<DoctorSpecialty> doctorSpecialty;
+
+  @HiveField(16)
+  DateTime? date;
 
   DoctorInfo({
+    this.doctorId = 0,
     this.mcr,
     this.name,
     this.gender,
     this.nationality,
     this.image,
-    this.doctorSpokenLanguage,
-    this.doctorQualifications,
-    this.doctorSpecialities,
-    this.doctorClinicLocation,
-    this.doctorClinicHours,
-    this.doctorContact,
-    this.doctorSpecialty,
+    this.showMakeAppointmentButton,
+    this.allowAppointment,
+    this.qualifications,
+    this.registrationNum,
+    this.doctorSpokenLanguage = const[],
+    this.doctorQualifications = const[],
+    this.doctorSpecialities = const[],
+    this.doctorClinicLocation = const[],
+    this.doctorClinicHours = const[],
+    this.doctorContact = const[],
+    this.doctorSpecialty = const[],
   });
 
   factory DoctorInfo.fromJson(Map<String, dynamic> json) {
-    final ls = json['doctorSpecialities'] as List?;
-    List<DoctorSpecialities> lx = ls == null ? [] : ls.map<DoctorSpecialities>((x) => DoctorSpecialities.fromJson(x)).toList();
+    final ls = json['doctorSpecialities'] as List? ?? [];
+    List<DoctorSpecialities> lx = ls.map<DoctorSpecialities>((x) => DoctorSpecialities.fromJson(x)).toList();
 
-    final lm = json['doctorSpecialty'] as List?;
-    List<DoctorSpecialty> la = lm == null ? [] : lm.map<DoctorSpecialty>((x) => DoctorSpecialty.fromJson(x)).toList();
+    final lm = json['doctorSpecialty'] as List? ?? [];
+    List<DoctorSpecialty> la = lm.map<DoctorSpecialty>((x) => DoctorSpecialty.fromJson(x)).toList();
 
-    final ln = json['doctorSpokenLanguage'] as List?;
-    List<DoctorSpokenLanguage> lb = ln == null ? [] : ln.map<DoctorSpokenLanguage>((x) => DoctorSpokenLanguage.fromJson(x)).toList();
+    final ln = json['doctorSpokenLanguage'] as List? ?? [];
+    List<DoctorSpokenLanguage> lb = ln.map<DoctorSpokenLanguage>((x) => DoctorSpokenLanguage.fromJson(x)).toList();
 
-    final lo = json['doctorQualifications'] as List?;
-    List<DoctorQualification> lc = lo == null ? [] : lo.map<DoctorQualification>((x) => DoctorQualification.fromJson(x)).toList();
+    final lo = json['doctorQualifications'] as List? ?? [];
+    List<DoctorQualification> lc = lo.map<DoctorQualification>((x) => DoctorQualification.fromJson(x)).toList();
 
-    final lp = json['doctorClinicLocation'] as List?;
-    List<DoctorClinicLocation> ld = lp == null ? [] : lp.map<DoctorClinicLocation>((x) => DoctorClinicLocation.fromJson(x)).toList();
+    final lp = json['doctorClinicLocation'] as List? ?? [];
+    List<DoctorClinicLocation> ld = lp.map<DoctorClinicLocation>((x) => DoctorClinicLocation.fromJson(x)).toList();
 
-    final lq = json['doctorClinicHours'] as List?;
-    List<DoctorClinicHours> le = lq == null ? [] : lq.map<DoctorClinicHours>((x) => DoctorClinicHours.fromJson(x)).toList();
+    final lq = json['doctorClinicHours'] as List? ?? [];
+    List<DoctorClinicHours> le = lq.map<DoctorClinicHours>((x) => DoctorClinicHours.fromJson(x)).toList();
 
-    final lr = json['doctorContact'] as List?;
-    List<DoctorContact> lf = lr == null ? [] : lr.map<DoctorContact>((x) => DoctorContact.fromJson(x)).toList();
+    final lr = json['doctorContact'] as List? ?? [];
+    List<DoctorContact> lf = lr.map<DoctorContact>((x) => DoctorContact.fromJson(x)).toList();
 
     return DoctorInfo(
+      doctorId: json['doctor_id'],
       mcr: json['mcr'],
       name: json['name'],
       gender: json['gender'],
       nationality: json['nationality'],
       image: json['image'],
+      showMakeAppointmentButton: json['showMakeAppointmentButton'],
+      allowAppointment: json['allowAppointment'],
+      qualifications: json['qualifications'],
+      registrationNum: json['registrationNum'],
       doctorSpokenLanguage: lb,
       doctorQualifications: lc,
       doctorSpecialities: lx,
@@ -455,19 +699,45 @@ class DoctorInfo {
 
   Map<String, dynamic> toJson() =>
     {
+      'doctorId': doctorId,
       'mcr': mcr,
       'name': name,
       'gender': gender,
       'nationality': nationality,
       'image': image,
-      'doctorSpokenLanguage': doctorSpokenLanguage?.map((x) => x.toJson()).toList(),
-      'doctorQualifications': doctorQualifications?.map((x) => x.toJson()).toList(),
-      'doctorSpecialities': doctorSpecialities?.map((x) => x.toJson()).toList(),
-      'doctorClinicLocation': doctorClinicLocation?.map((x) => x.toJson()).toList(),
-      'doctorClinicHours': doctorClinicHours?.map((x) => x.toJson()).toList(),
-      'doctorContact': doctorContact?.map((x) => x.toJson()).toList(),
-      'doctorSpecialty': doctorSpecialty?.map((x) => x.toJson()).toList(),
+      'showMakeAppointmentButton': showMakeAppointmentButton,
+      'allowAppointment': allowAppointment,
+      'qualifications': qualifications,
+      'registrationNum': registrationNum,
+      'doctorSpokenLanguage': doctorSpokenLanguage.map((x) => x.toJson()).toList(),
+      'doctorQualifications': doctorQualifications.map((x) => x.toJson()).toList(),
+      'doctorSpecialities': doctorSpecialities.map((x) => x.toJson()).toList(),
+      'doctorClinicLocation': doctorClinicLocation.map((x) => x.toJson()).toList(),
+      'doctorClinicHours': doctorClinicHours.map((x) => x.toJson()).toList(),
+      'doctorContact': doctorContact.map((x) => x.toJson()).toList(),
+      'doctorSpecialty': doctorSpecialty.map((x) => x.toJson()).toList(),
     };
+
+  // factory DoctorInfo.fromObjectbox(DoctorInfoModel o) {
+  //   return DoctorInfo(
+  //     doctorId: o.doctorId,
+  //     mcr: o.mcr,
+  //     name: o.name,
+  //     gender: o.gender,
+  //     nationality: o.nationality,
+  //     image: o.image,
+  //     allowAppointment: o.allowAppointment,
+  //     qualifications: o.qualifications,
+  //     registrationNum: o.registrationNum,
+  //     doctorSpokenLanguage: o.doctorSpokenLanguage,
+  //     doctorQualifications: o.doctorQualifications,
+  //     doctorSpecialities: o.doctorSpecialities,
+  //     doctorClinicLocation: o.doctorClinicLocation,
+  //     doctorClinicHours: o.doctorClinicHours,
+  //     doctorContact: o.doctorContact,
+  //     doctorSpecialty: o.doctorSpecialty.map((x) => DoctorSpecialty.fromObjectbox(x)).toList(),
+  //   );
+  // }
 }
 
 class DoctorDetails {
@@ -501,11 +771,11 @@ class DoctorDetails {
   });
 
   factory DoctorDetails.fromJson(Map<String, dynamic> json) {
-    final ls = json['specialtyList'] as List?;
-    List<Specialty> lx = ls == null ? [] : ls.map<Specialty>((x) => Specialty.fromJson(x)).toList();
+    final ls = json['specialtyList'] as List? ?? [];
+    List<Specialty> lx = ls.map<Specialty>((x) => Specialty.fromJson(x)).toList();
 
-    final lq = json['qualification'] as List?;
-    List<String> la = lq == null ? [] : lq.map<String>((x) => x).toList();
+    final lq = json['qualification'] as List? ?? [];
+    List<String> la = lq.map<String>((x) => x).toList();
 
     return DoctorDetails(
       mcr: json['mcr'],
@@ -538,4 +808,66 @@ class DoctorDetails {
       'image': image?.toJson(),
       'qualification': qualification?.map((x) => x).toList(),
     };
+}
+
+class DoctorAppointmentStatus {
+
+  String calendarDate;
+  String normalStatus;
+  String morningStatus;
+  String afternoonStatus;
+  String nightStatus;
+  String dailyStatus;
+
+  DoctorAppointmentStatus({
+    required this.calendarDate,
+    required this.normalStatus,
+    required this.morningStatus,
+    required this.afternoonStatus,
+    required this.nightStatus,
+    required this.dailyStatus,
+  });
+
+  factory DoctorAppointmentStatus.fromJson(Map<String, dynamic> json) {
+    return DoctorAppointmentStatus(
+      calendarDate: json['calendarDate'],
+      normalStatus: json['normalStatus'],
+      morningStatus: json['morningStatus'],
+      afternoonStatus: json['afternoonStatus'],
+      nightStatus: json['nightStatus'],
+      dailyStatus: json['dailyStatus'],
+    );
+  }
+
+  Map<String, dynamic> toJson() =>
+    {
+      'calendarDate': calendarDate,
+      'normalStatus': normalStatus,
+      'morningStatus': morningStatus,
+      'afternoonStatus': afternoonStatus,
+      'nightStatus': nightStatus,
+      'dailyStatus': dailyStatus,
+    };
+
+  DateTime get calendarDateDt {
+    final s = calendarDate.split('/');
+    String d = '${s[2]}-${s[1]}-${s[0]}';
+    DateTime dt = DateTime.parse(d);
+    return dt;
+  }
+}
+
+class PatientRef {
+
+  int id;
+  String first;
+  String name;
+  String type;
+
+  PatientRef({
+    required this.id,
+    required this.first,
+    required this.name,
+    required this.type,
+  });
 }

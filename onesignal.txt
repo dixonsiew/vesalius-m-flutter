@@ -1,0 +1,4 @@
+appid: f1ac701a-4309-4e3c-9675-58fce2429aad
+key: YTY2MTFlMWMtYzg2Ni00NGQ3LWFkMjUtMWI0ZjUyMjBjNjMw
+
+https://documentation.onesignal.com/docs/ios-p12-generate-certificates#step-3-generate-push-certificate

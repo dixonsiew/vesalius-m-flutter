@@ -1,0 +1,2 @@
+C:/repo/vesalius-m/flutter/dev-ihp-2025/vesalius-m-flutter/android/app/.cxx/RelWithDebInfo/l1fe373i/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/repo/vesalius-m/flutter/dev-ihp-2025/vesalius-m-flutter/android/app/.cxx/RelWithDebInfo/l1fe373i/arm64-v8a/CMakeFiles/rebuild_cache.dir

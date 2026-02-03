@@ -1,0 +1,20 @@
+                        -HC:\apps\flutter\packages\flutter_tools\gradle\src\main\groovy
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=24
+-DANDROID_PLATFORM=android-24
+-DANDROID_ABI=x86
+-DCMAKE_ANDROID_ARCH_ABI=x86
+-DANDROID_NDK=C:\apps\Android\Sdk\ndk\23.1.7779620
+-DCMAKE_ANDROID_NDK=C:\apps\Android\Sdk\ndk\23.1.7779620
+-DCMAKE_TOOLCHAIN_FILE=C:\apps\Android\Sdk\ndk\23.1.7779620\build\cmake\android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=C:\apps\Android\Sdk\cmake\3.22.1\bin\ninja.exe
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\repo\vesalius-m\flutter\dev-ihp-2025\vesalius-m-flutter\build\app\intermediates\cxx\Debug\231t5o21\obj\x86
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\repo\vesalius-m\flutter\dev-ihp-2025\vesalius-m-flutter\build\app\intermediates\cxx\Debug\231t5o21\obj\x86
+-DCMAKE_BUILD_TYPE=Debug
+-BC:\repo\vesalius-m\flutter\dev-ihp-2025\vesalius-m-flutter\android\app\.cxx\Debug\231t5o21\x86
+-GNinja
+-Wno-dev
+--no-warn-unused-cli
+                        Build command args: []
+                        Version: 2

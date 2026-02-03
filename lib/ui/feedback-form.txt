@@ -1,0 +1,85 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:vesalius_m_flutter/components/back-btn.dart';
+import 'package:vesalius_m_flutter/constants.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
+class FeedbackForm extends StatefulWidget {
+
+  @override
+  State<FeedbackForm> createState() => _FeedbackFormState();
+}
+
+class _FeedbackFormState extends State<FeedbackForm> {
+
+  late WebViewController webViewController;
+  double progress = 0;
+  final Completer<WebViewController> controller = Completer<WebViewController>();
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kBgColor1),
+        toolbarHeight: kAppToolbarHeight,
+        automaticallyImplyLeading: false,
+        leadingWidth: 100.0,
+        backgroundColor: kBgColor1,
+        leading: BackBtn(color: kColor20),
+        centerTitle: true,
+        title: Text(
+          'Share Feedback',
+          style: kMainTextStyle.copyWith(
+            fontSize: 16.0,
+            color: kColor20,
+          ),
+        ),
+        elevation: 0.0,
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 10.0),
+            child: IconButton(
+              onPressed: () {
+                webViewController.reload();
+              },
+              icon: Icon(
+                Icons.refresh,
+                color: kMainColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: kBgColor1,
+      body: Column(
+        children: [
+          Visibility(
+            visible: progress < 1.0,
+            child: LinearProgressIndicator(
+              value: progress,
+              color: kMainColor,
+              backgroundColor: Colors.black12,
+            ),
+          ),
+          Expanded(
+            child: WebView(
+              initialUrl: 'https://boldtag.net/registration1.html?shortKey=SurveyIH_XA8U9',
+              javascriptMode: JavascriptMode.unrestricted,
+              onWebViewCreated: (WebViewController webViewController) {
+                this.webViewController = webViewController;
+                controller.complete(webViewController);
+              },
+              onProgress: (int progress) {
+                setState(() {
+                  this.progress = progress / 100;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
