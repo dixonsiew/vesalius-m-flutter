@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 
-const kServerUrl = 'https://202.73.42.183:43901/mobile_central_2_0_0';
-// const SERVER1 = 'http://175.145.93.195:27051/mobile_central_cvskl-2.0.2';
-// const SERVER = 'http://192.168.5.173:8000/mobile_central_2_0_0';
-// const SERVER = 'http://175.145.93.195:27051/mobile_central_cvskl-2.0.1';
+const SERVER2 = 'https://cvsklgo.cvskl.com:27050/nest-vesalius-m';
+const SERVER = 'https://cvsklgo.cvskl.com:27050/nest-vesalius-m-prod';
+const SERVER1 = 'http://175.145.93.195:27051/mobile_central_cvskl-2.0.1';
 
-const kPageSize = 10;
+const PAGE_SIZE = 10;
 
-const kOneSignalAppID = 'f1ac701a-4309-4e3c-9675-58fce2429aad'; // testing
-const kOneSignalAppID0 = '7196c415-62a5-4d5b-a38c-376216439f5d'; // dev
-const kOneSignalAppID1 = 'defb9cbc-dc19-4619-97ce-da34b1627f4b'; // cvs
-const kOneSignalAppID2 = '18d1520f-a152-46fc-ba95-e010e2ff88e2'; // ihp
+const ONESIGNAL_APP_IDx = 'f1ac701a-4309-4e3c-9675-58fce2429aad'; // testing
+const ONESIGNAL_APP_ID0 = '7196c415-62a5-4d5b-a38c-376216439f5d'; // dev
+const ONESIGNAL_APP_ID = 'defb9cbc-dc19-4619-97ce-da34b1627f4b'; // cvs
+const ONESIGNAL_APP_ID2 = '18d1520f-a152-46fc-ba95-e010e2ff88e2'; // ihp
 
 enum AlertType {
-  info,
-  success,
-  error,
+  Info,
+  Success,
+  Error,
 }
 
-// const kAppVersion = '1.0.13';
+// const kAppVersion = '1.0.19';
 
 const kAppToolbarHeight = 45.0;
 
@@ -50,6 +49,3 @@ const kChangePasswordBgColor = Color(0xFFD93B76);
 const kProgressTextStyle = TextStyle(
   color: kPrimaryColor,
 );
-
-const kTitleFont = 'Roboto';
-const kBodyFont = 'Roboto';

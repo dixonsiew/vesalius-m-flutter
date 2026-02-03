@@ -1,24 +1,22 @@
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:vesalius_m_flutter/components/app-shared.dart';
+import 'package:vesalius_m_flutter/components/back-btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
-import 'package:vesalius_m_flutter/models/appointment_data.dart';
-import 'package:vesalius_m_flutter/models/data_manager.dart';
-import 'package:vesalius_m_flutter/services/data_service.dart';
-import 'package:vesalius_m_flutter/ui/appointment/edit_appointment.dart';
+import 'package:vesalius_m_flutter/models/appointment-data.dart';
+import 'package:vesalius_m_flutter/models/data-manager.dart';
+import 'package:vesalius_m_flutter/services/data-service.dart';
+import 'package:vesalius_m_flutter/ui/appointment/edit-appointment.dart';
 import 'package:vesalius_m_flutter/ui/doctor.dart';
 
 class Appointment extends StatefulWidget {
 
-  static const String routeName = 'Appointment';
-
-  const Appointment({super.key});
+  static final String routeName = 'Appointment';
 
   @override
-  State<Appointment> createState() => _AppointmentState();
+  _AppointmentState createState() => _AppointmentState();
 }
 
 class _AppointmentState extends State<Appointment> {
@@ -40,7 +38,7 @@ class _AppointmentState extends State<Appointment> {
         isLoading = true;
       });
       var branchDetails = DataManager.branchDetails;
-      var lx = await getVesaliusFutureAppointments(branchDetails!.branch!.branchId!, branchDetails.prn!);
+      var lx = await getVesaliusFutureAppointments(branchDetails.branch.branchId, branchDetails.prn);
       setState(() {
         list = lx;
         isLoading = false;
@@ -77,14 +75,14 @@ class _AppointmentState extends State<Appointment> {
       itemBuilder: (context, i) {
         final o = list[i];
         return AppointmentItem(
-          date: getDate(o.date!),
-          startTime: getTime(o.startTime!),
-          doctorName: o.doctorName!,
+          date: getDate(o.date),
+          startTime: getTime(o.startTime),
+          doctorName: o.doctorName,
           appointment: o,
           load: load,
         );
       }, 
-      separatorBuilder: (context, i) => const Divider(
+      separatorBuilder: (context, i) => Divider(
         color: Color(0xFFE2E2E2),
         height: 1.0,
         thickness: 1.0,
@@ -95,23 +93,22 @@ class _AppointmentState extends State<Appointment> {
 
   Widget buildMakeAppointment() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
+      padding: EdgeInsets.all(20.0),
       child: RawMaterialButton(
         elevation: 5.0,
         fillColor: kAppointmentBgColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-        onPressed: () {
-          Navigator.of(context).pushNamed(Doctor.routeName);
-        },
-        child: const Text(
+        constraints: BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+        child: Text(
           'Make Appointment',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18.0,
-            fontFamily: kBodyFont,
           ),
         ),
+        onPressed: () {
+          Navigator.pushNamed(context, Doctor.routeName);
+        },
       ),
     );
   }
@@ -120,7 +117,7 @@ class _AppointmentState extends State<Appointment> {
     if (list.isEmpty) {
       return ListView(
         shrinkWrap: true,
-        children: const [
+        children: [
           Padding(
             padding: EdgeInsets.all(15.0),
             child: Text(
@@ -129,7 +126,6 @@ class _AppointmentState extends State<Appointment> {
               style: TextStyle(
                 color: Color(0xFF727272),
                 fontSize: 16.0,
-                fontFamily: kBodyFont,
               ),
             ),
           ),
@@ -148,12 +144,12 @@ class _AppointmentState extends State<Appointment> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 40.0),
+      margin: EdgeInsets.only(top: 40.0),
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -172,63 +168,64 @@ class _AppointmentState extends State<Appointment> {
   }
 
   Widget buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Image.asset(
-            'images/icon/page-header-icon/appointment.png',
-            width: 65.0,
-            height: 50.0,
-            fit: BoxFit.contain,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 20.0, top: 20.0),
+          child: Container(
+            width: 80.0,
+            height: 60.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              image: DecorationImage(
+                image: AssetImage('images/icon/page-header-icon/appointment.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
-          const Flexible(
+        ),
+        Flexible(
+          child: Padding(
+            padding: EdgeInsets.only(right: 20.0, top: 30.0),
             child: Text(
               'Schedule your Appointment',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 20.0,
-                fontFamily: kTitleFont,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget buildLayer2() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-      child: Column(
-        children: [
-          buildHeader(),
-          Flexible(
-            child: buildContent(),
-          ),
-        ],
+    var padding = MediaQuery.of(context).padding;
+
+    return Container(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      child: Padding(
+        padding: EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Flexible(
+              child: buildContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget buildLayer1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          width: double.infinity,
-          height: 160.0,
-          color: kAppointmentBgColor,
-        ),
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFF5F5F5),
-          ),
-        ),
-      ],
+    return Container(
+      width: double.infinity,
+      height: 160.0,
+      color: kAppointmentBgColor,
     );
   }
 
@@ -236,32 +233,30 @@ class _AppointmentState extends State<Appointment> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        brightness: Brightness.dark,
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kAppointmentBgColor,
         automaticallyImplyLeading: false,
         leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
+        leading: BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Color(0xFFF5F5F5),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
+        progressIndicator: AppActivityIndicator(), // AppScalingText('Loading...'),
         child: SafeArea(
           child: Stack(
             children: [
               buildLayer1(),
               buildLayer2(),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: buildMakeAppointment(),
-              ),
             ],
           ),
         ),
       ),
+      persistentFooterButtons: [
+        buildMakeAppointment(),
+      ],
     );
   }
 }
@@ -274,26 +269,29 @@ class AppointmentItem extends StatelessWidget {
   final FutureAppointment appointment;
   final void Function() load;
 
-  const AppointmentItem({
-    super.key, 
-    required this.date,
-    required this.startTime,
-    required this.doctorName,
-    required this.appointment,
-    required this.load,
+  AppointmentItem({
+    @required this.date,
+    @required this.startTime,
+    @required this.doctorName,
+    @required this.appointment,
+    @required this.load,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        final b = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditAppointment(appointment: appointment)));
+        final b = await Navigator.push(context,
+          MaterialPageRoute(
+            builder: (context) => EditAppointment(appointment: appointment),
+          )
+        );
         if (b == true) {
           load();
         }
       },
       child: Padding(
-        padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 15.0, bottom: 15.0),
+        padding: EdgeInsets.only(left: 20.0, right: 10.0, top: 15.0, bottom: 15.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -304,18 +302,16 @@ class AppointmentItem extends StatelessWidget {
                 children: [
                   Text(
                     date,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16.0,
-                      fontFamily: kBodyFont,
                       color: Color(0xFF727272),
                     ),
                   ),
                   Flexible(
                     child: Text(
                       doctorName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16.0,
-                        fontFamily: kBodyFont,
                         color: Color(0xFFBBBBBB),
                       ),
                     ),
@@ -326,17 +322,16 @@ class AppointmentItem extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const SizedBox(width: 5.0),
+                SizedBox(width: 5.0),
                 Text(
                   startTime,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17.0,
-                    fontFamily: kBodyFont,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_outlined,
                   color: Colors.black,
                   size: 18.0,

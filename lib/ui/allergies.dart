@@ -1,33 +1,31 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:vesalius_m_flutter/components/app-shared.dart';
+import 'package:vesalius_m_flutter/components/back-btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/allergy.dart';
-import 'package:vesalius_m_flutter/models/auth_manager.dart';
-import 'package:vesalius_m_flutter/models/data_manager.dart';
-import 'package:vesalius_m_flutter/services/data_service.dart';
-import 'package:vesalius_m_flutter/ui/allergies/allergies_group.dart';
+import 'package:vesalius_m_flutter/models/auth-manager.dart';
+import 'package:vesalius_m_flutter/models/data-manager.dart';
+import 'package:vesalius_m_flutter/services/data-service.dart';
+import 'package:vesalius_m_flutter/ui/allergies/allergies-group.dart';
+
+import '../constants.dart';
 
 class Allergies extends StatefulWidget {
 
-  static const String routeName = 'Allergies';
-
-  const Allergies({super.key});
+  static final String routeName = 'Allergies';
 
   @override
-  State<Allergies> createState() => _AllergiesState();
+  _AllergiesState createState() => _AllergiesState();
 }
 
 class _AllergiesState extends State<Allergies> {
 
   List<AllergyGroup> groupList = [];
-  AllergyGroup? medicalAlertGroup;
-  AllergyGroup? allergiesAndReactionsGroup;
-  AllergyGroup? healthAlertsGroup;
-  AllergyGroup? infectiousDiseaseGroup;
+  AllergyGroup medicalAlertGroup;
+  AllergyGroup allergiesAndReactionsGroup;
+  AllergyGroup healthAlertsGroup;
   List otherAllergies = [];
   bool isLoading = false;
 
@@ -46,10 +44,10 @@ class _AllergiesState extends State<Allergies> {
         isLoading = true;
       });
       var branchDetails = DataManager.branchDetails;
-      var lx = await getPatientAllergies(branchDetails!.branch!.branchId!, branchDetails.prn!);
+      var lx = await getPatientAllergies(branchDetails.branch.branchId, branchDetails.prn);
       List<AllergyGroup> lg = [];
-      for (var o in lx) {
-        var k = lg.firstWhereOrNull((x) => x.alertType == o.alertType);
+      lx.forEach((o) {
+        var k = lg.firstWhere((x) => x.alertType == o.alertType, orElse: () => null);
         if (k == null) {
           k = AllergyGroup(
             alertType: o.alertType,
@@ -61,7 +59,7 @@ class _AllergiesState extends State<Allergies> {
         var la = k.list;
         la.add(o);
         k.list = la;
-      }
+      });
       await sortList(lg);
     }
 
@@ -77,43 +75,37 @@ class _AllergiesState extends State<Allergies> {
   }
 
   Future<void> sortList(List<AllergyGroup> lg) async {
-    AllergyGroup? mmedicalAlertGroup;
-    AllergyGroup? mallergiesAndReactionsGroup;
-    AllergyGroup? mhealthAlertsGroup;
-    AllergyGroup? minfectiousDiseaseGroup;
-    for (var o in lg) {
-      String s = o.alertType ?? '';
-      if (s == 'CLINICAL ALERT') {
-        mmedicalAlertGroup = o;
+    AllergyGroup _medicalAlertGroup;
+    AllergyGroup _allergiesAndReactionsGroup;
+    AllergyGroup _healthAlertsGroup;
+    lg.forEach((o) {
+      String s = o.alertType;
+      if (s == 'CLINICAL ALLERGY') {
+        _medicalAlertGroup = o;
       }
 
-      else if (s == 'CLINICAL ALLERGY' || s == 'GENERAL ALLERGY') {
-        if (mallergiesAndReactionsGroup == null) {
-          mallergiesAndReactionsGroup = o;
+      else if (s == 'CLINICAL ALERT' || s == 'GENERAL ALLERGY') {
+        if (_allergiesAndReactionsGroup == null) {
+          _allergiesAndReactionsGroup = o;
         }
 
         else {
-          var la = mallergiesAndReactionsGroup.list;
+          var la = _allergiesAndReactionsGroup.list;
           var lb = o.list;
           la.addAll(lb);
         }
       }
 
       else if (s == 'GENERAL ALERT') {
-        mhealthAlertsGroup = o;
+        _healthAlertsGroup = o;
       }
-
-      else if (s == 'INFECTIOUS DISEASE') {
-        minfectiousDiseaseGroup = o;
-      }
-    }
+    });
 
     setState(() {
       groupList = lg;
-      medicalAlertGroup = mmedicalAlertGroup;
-      allergiesAndReactionsGroup = mallergiesAndReactionsGroup;
-      healthAlertsGroup = mhealthAlertsGroup;
-      infectiousDiseaseGroup = minfectiousDiseaseGroup;
+      medicalAlertGroup = _medicalAlertGroup;
+      allergiesAndReactionsGroup = _allergiesAndReactionsGroup;
+      healthAlertsGroup = _healthAlertsGroup;
       isLoading = false;
     });
     await DataManager.setItem('allergies', groupList);
@@ -133,12 +125,9 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Medical Alerts',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(context, 
               MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Medical Alert',
-                  list: medicalAlertGroup!.list,
-                ),
+                builder: (context) => AllergiesGroup(title: 'Medical Alert', list: medicalAlertGroup.list),
               )
             );
           },
@@ -147,72 +136,33 @@ class _AllergiesState extends State<Allergies> {
     }
 
     if (allergiesAndReactionsGroup != null) {
-      lx.addAll([
-        const Divider(
-          color: Color(0xFFE2E2E2),
-          height: 1.0,
-          thickness: 1.0,
-        ),
+      lx.add(
         AllergiesItem(
           name: 'Allergies & Reactions',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(context, 
               MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Allergies & Reactions',
-                  list: allergiesAndReactionsGroup!.list,
-                ),
+                builder: (context) => AllergiesGroup(title: 'Allergies & Reactions', list: allergiesAndReactionsGroup.list),
               )
             );
           },
-        ),
-      ]);
+        )
+      );
     }
 
     if (healthAlertsGroup != null) {
-      lx.addAll([
-        const Divider(
-          color: Color(0xFFE2E2E2),
-          height: 1.0,
-          thickness: 1.0,
-        ),
+      lx.add(
         AllergiesItem(
           name: 'Health Alerts',
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.push(context, 
               MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Health Alerts',
-                  list: healthAlertsGroup!.list,
-                ),
+                builder: (context) => AllergiesGroup(title: 'Health Alerts', list: healthAlertsGroup.list),
               )
             );
           },
-        ),
-      ]);
-    }
-
-    if (infectiousDiseaseGroup != null) {
-      lx.addAll([
-        const Divider(
-          color: Color(0xFFE2E2E2),
-          height: 1.0,
-          thickness: 1.0,
-        ),
-        AllergiesItem(
-          name: 'Infectious Disease',
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Infectious Disease',
-                  list: infectiousDiseaseGroup!.list,
-                ),
-              )
-            );
-          },
-        ),
-      ]);
+        )
+      );
     }
 
     return lx;
@@ -222,7 +172,7 @@ class _AllergiesState extends State<Allergies> {
     if (groupList.isEmpty) {
       return ListView(
         shrinkWrap: true,
-        children: const [
+        children: [
           Padding(
             padding: EdgeInsets.all(15.0),
             child: Text(
@@ -231,7 +181,6 @@ class _AllergiesState extends State<Allergies> {
               style: TextStyle(
                 color: Color(0xFF727272),
                 fontSize: 16.0,
-                fontFamily: kBodyFont,
               ),
             ),
           ),
@@ -250,11 +199,11 @@ class _AllergiesState extends State<Allergies> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 40.0),
-      decoration: const BoxDecoration(
+      margin: EdgeInsets.only(top: 40.0),
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(5.0)),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color.fromRGBO(133, 133, 133, 0.29),
             offset: Offset(5, 4),
@@ -273,63 +222,64 @@ class _AllergiesState extends State<Allergies> {
   }
 
   Widget buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'images/icon/page-header-icon/allergies.png',
-            width: 65.0,
-            height: 50.0,
-            fit: BoxFit.contain,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 20.0, top: 20.0),
+          child: Container(
+            width: 80.0,
+            height: 60.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              image: DecorationImage(
+                image: AssetImage('images/icon/page-header-icon/allergies.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
-          const Flexible(
+        ),
+        Flexible(
+          child: Padding(
+            padding: EdgeInsets.only(right: 20.0, top: 20.0),
             child: Text(
               'View Drug Allergies and Medical Alerts',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 20.0,
-                fontFamily: kTitleFont,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget buildLayer2() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-      child: Column(
-        children: [
-          buildHeader(),
-          Flexible(
-            child: buildContent(),
-          ),
-        ],
+    var padding = MediaQuery.of(context).padding;
+
+    return Container(
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
+      child: Padding(
+        padding: EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Column(
+          children: [
+            buildHeader(),
+            Flexible(
+              child: buildContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget buildLayer1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          width: double.infinity,
-          height: 160.0,
-          color: kAllergiesBgColor,
-        ),
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFF5F5F5),
-          ),
-        ),
-      ],
+    return Container(
+      width: double.infinity,
+      height: 160.0,
+      color: kAllergiesBgColor,
     );
   }
 
@@ -337,18 +287,17 @@ class _AllergiesState extends State<Allergies> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAllergiesBgColor),
+        brightness: Brightness.dark,
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kAllergiesBgColor,
         leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
+        leading: BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Color(0xFFF5F5F5),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
+        progressIndicator: AppActivityIndicator(), // AppScalingText('Loading...'),
         child: SafeArea(
           child: Stack(
             children: [
@@ -367,10 +316,9 @@ class AllergiesItem extends StatelessWidget {
   final String name;
   final void Function() onTap;
 
-  const AllergiesItem({
-    super.key, 
-    required this.name,
-    required this.onTap,
+  AllergiesItem({
+    @required this.name,
+    @required this.onTap,
   });
 
   @override
@@ -378,19 +326,18 @@ class AllergiesItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
+        padding: EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              name,
-              style: const TextStyle(
+              '$name',
+              style: TextStyle(
                 fontSize: 18.0,
-                fontFamily: kBodyFont,
                 color: Color(0xFF727272),
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_outlined,
               color: kAllergiesBgColor,
             ),
