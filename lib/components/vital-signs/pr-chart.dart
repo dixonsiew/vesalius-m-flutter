@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:vesalius_m_flutter/components/vital-signs/chart-helpers.dart';
+import 'package:vesalius_m_flutter/constants.dart';
+import 'package:vesalius_m_flutter/models/patient-data.dart';
+
+class PRChart extends StatefulWidget {
+
+  final List<VitalSignsData> list;
+
+  PRChart({
+    @required this.list,
+  });
+
+  @override
+  _PRChartState createState() => _PRChartState();
+}
+
+class _PRChartState extends State<PRChart> {
+
+  List<PRData> createData() {
+    var lx = widget.list;
+    List<PRData> data = [];
+    for (int i = 0; i < lx.length; i++) {
+      var m = lx[i].novaPatientVitalSignsDetail;
+      int v1 = int.parse(m.value1);
+      data.add(PRData(m.recordedDate, v1));
+    }
+
+    return data;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.list.isEmpty) {
+      return Container(
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Pulse Rate (bpm)',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 102, 102, 102),
+              ),
+            ),
+            SizedBox(height: 20.0),
+            Text(
+              'No data to display',
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Color(0xFF585656),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SfCartesianChart(
+      onDataLabelRender: (DataLabelRenderArgs m) => onDataLabelRender(m, widget.list),
+      onMarkerRender: (MarkerRenderArgs m) => onMarkerRender(m, widget.list),
+      primaryXAxis: CategoryAxis(
+        arrangeByIndex: true,
+        labelRotation: 25,
+      ),
+      title: ChartTitle(
+        text: 'Pulse Rate (bpm)',
+        textStyle: TextStyle(
+          fontSize: 14.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      legend: Legend(
+        isVisible: false,
+        position: LegendPosition.top,
+      ),
+      tooltipBehavior: TooltipBehavior(
+        enable: true,
+        canShowMarker: true,
+      ),
+      series: <ChartSeries<PRData, String>>[
+        LineSeries<PRData, String>(
+          dataSource: createData(),
+          xValueMapper: (PRData m, _) => m.date,
+          yValueMapper: (PRData m, _) => m.value,
+          name: 'Pulse Rate',
+          markerSettings: MarkerSettings(
+            isVisible: true,
+          ),
+          dataLabelSettings: DataLabelSettings(
+            isVisible: true,
+            color: kHealthDashboardBgColor,
+            textStyle: TextStyle(
+              fontFamily: 'Roboto', 
+              fontStyle: FontStyle.normal, 
+              fontWeight: FontWeight.normal, 
+              fontSize: 12,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PRData {
+
+  final String date;
+  final int value;
+
+  PRData(this.date, this.value);
+}

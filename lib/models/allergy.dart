@@ -1,14 +1,14 @@
 class Allergy {
 
-  num? alertRefNo;
-  String? prn;
-  String? alertType;
-  String? allergyType;
-  String? description;
-  String? reaction;
-  String? createdBy;
-  String? creationDate;
-  String? inactiveReason;
+  num alertRefNo;
+  String prn;
+  String alertType;
+  String allergyType;
+  String description;
+  String reaction;
+  String createdBy;
+  String creationDate;
+  String inactiveReason;
 
   Allergy({
     this.alertRefNo,
@@ -52,12 +52,12 @@ class Allergy {
 
 class AllergyGroup {
 
-  String? alertType;
+  String alertType;
   List<Allergy> list;
 
   AllergyGroup({
     this.alertType,
-    required this.list,
+    this.list,
   });
 
   Map<String, dynamic> toJson() =>
