@@ -1,448 +1,114 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:vesalius_m_flutter/constants.dart';
-import 'package:vesalius_m_flutter/models/appointment_data.dart';
-import 'package:vesalius_m_flutter/models/doctor_data.dart';
-import 'package:vesalius_m_flutter/models/patient_data.dart';
-import 'package:vesalius_m_flutter/models/user_details.dart';
-import 'package:vesalius_m_flutter/models/allergy.dart';
+import 'package:vesalius_m_flutter/models/family_data.dart';
+import 'package:vesalius_m_flutter/models/future_order_data.dart';
+import 'package:vesalius_m_flutter/models/qms_data.dart';
 import 'api_helper.dart';
 
-Future<PatientDetails?> getVesaliusPatientData(num branchId, String prn) async {
-  PatientDetails? o;
+class MyFamilyService {
 
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-data/$branchId/$prn');
-    o = PatientDetails.fromJson(res.data);
-  }
+  static Future<List<Family>> getAllFamilies(num page, num limit, [bool includeSelf = false, bool onlyPatient = false]) async {
+    List<Family> lx;
 
-  catch (error) {
-    rethrow;
-  }
+    try {
+      final q = {
+        '_page': page,
+        '_limit': limit,
+        '_self': includeSelf ? 1 : 0,
+        '_isForAppt': onlyPatient ? 1 : 0
+      };
+      final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/my-family', queryParameters: q);
+      if (res.statusCode == 204) {
+        lx = [];
+        return lx;
+      }
 
-  return o;
-}
+      int totalPage = int.parse(res.headers['x-total-page']!.first);
+      if (page > totalPage) {
+        lx = [];
+        return lx;
+      }
 
-Future<void> changePassword(o) async {
-  try {
-    await ApiHelper.tokenDioInterceptor.post('$kServerUrl/user/change-password', data: o);
-  }
-
-  catch (error) {
-    rethrow;
-  }
-}
-
-Future<List<DoctorDetails>> getPublicDoctorData(num branchId) async {
-  List<DoctorDetails> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/public/vesalius/doctor-data/$branchId');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+      final ls = res.data as List? ?? [];
+      lx = ls.map((x) => Family.fromJson(x)).toList();
     }
     
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => DoctorDetails.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List> getPublicHospitalInformation() async {
-  List lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/public/hospital-information');
-    lx = res.data;
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<Allergy>> getPatientAllergies(num branchId, String prn) async {
-  List<Allergy> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-allergy/$branchId/$prn');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+    catch (error) {
+      rethrow;
     }
 
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => Allergy.fromJson(x)).toList();
+    return lx;
   }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
 }
 
-Future<List<PatientVisit>> getVesaliusPatientVisit(num branchId, String prn, num pageId) async {
-  List<PatientVisit> lx = [];
+class FeedbackService {
 
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/patient-visit/$branchId/$prn/$pageId'); // 20015952
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+  static Future<void> postFeedback(o) async {
+    try {
+      final formData = FormData.fromMap(o);
+      await ApiHelper.tokenDioInterceptor.post('$kServerUrl/feedback', data: formData);
     }
 
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => PatientVisit.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<UserBranch>> getUserBranches() async {
-  List<UserBranch> lx = [];
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/user/branches');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
-    }
-
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => UserBranch.fromJson(x)).toList();
-  }
-  
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-// public
-
-Future<List<UserBranch>> getPublicBranchList() async {
-  List<UserBranch> lx;
-
-  try {
-    final res = await ApiHelper.dio.get('$kServerUrl/public/branch/list');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
-    }
-
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => UserBranch.fromJson1(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<DoctorInfo>> getAllDoctors(num branchId, num page, num limit) async {
-  List<DoctorInfo> lx = [];
-
-  try {
-    var q = {
-      '_page': page,
-      '_limit': limit
-    };
-    final res = await ApiHelper.dio.get('$kServerUrl/public/vesalius/getAllDoctorInformation/$branchId', queryParameters: q);
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
-    }
-
-    int totalPage = int.parse(res.headers['x-total-page']!.first);
-    if (page > totalPage) {
-      lx = [];
-      return lx;
-    }
-
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<DoctorInfo>> searchDoctors(num branchId, num page, num limit, String keyword) async {
-  List<DoctorInfo> lx = [];
-
-  try {
-    final q = {
-      '_page': page,
-      '_limit': limit
-    };
-    final o = {
-      'keyword': keyword
-    };
-    final res = await ApiHelper.dio.post('$kServerUrl/public/vesalius/getAllDoctorInformation/$branchId', data: o, queryParameters: q);
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
-    }
-
-    int totalPage = int.parse(res.headers['x-total-page']!.first);
-    if (page > totalPage) {
-      lx = [];
-      return lx;
-    }
-
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<DoctorInfo?> getDoctorByMCR(num branchId, String mcr) async {
-  DoctorInfo? o;
-
-  try {
-    final res = await ApiHelper.dio.get('$kServerUrl/public/vesalius/getDoctorInformationByMCR/$branchId/$mcr');
-    if (res.statusCode == 204) {
-      return o;
-    }
-
-    final ls = res.data as List? ?? [];
-    final lx = ls.map((x) => DoctorInfo.fromJson(x)).toList();
-    if (lx.isNotEmpty) {
-      o = lx.first;
+    catch (error) {
+      rethrow;
     }
   }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return o;
 }
 
-Future<List<DoctorDetails>> getVesaliusDoctorData(num branchId) async {
-  List<DoctorDetails> lx;
+class FutureOrderService {
 
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/doctor-data/$branchId');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+  static Future<List<FutureOrder>> getAllFutureOrders(String prn, num page, num limit) async {
+    List<FutureOrder> lx;
+
+    try {
+      final q = {
+        '_page': page,
+        '_limit': limit
+      };
+      final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/future-order/all/$prn', queryParameters: q);
+      if (res.statusCode == 204) {
+        lx = [];
+        return lx;
+      }
+
+      int totalPage = int.parse(res.headers['x-total-page']!.first);
+      if (page > totalPage) {
+        lx = [];
+        return lx;
+      }
+
+      final ls = res.data as List? ?? [];
+      lx = ls.map((x) => FutureOrder.fromJson(x)).toList();
     }
 
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => DoctorDetails.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<Specialty>> getSpecialtyData(num branchId) async {
-  List<Specialty> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/specialty-data/$branchId');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+    catch (error) {
+      rethrow;
     }
 
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => Specialty.fromJson1(x)).toList();
+    return lx;
   }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
 }
 
-Future<List<AvailableSlot>> getVesaliusNextAvailableSlot(num branchId, String prn, Map data) async {
-  List<AvailableSlot> lx;
+class QmsService {
 
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/get-next-available-slots/$branchId/$prn', data: data);
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+  static Future<List<QmsReq>> getAllQmsRequests() async {
+    List<QmsReq> lx;
+
+    try {
+      final res = await ApiHelper.tokenDioInterceptor.post('$kServerUrl/qms/backend/qms_request', data: {});
+      if (res.statusCode == 204) {
+        lx = [];
+        return lx;
+      }
+
+      final ls = res.data as List? ?? [];
+      lx = ls.map((x) => QmsReq.fromJson(x)).toList();
     }
 
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => AvailableSlot.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<FutureAppointment>> getVesaliusFutureAppointments(num branchId, String prn) async {
-  List<FutureAppointment> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/future-appointments/$branchId/$prn');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
+    catch (error) {
+      rethrow;
     }
 
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => FutureAppointment.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<void> postVesaliusMakeAppointment(String prn, Map data) async {
-  try {
-    await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/make-appointment/${data['branchId']}/$prn', data: {
-      'caseType': data['caseType'],
-      'slotNumber': data['slotNumber'],
-    });
-  }
-
-  catch (error) {
-    rethrow;
-  }
-}
-
-Future<void> postVesaliusCancelAppointment(num branchId, String prn, Map data) async {
-  try {
-    await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/cancel-appointment/$branchId/$prn', data: data);
-  }
-
-  catch (error) {
-    rethrow;
-  }
-}
-
-Future<void> postVesaliusChangeAppointment(num branchId, String prn, Map data) async {
-  try {
-    await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/change-appointment/$branchId/$prn', data: data);
-  }
-
-  catch (error) {
-    rethrow;
-  }
-}
-
-Future<void> updatePatientData(num branchId, String prn, Map data) async {
-  try {
-    await ApiHelper.tokenDioInterceptor.post('$kServerUrl/vesalius/update-patient-data/$branchId/$prn', data: {
-      'contact': data,
-    });
-  }
-
-  catch (error) {
-    rethrow;
-  }
-}
-
-Future<List<VitalSignsData>> getVitalSignHistory(String type, num branchId, String prn, String dates) async {
-  List<VitalSignsData> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-vital-signs-history/$branchId/$prn/$dates/$type');
-    if (res.statusCode == 204) {
-      lx = [];
-      return lx;
-    }
-
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => VitalSignsData.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<VitalSignsHistory>> getVitalSignHistories(num branchId, String prn) async {
-  List<VitalSignsHistory> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-vital-signs-history/$branchId/$prn');
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => VitalSignsHistory.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<List<LabHistory>> getLabHistories(num branchId, String prn) async {
-  List<LabHistory> lx;
-
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/get-lab-history/$branchId/$prn');
-    final ls = res.data as List? ?? [];
-    lx = ls.map((x) => LabHistory.fromJson(x)).toList();
-  }
-
-  catch (error) {
-    rethrow;
-  }
-
-  return lx;
-}
-
-Future<File> getHealthScrReportPdf(num branchId, String refno, String fp, void Function(int, int) onReceiveProgress) async {
-  try {
-    final res = await ApiHelper.tokenDioInterceptor.get('$kServerUrl/vesalius/health-screening-report/$branchId/$refno',
-      onReceiveProgress: onReceiveProgress,
-      options: Options(
-        responseType: ResponseType.bytes,
-        followRedirects: false,
-      )
-    );
-    File file = File(fp);
-    final raf = file.openSync(mode: FileMode.write);
-    raf.writeFromSync(res.data);
-    await raf.close();
-    return file;
-  }
-
-  catch (error) {
-    rethrow;
+    return lx;
   }
 }
