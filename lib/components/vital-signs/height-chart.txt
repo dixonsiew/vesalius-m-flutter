@@ -1,0 +1,196 @@
+import 'package:flutter/material.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:vesalius_m_flutter/models/patient-data.dart';
+
+class HeightChart extends StatefulWidget {
+
+  final List<VitalSignsData> list;
+
+  HeightChart({
+    @required this.list,
+  });
+
+  @override
+  _HeightChartState createState() => _HeightChartState();
+}
+
+class _HeightChartState extends State<HeightChart> {
+  
+  int _time;
+  Map<String, num> _measures;
+
+  onSelectionChanged(charts.SelectionModel model) {
+    final selectedDatum = model.selectedDatum;
+
+    int time;
+    final measures = <String, num>{};
+
+    // We get the model that updated with a list of [SeriesDatum] which is
+    // simply a pair of series & datum.
+    //
+    // Walk the selection updating the measures map, storing off the sales and
+    // series name for each selection point.
+    if (selectedDatum.isNotEmpty) {
+      time = selectedDatum.first.datum.time;
+      selectedDatum.forEach((charts.SeriesDatum datumPair) {
+        measures[datumPair.series.displayName] = datumPair.datum.value;
+      });
+    }
+
+    // Request a build.
+    setState(() {
+      _time = time;
+      _measures = measures;
+    });
+  }
+
+  String customTickFormatter(num value) {
+    final lx = getChartLabels();
+    int x = value.toInt();
+    if (x >= 0 && x < lx.length) {
+      return lx[x];
+    }
+
+    return value.toString();
+  }
+
+  List<String> getChartLabels() {
+    var q = widget.list.map((k) => k.novaPatientVitalSignsDetail.recordedDate);
+    return q.toList();
+  }
+
+  List<charts.Series<TimeMeasure, int>> createData() {
+    var lx = widget.list;
+    List<TimeMeasure> data = [];
+    for (int i = 0; i < lx.length; i++) {
+      var m = lx[i].novaPatientVitalSignsDetail;
+      int v1 = int.parse(m.value1);
+      data.add(TimeMeasure(i, v1));
+    }
+
+    return [
+      charts.Series<TimeMeasure, int>(
+        id: 'Height',
+        domainFn: (TimeMeasure sales, _) => sales.time,
+        measureFn: (TimeMeasure sales, _) => sales.value,
+        data: data,
+        colorFn: (TimeMeasure sales, _) => charts.MaterialPalette.cyan.shadeDefault,
+      ),
+    ];
+  }
+
+  String getChartLabel(int x) {
+    final lx = getChartLabels();
+    if (x >= 0 && x < lx.length) {
+      return lx[x];
+    }
+
+    return '$x';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.list.isEmpty) {
+      return Container(
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Height',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 102, 102, 102),
+              ),
+            ),
+            SizedBox(height: 20.0),
+            Text(
+              'No data to display',
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Color(0xFF585656),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final lx = <Widget>[
+      Expanded(
+        child: charts.LineChart(
+          createData(),
+          animate: false,
+          defaultRenderer: charts.LineRendererConfig(includePoints: true),
+          primaryMeasureAxis: charts.NumericAxisSpec(
+            showAxisLine: true,
+            tickProviderSpec: charts.BasicNumericTickProviderSpec(zeroBound: false),
+          ),
+          domainAxis: charts.NumericAxisSpec(
+            renderSpec: charts.SmallTickRendererSpec(
+              minimumPaddingBetweenLabelsPx: 0,
+              labelRotation: 60,
+            ),
+            tickFormatterSpec: charts.BasicNumericTickFormatterSpec(customTickFormatter),
+            tickProviderSpec: charts.BasicNumericTickProviderSpec(
+              zeroBound: true,
+              dataIsInWholeNumbers: true,
+              desiredTickCount: 1,
+            ),
+          ),
+          selectionModels: [
+            charts.SelectionModelConfig(
+              type: charts.SelectionModelType.info,
+              changedListener: onSelectionChanged,
+            )
+          ],
+          behaviors: [
+            charts.ChartTitle(
+              'Height (cm)',
+              behaviorPosition: charts.BehaviorPosition.top,
+              titleStyleSpec: charts.TextStyleSpec(
+                fontWeight: '900',
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    if (_time != null) {
+      lx.add(
+        Container(
+          child: Padding(
+            padding: EdgeInsets.only(top: 5.0, bottom: 5.0),
+            child: Text(
+              getChartLabel(_time),
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        )
+      );
+    }
+
+    _measures?.forEach((String series, num value) {
+      lx.add(Text('$series: $value'));
+    });
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: lx,
+    );
+  }
+}
+
+class TimeMeasure {
+
+  final int time;
+  final int value;
+
+  TimeMeasure(this.time, this.value);
+}

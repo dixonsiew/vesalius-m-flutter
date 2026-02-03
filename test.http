@@ -1,0 +1,38 @@
+@baseUrl = http://175.145.93.195:27051/mobile_central_cvskl-2.0.2
+
+###
+
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "wingfei.siew@nova-hub.com",
+  "password": "password"
+}
+
+@token = {{login.response.headers.Authorization}}
+
+###
+
+GET {{baseUrl}}/vesalius/patient-visit/1/00010/4
+Authorization: {{token}}
+
+###
+
+GET {{baseUrl}}/vesalius/patient-visit/1/08-001001/5
+Authorization: {{token}}
+
+###
+
+GET {{baseUrl}}/vesalius/get-vital-signs-history/1/08-001001/2020-07-29/BMI
+Authorization: {{token}}
+
+###
+GET {{baseUrl}}/public/vesalius/getAllDoctorInformation/1
+
+###
+
+GET {{baseUrl}}/public/vesalius/getDoctorInformationByMCR/1/21607
+
+###

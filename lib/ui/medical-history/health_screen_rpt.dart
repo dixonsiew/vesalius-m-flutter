@@ -1,0 +1,213 @@
+import 'dart:io';
+
+import 'package:date_format/date_format.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+import 'package:vesalius_m_flutter/components/back_btn.dart';
+import 'package:vesalius_m_flutter/components/data_label.dart';
+import 'package:vesalius_m_flutter/components/medical_info.dart';
+import 'package:vesalius_m_flutter/constants.dart';
+import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/patient_data.dart';
+import 'package:vesalius_m_flutter/services/data_service.dart';
+
+class HealthScreenRpt extends StatelessWidget {
+
+  static const String routeName = 'HealthScreenRpt';
+
+  final PatientVisit patientVisit;
+
+  const HealthScreenRpt({
+    super.key, 
+    required this.patientVisit,
+  });
+
+  Widget buildContent() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: buildContentList(),
+      ),
+    );
+  }
+
+  List<Widget> buildContentList() {
+    List<Widget> lx = [];
+    for (int i = 0; i < patientVisit.novaHealthScreeningRptList!.length; i++) {
+      final o = patientVisit.novaHealthScreeningRptList![i];
+      lx.add(
+        HealthScreenRptItem(novaHealthScreeningRpt: o)
+      );
+    }
+
+    return lx;
+  }
+
+  Widget buildHeader() {
+    return MedicalInfo(
+      patientVisit: patientVisit,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        // brightness: Brightness.dark,
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        toolbarHeight: kAppToolbarHeight,
+        backgroundColor: kMedicalRecordBgColor,
+        automaticallyImplyLeading: false,
+        leadingWidth: 100.0,
+        leading: const BackBtn(color: Colors.white),
+        centerTitle: true,
+        title: const Text(
+          'Health Screening Report',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.0,
+            fontFamily: kTitleFont,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Scrollbar(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                buildHeader(),
+                buildContent(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class HealthScreenRptItem extends StatefulWidget {
+  
+  final NovaHealthScreeningRpt novaHealthScreeningRpt;
+
+  const HealthScreenRptItem({
+    super.key, 
+    required this.novaHealthScreeningRpt,
+  });
+
+  @override
+  State<HealthScreenRptItem> createState() => _HealthScreenRptItemState();
+}
+
+class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
+
+  bool isDownloading = false;
+  double? percent;
+
+  String? getDate() {
+    if (widget.novaHealthScreeningRpt.reportDate == null) {
+      return null;
+    }
+
+    DateTime dt = DateFormat('y-M-d').parse(widget.novaHealthScreeningRpt.reportDate!.substring(0, 10));
+    return formatDate(dt, [dd, ' ', M, ' ', yyyy]);
+  }
+
+  void onViewReport() async {
+    setState(() {
+      isDownloading = true;
+      percent = 0;
+    });
+    var branchDetails = DataManager.branchDetails;
+    var dir = await getApplicationDocumentsDirectory();
+    String fp = '${dir.path}/${widget.novaHealthScreeningRpt.hsrRefNo}.pdf';
+    File file = await getHealthScrReportPdf(branchDetails!.branch!.branchId!, widget.novaHealthScreeningRpt.hsrRefNo!, fp, (received, total) {
+      if (total != -1) {
+        double pct = (received / total * 100);
+        setState(() {
+          percent = pct;
+        });
+        
+        //print((received / total * 100).toStringAsFixed(0) + "%");
+      }
+    });
+    setState(() {
+      isDownloading = false;
+    });
+    //print(file.path);
+    await OpenFilex.open(file.path);
+  }
+
+  List<Widget> buildList() {
+    final o = widget.novaHealthScreeningRpt;
+    List<Widget> lx = [];
+    lx.addAll([
+      const SizedBox(height: 10.0),
+      DataLabel(
+        label: 'Report By: ',
+        data: o.reportUser ?? '-',
+      ),
+      const SizedBox(height: 5.0),
+      DataLabel(
+        label: 'Report Date: ',
+        data: getDate() ?? '-',
+      ),
+      const SizedBox(height: 5.0),
+      RawMaterialButton(
+        elevation: 5.0,
+        fillColor: kMedicalRecordBgColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+        onPressed: onViewReport,
+        child: const Text(
+          'View Report',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.0,
+            fontFamily: kBodyFont,
+          ),
+        ),
+      ),
+      SizedBox(height: isDownloading ? 5.0 : 10.0),
+    ]);
+    if (isDownloading) {
+      lx.addAll([
+        LinearPercentIndicator(
+          lineHeight: 14.0,
+          percent: (percent ?? 0) / 100.0,
+          center: Text(
+            '${percent?.toStringAsFixed(0) ?? 0} %',
+            style: const TextStyle(
+              fontSize: 14.0,
+              fontFamily: kBodyFont,
+              color: Colors.white,
+            ),
+          ),
+          barRadius: const Radius.circular(16.0),
+          backgroundColor: Colors.grey,
+          progressColor: kMedicalRecordBgColor,
+        ),
+        const SizedBox(height: 10.0),
+      ]);
+    }
+
+    return lx;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: buildList(),
+    );
+  }
+}
