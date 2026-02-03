@@ -1,0 +1,100 @@
+@baseUrl = https://api.wallex.rocks
+
+###
+
+# @name login
+POST {{baseUrl}}/users/v1/authenticate
+Content-Type: application/json
+X-Api-Key: xEsq3n7s7j8ll1B5xGujG6VrIwhDnfsaaK8hK0sf
+
+{
+  "accessKeyId": "70b150b181834f21b279275702604b60",
+  "secretAccessKey": ""
+}
+
+###
+
+@token = {{login.response.body.token}}
+
+###
+
+POST {{baseUrl}}/beneficiaries/v1/create
+Content-Type: application/json
+X-Api-Key: xEsq3n7s7j8ll1B5xGujG6VrIwhDnfsaaK8hK0sf
+Authorization: {{token}}
+
+{
+  "country": "SG",
+  "entityType": "company",
+  "bankAccount": {
+    "bankName": "Bank Of Singapore",
+    "address": "Road 123",
+    "currency": "SGD",
+    "country": "SG",
+    "bankAccountHolderName": "John",
+    "accountNumber": "12345678",
+    "bicSwift": "UOVBSGSG"
+  },
+  "nickname": "JOHN_SG",
+  "email": "user@example.com",
+  "entityType": "company",
+  "city": "Singapore",
+  "address": "Road 321",
+  "companyName": "Wallex",
+  "businessRegistration": "056790815678",
+  "nationalIdentificationNumber": "098444416781",
+  "region": "KOTA JAKARTA SELATAN",
+  "relationship": "NON_RELATED"
+}
+
+###
+
+POST {{baseUrl}}/beneficiaries/v1/find
+Content-Type: application/json
+X-Api-Key: xEsq3n7s7j8ll1B5xGujG6VrIwhDnfsaaK8hK0sf
+Authorization: {{token}}
+
+{
+  "pagination": {
+    "page": 1
+  }
+}
+
+###
+
+POST {{baseUrl}}/simple-payments/v1/quote
+Content-Type: application/json
+X-Api-Key: xEsq3n7s7j8ll1B5xGujG6VrIwhDnfsaaK8hK0sf
+Authorization: {{token}}
+
+{
+  "beneficiaryId": "54724ad9-b868-496a-953d-050a6e23f255",
+  "sellCurrency": "USD",
+  "buyCurrency": "SGD",
+  "amount": 7000
+}
+
+###
+
+POST {{baseUrl}}/simple-payments/v1/create
+Content-Type: application/json
+X-Api-Key: xEsq3n7s7j8ll1B5xGujG6VrIwhDnfsaaK8hK0sf
+Authorization: {{token}}
+
+{
+  "fundingSource": "PERSONAL_ACCOUNT",
+  "paymentReference": "pay",
+  "quoteId": "c344eeae-ab5f-4970-afb9-7b513b2fb688",
+  "purposeOfTransfer": "SCVE"
+}
+
+###
+
+POST {{baseUrl}}/simple-payments/v1/find
+Content-Type: application/json
+X-Api-Key: xEsq3n7s7j8ll1B5xGujG6VrIwhDnfsaaK8hK0sf
+Authorization: {{token}}
+
+{
+  
+}

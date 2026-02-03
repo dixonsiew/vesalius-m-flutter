@@ -19,10 +19,10 @@ class HDLChart extends StatefulWidget {
 class _HDLChartState extends State<HDLChart> {
 
   List<HDLData> createData() {
-    var lx = widget.list;
+    List<LabData> lx = widget.list;
     List<HDLData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i];
+      LabData m = lx[i];
       double v1 = double.parse(m.resultValue!);
       data.add(HDLData(m.recordedDate!, v1));
     }
@@ -37,23 +37,22 @@ class _HDLChartState extends State<HDLChart> {
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'HDL (mmol/L)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTextStyle1.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w700,
+                color: kTextColor1,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTextStyle1.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w700,
+                color: kTextColor1,
               ),
             ),
           ],
@@ -65,23 +64,30 @@ class _HDLChartState extends State<HDLChart> {
       primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: const TextStyle(
+        labelStyle: kTextStyle1.copyWith(
           fontFamily: kBodyFont,
+          fontSize: 10.0,
+          fontWeight: FontWeight.w600,
+          color: kTextColor1,
         ),
       ),
       title: ChartTitle(
         text: 'HDL (mmol/L)',
-        textStyle: const TextStyle(
+        textStyle: kTextStyle1.copyWith(
+          fontFamily: kFont2,
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
+          color: kTextColor1,
         ),
       ),
-      legend: Legend(
+      legend: const Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: kBodyFont,
+          fontSize: 10.0,
+          fontWeight: FontWeight.w600,
+          color: kTextColor4,
         ),
       ),
       tooltipBehavior: TooltipBehavior(
@@ -91,24 +97,25 @@ class _HDLChartState extends State<HDLChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <ChartSeries<HDLData, String>>[
+      series: <CartesianSeries<HDLData, String>>[
         LineSeries<HDLData, String>(
+          color: kChartLineColor,
           dataSource: createData(),
           xValueMapper: (HDLData m, _) => m.date,
           yValueMapper: (HDLData m, _) => m.value,
           name: 'HDL',
           markerSettings: const MarkerSettings(
             isVisible: true,
+            borderColor: kChartLineColor,
           ),
-          dataLabelSettings: const DataLabelSettings(
+          dataLabelSettings: DataLabelSettings(
             isVisible: true,
-            color: kHealthDashboardBgColor,
-            textStyle: TextStyle(
-              fontFamily: kBodyFont, 
-              fontStyle: FontStyle.normal, 
-              fontWeight: FontWeight.normal, 
-              fontSize: 12,
-              color: Colors.white,
+            color: kSecondaryColor,
+            textStyle: kTextStyle1.copyWith(
+              fontFamily: kBodyFont,
+              fontSize: 9.0,
+              fontWeight: FontWeight.w600,
+              color: kTextColor1,
             ),
           ),
         ),

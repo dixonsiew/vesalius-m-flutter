@@ -1,19 +1,29 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
+
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
+import 'package:vesalius_m_flutter/components/no_network.dart';
+import 'components/app_shared.dart';
 import 'constants.dart';
+import 'models/auth_manager.dart';
+import 'models/doctor_data.dart';
+import 'ui/sign_in.dart';
 
 extension StringExtension on String? {
-  String capitalize() {
-    return "${this?[0].toUpperCase()}${this?.substring(1).toLowerCase()}";
-  }
+  String? titleCase() {
+    if (this == null) {
+      return null;
+    }
 
-  String titleCase() {
-    var a = this?.split(' ');
+    List<String>? a = this?.split(' ');
     List<String> ls = [];
     for (int i = 0; i < a!.length; i++) {
-      ls.add(a[i].capitalize());
+      ls.add(a[i].capitalize!);
     }
 
     return ls.join(' ');
@@ -26,521 +36,488 @@ extension StringExtension on String? {
 
     // This pattern means "at least one space, or more"
     // \\s : space
-    // +   : one or more 
+    // +   : one or more
     final pattern = RegExp('\\s+');
     return this!.replaceAll(pattern, replace);
+  }
+
+  String trimFirstZero() {
+    String r = this!;
+    final ls = r.split('');
+    int j = 0;
+    for (int i = 0; i < ls.length; i++) {
+      if (ls[i] != '0') {
+        j = i;
+        break;
+      }
+    }
+
+    r = this!.substring(j);
+    return r;
+  }
+}
+
+extension PasswordValidators on String {
+  bool containsLowercase() {
+    RegExp regExp = RegExp(r'[a-z]');
+    return contains(regExp);
+  }
+
+  bool containsUppercase() {
+    RegExp regExp = RegExp(r'[A-Z]');
+    return contains(regExp);
+  }
+
+  bool hasDigit() {
+    RegExp regExp = RegExp(r'[0-9]');
+    return contains(regExp);
+  }
+
+  bool hasSpecialCharacter() {
+    RegExp regExp = RegExp(r'[!@#$%^&*(),.?":{}|<>]');
+    return contains(regExp);
+  }
+
+  bool hasValidLength() {
+    return length >= 8 && length <= 20;
+  }
+}
+
+void handleError(DioException error, void Function()? onYes) async {
+  String msg = error.message ?? kError;
+  if (error.type == DioExceptionType.connectionTimeout) {
+    msg = 'Connection Timeout';
+  } else if (error.type == DioExceptionType.receiveTimeout) {
+    msg = 'Receive Timeout';
+  } else if (error.type == DioExceptionType.badResponse) {
+    msg = 'Error occurred - ${error.response?.statusCode}';
+    if (error.response?.statusCode == 401) {
+      try {
+        // await AuthService.logout();
+        await AuthManager.instance.signOut();
+        Get.offAll(() => const SignIn());
+      }
+
+      catch (_) {
+        showCustomDialog('Error', 'Unable to logout at the moment. Please check your internet connection or try again later.', 'Dismiss');
+      }
+      
+      return;
+    }
+
+    else if (error.response?.statusCode == 503 || error.response?.statusCode == 502 || error.response?.statusCode == 500) {
+      final mx = error.response?.data as Map?;
+      if (mx?.containsKey('message') ?? false) {
+        showCustomDialog('Error', mx?['message'], 'Dismiss');
+      }
+
+      else {
+        showCustomDialog('Error', msg, 'Dismiss');
+      }
+
+      return;
+    }
+  }
+  
+  else if (error.type == DioExceptionType.connectionError) {
+    Get.to(() => NoNetwork(
+      onPressed: () {
+        if (onYes != null) {
+          onYes.call();
+        }
+      },
+    ));
+    return;
+  }
+
+  if (msg == kError) {
+    showCustomDialog('Error', kError, 'Dismiss');
+    return;
+  }
+
+  if (onYes != null) {
+    bool b = await showConfirmDialog('$msg. Do you want to retry ?');
+    if (b) {
+      onYes.call();
+    }
+  }
+}
+
+void handleLoadError(DioException error, void Function()? onYes) async {
+  if (error.type == DioExceptionType.badResponse) {
+    final mx = error.response?.data as Map?;
+    if (mx?.containsKey('message') ?? false) {
+      await showCustomDialog(error.response?.statusCode == 401 ? 'Unauthorized' : 'Error', mx?['message'], 'Dismiss');
+    }
+
+    if (error.response?.statusCode == 401) {
+      handleError(error, onYes);
+    }
+  }
+
+  else {
+    handleError(error, onYes);
+  }
+}
+
+void handleSubmitError(DioException error, String msg, void Function()? onYes) async {
+  bool shown = false;
+  if (error.type == DioExceptionType.badResponse) {
+    final mx = error.response?.data as Map?;
+    if (mx?.containsKey('message') ?? false) {
+      shown = true;
+      await showCustomDialog(error.response?.statusCode == 401 ? 'Unauthorized' : 'Error', mx?['message'], 'Dismiss');
+    }
+
+    if (error.response?.statusCode == 401) {
+      handleError(error, onYes);
+    }
+
+    else {
+      if (!shown) {
+        showCustomDialog('Error', msg, 'Dismiss');
+      }
+    }
+  }
+
+  else {
+    handleError(error, onYes);
   }
 }
 
 String formatDateTime(String ds) {
   String s = ds;
   DateTime? dt = DateTime.tryParse(ds);
-
   if (dt != null) {
-    var fmt = DateFormat('dd MMM yyyy');
-    s = fmt.format(dt);
+    s = formatDate(dt, [dd, ' ', M, ' ', yyyy]);
   }
 
   return s;
 }
 
-class CustomDialog {
+String formatPrice(double x) {
+  final f = NumberFormat("#,##0.00", "en_US");
+  return f.format(x);
+}
 
-  final BuildContext context;
-
-  CustomDialog._(this.context);
-
-  static CustomDialog of(BuildContext context) {
-    return CustomDialog._(context);
-  }
-
-  void handleError(DioException error, void Function() onYes) async {
-    String msg = error.message ?? 'Unknown';
-    if (error.type == DioExceptionType.connectionTimeout) {
-      msg = 'Connection Timeout';
-    }
-
-    else if (error.type == DioExceptionType.receiveTimeout) {
-      msg = 'Receive Timeout';
-    }
-
-    else if (error.type == DioExceptionType.badResponse) {
-      msg = 'Error occurred - ${error.response?.statusCode}';
-    }
-
-    bool b = await showConfirmDialog('Error', '$msg. Do you want to retry ?', 'No', 'Yes');
-    if (b) {
-      onYes();
-    }
-  }
-
-  Future<void> showCustomDialog(String title, String subTitle, String btnText) async {
-    await showCupertinoDialog(
-      context: context, 
-      builder: (_) => CupertinoAlertDialog(
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontFamily: kBodyFont,
+Future<void> showCustomDialog(String title, String subTitle, String btnText) async {
+  await Get.dialog(AlertDialog(
+    scrollable: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    backgroundColor: Colors.white,
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: kTextStyle1.copyWith(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w600,
+              color: kTextColor1,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        content: Text(
-          subTitle,
-          style: const TextStyle(
-            fontSize: 16.0,
-            fontFamily: kBodyFont,
-            color: Color(0xFF727272),
+          const SizedBox(height: 8.0),
+          Text(
+            subTitle,
+            style: kTextStyle1.copyWith(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w400,
+              color: kTextColor2,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        actions: [
-          CupertinoButton(
-            child: Text(
-              btnText,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-                fontWeight: FontWeight.bold,
-              ),
-            ), 
-            onPressed: () => Navigator.of(context).pop(),
+          const SizedBox(height: 16.0),
+          AppElevatedButton(
+            text: btnText,
+            onPressed: () => Get.back(),
           ),
         ],
       ),
+    ),
+  ));
+}
+
+Future<bool> showConfirmDialog(String text) async {
+  return await Get.dialog(AlertDialog(
+    scrollable: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    backgroundColor: Colors.white,
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            text,
+            style: kTextStyle1.copyWith(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w700,
+              color: kTextColor2,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Get.back(result: false);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kTextColor2,
+                    backgroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                    side: const BorderSide(
+                      color: kColor1,
+                    ),
+                  ),
+                  child: Text(
+                    'No',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 18.0),
+              Expanded(
+                child: AppElevatedButton(
+                  text: 'Yes',
+                  onPressed: () => Get.back(result: true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  )) ?? false;
+}
+
+Future<bool> showConfirmSubmitAppointment() async {
+  return await Get.dialog(AlertDialog(
+    scrollable: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15.0),
+    ),
+    backgroundColor: Colors.white,
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Caution: You have already booked an appointment on the same date/session.\nPlease confirm if you would like to proceed',
+            style: kTextStyle1.copyWith(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w600,
+              color: kPrimaryColor,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24.0),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Get.back(result: false);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kTextColor2,
+                    backgroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                    side: const BorderSide(
+                      color: kColor1,
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 18.0),
+              Expanded(
+                child: AppElevatedButton(
+                  text: 'Confirm',
+                  onPressed: () => Get.back(result: true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  )) ?? false;
+}
+
+void makePhoneCall(DoctorContact o) async {
+  String s = 'tel';
+  String? v = o.contactValue?.replaceWhitespacesUsingRegex('');
+
+  // String url = '$s:$v';
+  // Uri uri = Uri.parse(url);
+  Uri url = Uri(scheme: s, path: v);
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  }
+
+  else {
+    showCustomDialog('Error', 'Unable to make phone call to: ${o.contactValue}', 'Dismiss');
+  }
+}
+
+void makePhoneCallNum(String num) async {
+  String s = 'tel';
+  String? v = num.replaceWhitespacesUsingRegex('');
+  Uri url = Uri(scheme: s, path: v);
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  }
+
+  else {
+    showCustomDialog('Error', 'Unable to make phone call to: $num', 'Dismiss');
+  }
+}
+
+void sendMail(String e) async {
+  String s = 'mailto';
+  Uri url = Uri(scheme: s, path: e);
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  }
+
+  else {
+    showCustomDialog('Error', 'Unable to launch email: $e', 'Dismiss');
+  }
+}
+
+void launchAction(DoctorContact o) async {
+  String s = o.contactType == 'Contact No' ? 'tel' : 'mailto';
+  String? v = o.contactValue;
+  if (o.contactType == 'Contact No') {
+    v = o.contactValue?.replaceWhitespacesUsingRegex('');
+  }
+
+  // String url = '$s:$v';
+  // Uri uri = Uri.parse(url);
+  Uri url = Uri(scheme: s, path: v);
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  }
+
+  else {
+    showCustomDialog('Error', 'Unable to launch contact: ${o.contactValue}', 'Dismiss');
+  }
+}
+
+void launchWA(DoctorContact o) async {
+  String whatsapp = o.contactValue?.replaceAll('+', '').replaceAll(' ', '') ?? '';
+  launchWANum(whatsapp);
+}
+
+void launchWANum(String num) async {
+  String waUrl = 'whatsapp://send?phone=$num';
+  if (Platform.isIOS) {
+    waUrl = 'https://wa.me/$num';
+  }
+
+  Uri url = Uri.parse(waUrl);
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  }
+
+  else {
+    showCustomDialog('Error', 'WhatsApp not installed', 'Dismiss');
+  }
+}
+
+void launchMap(double latitude, double longitude) async {
+  if (await MapLauncher.isMapAvailable(MapType.google)) {
+    await MapLauncher.showMarker(
+      mapType: MapType.google,
+      coords: Coords(latitude, longitude),
+      title: 'CVSKL',
     );
   }
 
-  Future<bool> showConfirmDialog(String title, String subTitle, String btnNoText, String btnYesText) async {
-    return await showCupertinoDialog(
-      context: context, 
-      builder: (_) => CupertinoAlertDialog(
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontFamily: kBodyFont,
-          ),
-        ),
-        content: Text(
-          subTitle,
-          style: const TextStyle(
-            fontSize: 16.0,
-            fontFamily: kBodyFont,
-            color: Color(0xFF727272),
-          ),
-        ),
-        actions: [
-          CupertinoButton(
-            child: Text(
-              btnNoText,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-              ),
-            ), 
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          CupertinoButton(
-            child: Text(
-              btnYesText,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-                fontWeight: FontWeight.bold,
-              ),
-            ), 
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    ) ?? false;
+  else if (await MapLauncher.isMapAvailable(MapType.waze)) {
+    await MapLauncher.showMarker(
+      mapType: MapType.waze,
+      coords: Coords(latitude, longitude),
+      title: 'CVSKL',
+    );
   }
 
-  Future<String> showConfirmDialogWithInput(String title, String subTitle, String btnNoText, String btnYesText, String hintText) async {
-    final inputController = TextEditingController();
-    bool validated = false;
-
-    String s = await showCupertinoDialog(
-      context: context, 
-      builder: (_) => StatefulBuilder(
-        builder: (context, setState) => CupertinoAlertDialog(
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18.0,
-              fontFamily: kBodyFont,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                subTitle,
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontFamily: kBodyFont,
-                  color: Color(0xFF727272),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: inputController.text == '' && validated ? 5.0 : 25.0),
-
-              inputController.text == '' && validated ? 
-              Padding(
-                padding: const EdgeInsets.only(bottom: 25.0),
-                child: Text(
-                  '$hintText is required!',
-                  style: const TextStyle(
-                    fontSize: 14.0,
-                    fontFamily: kBodyFont,
-                  ),
-                ),
-              ) : Container(),
-
-              CupertinoTextField(
-                controller: inputController,
-                cursorColor: const Color(0xFF999494),
-                placeholder: 'Reason',
-              ),
-            ],
-          ),
-          actions: [
-            CupertinoButton(
-              child: Text(
-                btnNoText,
-                style: const TextStyle(
-                  color: kPrimaryColor,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                ),
-              ), 
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            CupertinoButton(
-              child: Text(
-                btnYesText,
-                style: const TextStyle(
-                  color: kPrimaryColor,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                  fontWeight: FontWeight.bold,
-                ),
-              ), 
-              onPressed: () {
-                setState(() {
-                  validated = true;
-                });
-                if (inputController.text != '') {
-                  Navigator.of(context).pop(inputController.text);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    ) ?? '';
-    inputController.dispose();
-    return s;
+  else if (await MapLauncher.isMapAvailable(MapType.apple)) {
+    await MapLauncher.showMarker(
+      mapType: MapType.apple,
+      coords: Coords(latitude, longitude),
+      title: 'CVSKL',
+    );
   }
+
+  else {
+    Uri uri = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': 'Island Hospital'});
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+
+    else {
+      showCustomDialog('Error', 'Could not open the map', 'Dismiss');
+    }
+  }
+  
+  // https://stackoverflow.com/questions/52577780/flutter-open-location-in-maps
+  /* String query = '$latitude,$longitude';
+  Uri uri = Uri(scheme: 'geo', host: '0,0', queryParameters: {'q': query});
+
+  if (Platform.isAndroid) {
+    uri = Uri(scheme: 'geo', host: '0,0', queryParameters: {'q': query});
+  }
+
+  else if (Platform.isIOS) {
+    var params = {'ll': '$latitude,$longitude'};
+    uri = Uri.https('maps.apple.com', '/', params);
+  }
+
+  else {
+    uri = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': query});
+  }
+
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  else {
+    showCustomDialog('Error', 'Could not open the map', 'Dismiss');
+  } */
 }
 
-Future<void> showCustomDialogBak(String title, String subTitle, String btnText, BuildContext context) async {
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20.0)),
-        ),
-        backgroundColor: Colors.white,
-        contentPadding: const EdgeInsets.only(top: 24.0, bottom: 0),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  subTitle,
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    color: Color(0xFF727272),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 15.0),
-              Container(
-                width: double.infinity,
-                height: 1.0,
-                color: const Color(0xFFE0E0E0),
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 50.0,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    btnText,
-                    style: const TextStyle(
-                      color: kPrimaryColor,
-                      fontSize: 19.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-  );
-}
+void launchURL(String s) async {
+  Uri url = Uri.parse(s);
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
 
-Future<bool> showConfirmDialogBak(String title, String subTitle, String btnNoText, String btnYesText, BuildContext context) async {
-  return await showDialog(
-    context: context, 
-    builder: (context) {
-      return AlertDialog(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20.0)),
-        ),
-        backgroundColor: Colors.white,
-        contentPadding: const EdgeInsets.only(top: 24.0, bottom: 0),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  subTitle,
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 15.0),
-              Container(
-                height: 1.0,
-                color: const Color(0xFFE0E0E0),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        btnNoText,
-                        style: const TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 19.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 1.0,
-                    height: 50.0,
-                    color: const Color(0xFFE0E0E0),
-                  ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
-                      child: Text(
-                        btnYesText,
-                        style: const TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 19.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-  ) ?? false;
-}
-
-Future<String> showConfirmDialogWithInputBak(String title, String subTitle, String btnNoText, String btnYesText, String hintText, BuildContext context) async {
-  final inputController = TextEditingController();
-  bool validated = false;
-
-  return await showDialog(
-    context: context, 
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-            ),
-            backgroundColor: Colors.white,
-            contentPadding: const EdgeInsets.only(top: 24.0, bottom: 0),
-            content: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      subTitle,
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(height: inputController.text == '' && validated ? 5.0 : 25.0),
-
-                  inputController.text == '' && validated ? 
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 25.0),
-                    child: Text(
-                      '$hintText is required!',
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  ) : Container(),
-
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-                    child: TextField(
-                      controller: inputController,
-                      cursorColor: const Color(0xFF999494),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-                        hintText: hintText,
-                        enabledBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          borderSide: BorderSide(color: Color(0xFF999494)),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          borderSide: BorderSide(color: Color(0xFF999494)),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20.0),
-                  Container(
-                    height: 1.0,
-                    color: const Color(0xFFE0E0E0),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text(
-                            btnNoText,
-                            style: const TextStyle(
-                              color: kPrimaryColor,
-                              fontSize: 19.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 1.0,
-                        height: 50.0,
-                        color: const Color(0xFFE0E0E0),
-                      ),
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            setState(() {
-                              validated = true;
-                            });
-                            if (inputController.text != '') {
-                              Navigator.of(context).pop(inputController.text);
-                            }
-                          },
-                          child: Text(
-                            btnYesText,
-                            style: const TextStyle(
-                              color: kPrimaryColor,
-                              fontSize: 19.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
-  );
+  else {
+    showCustomDialog('Error', 'Could not open the url $s', 'Dismiss');
+  }
 }
