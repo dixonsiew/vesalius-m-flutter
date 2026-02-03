@@ -1,0 +1,11 @@
+issuer id
+d0f3cf70-6aed-4adf-b5f5-beddb59ca972
+
+key name
+vesalius-m-prod-ihp-appstore
+
+key id
+ACWS7PU2ZG
+
+Password for certificate:
+R8gsAV2F

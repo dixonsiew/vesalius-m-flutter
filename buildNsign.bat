@@ -1,2 +1,2 @@
 call build.bat
-call sign.bat
+call sign-new.bat
