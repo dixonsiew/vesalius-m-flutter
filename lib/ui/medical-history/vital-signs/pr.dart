@@ -7,16 +7,17 @@ import 'package:vesalius_m_flutter/components/vital-signs/pr_chart.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/patient_data.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 
 class PR extends StatefulWidget {
   
-  static const String routeName = 'VitalSigns/PR';
+  static const String routeName = '/VitalSigns/PR';
 
   final String date;
 
   const PR({
-    Key? key,
+    Key? key, 
     required this.date,
   }) : super(key: key);
 
@@ -40,8 +41,8 @@ class _PRState extends State<PR> {
       setState(() {
         isLoading = true;
       });
-      var branchDetails = DataManager.branchDetails;
-      var lx = await getVitalSignHistory('PR', branchDetails!.branch!.branchId!, branchDetails.prn!, widget.date);
+      UserBranch? branchDetails = DataManager.branchDetails;
+      List<VitalSignsData> lx = await getVitalSignHistory('PR', branchDetails!.branch!.branchId!, branchDetails.prn!, widget.date);
       setState(() {
         list = lx;
         isLoading = false;
@@ -78,7 +79,7 @@ class _PRState extends State<PR> {
       padding: const EdgeInsets.only(top: 20.0),
       child: Container(
         height: MediaQuery.of(context).size.height,
-        color: Colors.white,
+        color: kMedicalRecordBgColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -150,7 +151,7 @@ class _PRState extends State<PR> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -193,7 +194,7 @@ class HistoryItem extends StatelessWidget {
   final NovaPatientVitalSignsDetail data;
 
   const HistoryItem({
-    Key? key,
+    Key? key, 
     required this.data,
   }) : super(key: key);
 
@@ -213,7 +214,7 @@ class HistoryItem extends StatelessWidget {
             ),
           ),
           Text(
-            '${data.value1} bpm',
+            data.value1 ?? '',
             style: const TextStyle(
               fontSize: 18.0,
               fontFamily: kBodyFont,

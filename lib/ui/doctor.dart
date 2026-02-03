@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:provider/provider.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
@@ -13,83 +14,90 @@ import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/doctor_data.dart';
 import 'package:vesalius_m_flutter/models/doctor_model.dart';
 import 'package:vesalius_m_flutter/models/storage_data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 import 'package:vesalius_m_flutter/ui/doctor/doctor_bookmark.dart';
 
 class Doctor extends StatefulWidget {
-  
-  static const String routeName = 'Doctor';
 
-  const Doctor({Key? key}) : super(key: key);
+  static const String routeName = '/Doctor';
+
+  final String? keyword;
+
+  const Doctor({
+    Key? key, 
+    this.keyword,
+  }) : super(key: key);
 
   @override
   State<Doctor> createState() => _DoctorState();
 }
 
 class _DoctorState extends State<Doctor> {
-
   List<DoctorInfo> list = [];
-  List<DoctorInfo> mlist = [];
+  List<DoctorInfo> _list = [];
   List<Map> bookmarkedInfoId = [];
   ScrollController scr = ScrollController();
   int page = 1;
   String keyword = '';
   bool isLoading = false;
-  final searchController = TextEditingController();
+  late final TextEditingController searchController;
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
     super.initState();
+    searchController = TextEditingController();
     scr.addListener(() {
       if (scr.position.pixels == scr.position.maxScrollExtent) {
         loadMore();
       }
+    });
+    String s = widget.keyword != null ? widget.keyword! : '';
+    searchController.text = s;
+    setState(() {
+      keyword = s;
     });
     load();
   }
 
   @override
   void dispose() {
+    searchController.dispose();
     scr.removeListener(() { });
     scr.dispose();
-    searchController.dispose();
     super.dispose();
   }
 
   void load() async {
-    CustomDialog dlg = CustomDialog.of(context);
     await AuthManager.load();
     try {
       setState(() {
         isLoading = true;
       });
       await getBookmarkedInfoIdFromStorage();
-      var lx = await getDoctors(page);
+      List<DoctorInfo> lx = await getDoctors(page);
       setState(() {
         list = lx;
         page = 1;
         isLoading = false;
       });
-    }
-
-    on DioException catch (error) {
+    } on DioError catch (error) {
       setState(() {
         isLoading = false;
       });
-      dlg.handleError(error, load);
+      handleError(error, load);
     }
   }
 
   void loadMore() async {
     int p = page + 1;
-    CustomDialog dlg = CustomDialog.of(context);
     try {
       setState(() {
         isLoading = true;
       });
       await getBookmarkedInfoIdFromStorage();
-      var lx = await getDoctors(p);
+      List<DoctorInfo> lx = await getDoctors(p);
       if (lx.isEmpty) {
         setState(() {
           isLoading = false;
@@ -102,24 +110,20 @@ class _DoctorState extends State<Doctor> {
         page = p;
         isLoading = false;
       });
-    }
-
-    on DioException catch (error) {
+    } on DioError catch (error) {
       setState(() {
         isLoading = false;
       });
-      dlg.handleError(error, loadMore);
+      handleError(error, loadMore);
     }
   }
 
   Future<List<DoctorInfo>> getDoctors(num page) async {
     List<DoctorInfo> lx = [];
-    var branchDetails = DataManager.branchDetails;
+    UserBranch? branchDetails = DataManager.branchDetails;
     if (!isSearch) {
       lx = await getAllDoctors(branchDetails!.branch!.branchId!, page, kPageSize);
-    }
-
-    else {
+    } else {
       lx = await searchDoctors(branchDetails!.branch!.branchId!, page, kPageSize, keyword);
     }
 
@@ -134,21 +138,19 @@ class _DoctorState extends State<Doctor> {
     setState(() {
       page = 1;
       list.clear();
-      mlist.clear();
+      _list.clear();
     });
     load();
   }
 
   Future<void> toggleBookmark(bool isBookmarked, String mcr, DoctorInfo o) async {
-    CustomDialog dlg = CustomDialog.of(context);
     String userMode = await getUserMode();
     if (!isBookmarked) {
       await StorageDataManager.addDoctorBookmarkStorage(userMode, o);
       await getBookmarkedInfoIdFromStorage();
-    }
-    
-    else {
-      bool b = await dlg.showConfirmDialog('Delete Bookmark', 'Are you sure you want to delete this bookmark?', 'Cancel', 'Sure');
+    } else {
+      bool b = await showConfirmDialog(
+          'Are you sure you want to delete this bookmark?');
       if (b) {
         await StorageDataManager.delDoctorInformationFromStorage(userMode, mcr);
         await getBookmarkedInfoIdFromStorage();
@@ -159,11 +161,9 @@ class _DoctorState extends State<Doctor> {
   Future<String> getUserMode() async {
     String userMode;
     if (AuthManager.isLogin) {
-      var userDetails = await DataManager.getUserDetails();
+      UserDetails? userDetails = await DataManager.getUserDetails();
       userMode = userDetails!.email!;
-    }
-
-    else {
+    } else {
       userMode = 'guest';
     }
 
@@ -172,7 +172,7 @@ class _DoctorState extends State<Doctor> {
 
   Future<void> getBookmarkedInfoIdFromStorage() async {
     String userMode = await getUserMode();
-    var res = await StorageDataManager.getInfoIdFromStorage(userMode, 'doctor');
+    final res = await StorageDataManager.getInfoIdFromStorage(userMode, 'doctor');
     setState(() {
       bookmarkedInfoId = res;
     });
@@ -202,36 +202,52 @@ class _DoctorState extends State<Doctor> {
     load();
   }
 
-  /* void __filterDoctor(String s) {
-    if (s?.isEmpty) {
-      setState(() {
-        list = _list;
-      });
-    }
-
-    else {
-      String r = s.toLowerCase();
-      var q = _list.where((o) {
-        String name = o.name;
-        bool bname = name?.toLowerCase()?.contains(r);
-        List<DoctorSpecialities> specialtyList = o.doctorSpecialities;
-        bool bspecialtyList = false;
-        if (specialtyList != null) {
-          var ls = specialtyList.map((e) {
-            String x = e.specialities;
-            return x;
-          });
-          String x = ls.join(', ');
-          bspecialtyList = x.toLowerCase().contains(r);
-        }
-
-        return bname || bspecialtyList;
-      });
-      setState(() {
-        list = q.toList();
-      });
-    }
-  } */
+  Widget buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: TextField(
+        controller: searchController,
+        autofocus: false,
+        cursorColor: kMainColor,
+        style: const TextStyle(
+          fontFamily: kBodyFont,
+          fontSize: 16.0,
+          color: Color(0xFF002E50),
+        ),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          hintText: "Search By Speciality, Doctor Name",
+          hintStyle: kBodyTextStyle.copyWith(
+            color: const Color(0xFFB1B1B1),
+          ),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.only(left: 25.0, right: 15.0),
+            child: Icon(
+              Icons.search,
+              color: kMainColor,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 17.0, horizontal: 8.0),
+          enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(
+              color: Color.fromRGBO(234, 234, 234, 0.21),
+            ),
+            borderRadius: BorderRadius.circular(50.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(
+              color: Color.fromRGBO(234, 234, 234, 0.21),
+            ),
+            borderRadius: BorderRadius.circular(50.0),
+          ),
+        ),
+        onSubmitted: (String s) {
+          searchDoctor(s);
+        },
+      ),
+    );
+  }
 
   Widget buildContent(DoctorInfo o) {
     String mcr = o.mcr!;
@@ -244,137 +260,33 @@ class _DoctorState extends State<Doctor> {
     );
   }
 
-  /* Widget __buildSearch() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
-      child: Material(
-        elevation: 5.0,
-        borderRadius: BorderRadius.all(Radius.circular(5.0)),
-        child: TextField(
-          controller: searchController,
-          cursorColor: Color(0xFF999494),
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.symmetric(horizontal: 15.0),
-            hintText: 'Search',
-            hintStyle: TextStyle(
-              fontFamily: kBodyFont,
-            ),
-            prefixIcon: Icon(
-              Icons.search,
-              color: Color(0xFF999494),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-              borderSide: BorderSide(color: Color(0xFF999494)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-              borderSide: BorderSide(color: Color(0xFF999494)),
-            ),
-          ),
-          onSubmitted: (String s) {
-            searchDoctor(s);
-          },
-        ),
-      ),
-    );
-  } */
-
-  Widget buildSearch() {
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFFDDDDDD),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
-        child: Material(
-          elevation: 0.0,
-          borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-          child: TextField(
-            controller: searchController,
-            cursorColor: const Color(0xFF999494),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 15.0),
-              hintText: 'Search',
-              hintStyle: TextStyle(
-                fontFamily: kBodyFont,
-              ),
-              prefixIcon: Icon(
-                Icons.search,
-                color: Color(0xFF999494),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onSubmitted: (String s) {
-              searchDoctor(s);
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildHeader() {
-    return Container(
-      width: double.infinity,
-      height: 90.0,
-      color: kSearchDoctorBgColor,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0),
-            child: Image.asset(
-              'images/icon/page-header-icon/search-doctor.png',
-              width: 65.0,
-              height: 50.0,
-              fit: BoxFit.contain,
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 20.0, top: 40.0),
-            child: Text(
-              'Search Doctor Information',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20.0,
-                fontFamily: kTitleFont,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kSearchDoctorBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kBgColor1),
         toolbarHeight: kAppToolbarHeight,
-        backgroundColor: kSearchDoctorBgColor,
         automaticallyImplyLeading: false,
         leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
+        backgroundColor: kBgColor1,
+        leading: const BackBtn(color: kTextColor1),
+        centerTitle: true,
+        title: Text(
+          'Search Doctor',
+          style: kTextStyle1.copyWith(
+            fontSize: 16.0,
+            fontWeight: FontWeight.w600,
+            color: kTextColor1,
+          ),
+        ),
         elevation: 0.0,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
               onPressed: () async {
-                DoctorModel ctx = context.read<DoctorModel>();
-                await Navigator.pushNamed(context, DoctorBookmark.routeName);
+                final ctx = context.read<DoctorModel>();
+                await Get.toNamed(DoctorBookmark.routeName);
                 bool b = ctx.isbookmarkChanged;
                 if (b) {
                   ctx.setBookmarkChanged(false);
@@ -382,22 +294,22 @@ class _DoctorState extends State<Doctor> {
                 }
               },
               icon: const Icon(
-                Icons.bookmark_outline_sharp,
-                color: Colors.white,
+                Icons.bookmark_sharp,
+                color: kMainColor,
               ),
             ),
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFDDDDDD),
+      backgroundColor: kBgColor1,
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
+        progressIndicator: const AppActivityIndicator(),
         child: SafeArea(
           child: RefreshIndicator(
             key: refreshIndicatorKey,
             onRefresh: onRefresh,
-            color: kPrimaryColor,
+            color: kMainColor,
             child: Scrollbar(
               child: ListView.builder(
                 controller: scr,
@@ -405,11 +317,9 @@ class _DoctorState extends State<Doctor> {
                 itemCount: list.length + 2,
                 itemBuilder: (context, i) {
                   if (i == 0) {
-                    return buildHeader();
-                  }
-
-                  else if (i == 1) {
                     return buildSearch();
+                  } else if (i == 1) {
+                    return const SizedBox(height: 20.0);
                   }
 
                   return buildContent(list[i - 2]);

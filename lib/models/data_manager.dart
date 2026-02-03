@@ -32,7 +32,7 @@ class DataManager {
 
   static Future<UserDetails?> getUserDetails() async {
     await storage.ready;
-    var o = storage.getItem('userDetails');
+    final o = storage.getItem('userDetails');
     if (o != null) {
       userDetails = UserDetails.fromJson(o);
     }
@@ -40,8 +40,8 @@ class DataManager {
     return userDetails;
   }
 
-  static void setPrn(String sprn) {
-    prn = sprn;
+  static void setPrn(String mprn) {
+    prn = mprn;
   }
 
   static String? getPrn() {
@@ -56,7 +56,7 @@ class DataManager {
 
   static Future<UserBranch?> getBranchDetails() async {
     await storage.ready;
-    var o = storage.getItem('branchDetails');
+    final o = storage.getItem('branchDetails');
     if (o != null) {
       branchDetails = UserBranch.fromJson(o);
     }
@@ -72,7 +72,7 @@ class DataManager {
 
   static Future<PatientDetails?> getPatientDetails() async {
     await storage.ready;
-    var o = storage.getItem('patientDetails');
+    final o = storage.getItem('patientDetails');
     if (o != null) {
       patientDetails = PatientDetails.fromJson(o);
     }
@@ -87,7 +87,7 @@ class DataManager {
 
   static Future<dynamic> getItem(String key) async {
     await storage.ready;
-    var o = storage.getItem(key);
+    final o = storage.getItem(key);
     return o;
   }
 

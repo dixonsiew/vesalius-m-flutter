@@ -8,7 +8,7 @@ class WeightChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const WeightChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -19,10 +19,10 @@ class WeightChart extends StatefulWidget {
 class _WeightChartState extends State<WeightChart> {
 
   List<WeightData> createData() {
-    var lx = widget.list;
+    List<VitalSignsData> lx = widget.list;
     List<WeightData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i].novaPatientVitalSignsDetail!;
+      NovaPatientVitalSignsDetail m = lx[i].novaPatientVitalSignsDetail!;
       double v1 = double.parse(m.value1!);
       data.add(WeightData(m.recordedDate!, v1));
     }
@@ -33,27 +33,22 @@ class _WeightChartState extends State<WeightChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Weight (kg)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -62,25 +57,23 @@ class _WeightChartState extends State<WeightChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: const CategoryAxis(
+      primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'Weight (kg)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +84,7 @@ class _WeightChartState extends State<WeightChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<WeightData, String>>[
+      series: <ChartSeries<WeightData, String>>[
         LineSeries<WeightData, String>(
           dataSource: createData(),
           xValueMapper: (WeightData m, _) => m.date,
@@ -107,7 +100,7 @@ class _WeightChartState extends State<WeightChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

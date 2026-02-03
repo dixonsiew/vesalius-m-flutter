@@ -6,7 +6,7 @@ class DetailContent extends StatelessWidget {
   final String text;
 
   const DetailContent({
-    Key? key,
+    Key? key, 
     required this.text,
   }) : super(key: key);
 
@@ -29,10 +29,10 @@ class DetailContent extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                fontSize: 16.0,
-                fontFamily: kBodyFont,
-                color: Color(0xFF4B4B4B),
+              style: kBodyTextStyle.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF4E4E4E),
               ),
             ),
           ),

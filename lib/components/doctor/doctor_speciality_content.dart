@@ -42,17 +42,16 @@ class _DoctorSpecialityContentState extends State<DoctorSpecialityContent> {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: const Text(
+      title: Text(
         'Specialities',
-        style: TextStyle(
-          fontSize: 18.0,
-          fontFamily: kBodyFont,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF247CA1),
+        style: kTextStyle1.copyWith(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w600,
+          color: isSpecialityExpanded ? kTextColor1 : kTextColor2,
         ),
       ),
-      iconColor: const Color(0xFF247CA1),
-      collapsedIconColor: const Color(0xFF247CA1),
+      iconColor: kTextColor1,
+      collapsedIconColor: kTextColor2,
       children: buildSpecialityList(),
       onExpansionChanged: (bool expanded) {
         setState(() => isSpecialityExpanded = expanded);

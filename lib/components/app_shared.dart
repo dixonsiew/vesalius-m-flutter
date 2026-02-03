@@ -20,7 +20,7 @@ class AppScalingText extends StatelessWidget {
 
 class AppActivityIndicator extends StatelessWidget {
 
-  const AppActivityIndicator({super.key});
+  const AppActivityIndicator({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

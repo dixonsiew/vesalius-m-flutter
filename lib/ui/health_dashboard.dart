@@ -23,7 +23,7 @@ import 'package:vesalius_m_flutter/services/data_service.dart';
 
 class HealthDashboard extends StatefulWidget {
   
-  static const String routeName = 'HealthDashboard';
+  static const String routeName = '/HealthDashboard';
 
   const HealthDashboard({Key? key}) : super(key: key);
 
@@ -31,7 +31,7 @@ class HealthDashboard extends StatefulWidget {
   State<HealthDashboard> createState() => _HealthDashboardState();
 }
 
-class _HealthDashboardState extends State<HealthDashboard> {
+class _HealthDashboardState extends State<HealthDashboard> with SingleTickerProviderStateMixin {
 
   List<VitalSignsData> bpList = [];
   List<VitalSignsData> bmiList = [];
@@ -44,17 +44,34 @@ class _HealthDashboardState extends State<HealthDashboard> {
   List<LabData> gluList = [];
   List<LabData> hmgList = [];
 
+  int tabIndex = 0;
   int current0 = 0;
   int current1 = 0;
   bool isLoading = false;
-  final CarouselSliderController _controller = CarouselSliderController();
+  late TabController tabController;
+  final CarouselController _controller = CarouselController();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey0 = GlobalKey<RefreshIndicatorState>();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey1 = GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
+    tabController = TabController(vsync: this, length: 2);
+    tabController.addListener(() {
+      setState(() {
+        tabIndex = tabController.index;
+      });
+    });
+    tabIndex = 0;
+    tabController.index = tabIndex;
     super.initState();
     load();
+  }
+
+  @override
+  void dispose() {
+    tabController.dispose();
+    tabController.removeListener(() { });
+    super.dispose();
   }
 
   void load() async {
@@ -62,7 +79,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       setState(() {
         isLoading = true;
       });
-      var branchDetails = DataManager.branchDetails;
+      UserBranch? branchDetails = DataManager.branchDetails;
 
       await loadVitalSignChart(branchDetails);
       await loadLabChart(branchDetails);
@@ -80,11 +97,11 @@ class _HealthDashboardState extends State<HealthDashboard> {
   }
 
   Future<void> loadLabChart(UserBranch? branchDetails) async {
-    var lx = await getLabHistories(branchDetails!.branch!.branchId!, branchDetails.prn!);
-    var q1 = lx.firstWhereOrNull((k) => k.labCode == 'HDL');
-    var q2 = lx.firstWhereOrNull((k) => k.labCode == 'LDL');
-    var q3 = lx.firstWhereOrNull((k) => k.labCode == 'Glucose');
-    var q4 = lx.firstWhereOrNull((k) => k.labCode == 'Hemoglobin');
+    final lx = await getLabHistories(branchDetails!.branch!.branchId!, branchDetails.prn!);
+    final q1 = lx.firstWhereOrNull((k) => k.labCode == 'HDL');
+    final q2 = lx.firstWhereOrNull((k) => k.labCode == 'LDL');
+    final q3 = lx.firstWhereOrNull((k) => k.labCode == 'Glucose');
+    final q4 = lx.firstWhereOrNull((k) => k.labCode == 'Hemoglobin');
     setState(() {
       hdlList = q1 == null ? [] : q1.labData!;
       ldlList = q2 == null ? [] : q2.labData!;
@@ -95,12 +112,12 @@ class _HealthDashboardState extends State<HealthDashboard> {
   }
 
   Future<void> loadVitalSignChart(UserBranch? branchDetails) async {
-    var lx = await getVitalSignHistories(branchDetails!.branch!.branchId!, branchDetails.prn!);
-    var q1 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'BP');
-    var q2 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'BMI');
-    var q3 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'PULSE RATE');
-    var q4 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'HEIGHT');
-    var q5 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'WEIGHT');
+    final lx = await getVitalSignHistories(branchDetails!.branch!.branchId!, branchDetails.prn!);
+    final q1 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'BP');
+    final q2 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'BMI');
+    final q3 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'PULSE RATE');
+    final q4 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'HEIGHT');
+    final q5 = lx.firstWhereOrNull((k) => k.vitalSignCode == 'WEIGHT');
     setState(() {
       bpList = q1 == null ? [] : q1.vitalSignsData!;
       bmiList = q2 == null ? [] : q2.vitalSignsData!;
@@ -111,22 +128,24 @@ class _HealthDashboardState extends State<HealthDashboard> {
   }
 
   Widget buildChart1() {
-    var padding = MediaQuery.of(context).padding;
+    final padding = MediaQuery.of(context).padding;
     final w = Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10.0),
       padding: const EdgeInsets.all(5.0),
       child: isLoading ? Container() : 
       RefreshIndicator(
         key: refreshIndicatorKey1,
         onRefresh: onRefresh,
+        color: kMainColor,
         child: ListView(
           children: [
-            const SizedBox(height: 5.0),
+            const SizedBox(height: 35.0),
             CarouselSlider(
               carouselController: _controller,
               options: CarouselOptions(
                 enlargeCenterPage: true,
                 autoPlay: false,
-                height: MediaQuery.of(context).size.height - 280.0 - padding.top - padding.bottom,
+                height: MediaQuery.of(context).size.height * 0.65 - padding.top - padding.bottom,
                 //aspectRatio: 1.0,
                 viewportFraction: 1.0,
                 initialPage: current1,
@@ -161,14 +180,14 @@ class _HealthDashboardState extends State<HealthDashboard> {
                     _controller.animateToPage(i);
                   },
                   child: Container(
-                    width: 8.0,
-                    height: 8.0,
-                    margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                    width: 6.0,
+                    height: 6.0,
+                    margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 3.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: current1 == i
-                        ? kHealthDashboardBgColor
-                        : const Color.fromRGBO(0, 0, 0, 0.4),
+                        ? kMainColor
+                        : const Color(0xFFFFE4E4),
                     ),
                   ),
                 );
@@ -182,23 +201,24 @@ class _HealthDashboardState extends State<HealthDashboard> {
   }
 
   Widget buildChart0() {
-    var padding = MediaQuery.of(context).padding;
+    final padding = MediaQuery.of(context).padding;
     final w = Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10.0),
       padding: const EdgeInsets.all(5.0),
       child: isLoading ? Container() : 
       RefreshIndicator(
         key: refreshIndicatorKey0,
         onRefresh: onRefresh,
-        color: kPrimaryColor,
+        color: kMainColor,
         child: ListView(
           children: [
-            const SizedBox(height: 5.0),
+            const SizedBox(height: 35.0),
             CarouselSlider(
               carouselController: _controller,
               options: CarouselOptions(
                 enlargeCenterPage: true,
                 autoPlay: false,
-                height: MediaQuery.of(context).size.height - 280.0 - padding.top - padding.bottom,
+                height: MediaQuery.of(context).size.height * 0.65 - padding.top - padding.bottom,
                 //aspectRatio: 1.0,
                 viewportFraction: 1.0,
                 initialPage: current0,
@@ -236,14 +256,14 @@ class _HealthDashboardState extends State<HealthDashboard> {
                     _controller.animateToPage(i);
                   },
                   child: Container(
-                    width: 8.0,
-                    height: 8.0,
-                    margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                    width: 6.0,
+                    height: 6.0,
+                    margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 3.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: current0 == i
-                        ? kHealthDashboardBgColor
-                        : const Color.fromRGBO(0, 0, 0, 0.4),
+                        ? kMainColor
+                        : const Color(0xFFFFE4E4),
                     ),
                   ),
                 );
@@ -262,80 +282,73 @@ class _HealthDashboardState extends State<HealthDashboard> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          // brightness: Brightness.dark,
-          systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kHealthDashboardBgColor),
-          backgroundColor: kHealthDashboardBgColor,
+          systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: Color(0xFFF8F8F8)),
+          toolbarHeight: kAppToolbarHeight + 44,
           automaticallyImplyLeading: false,
           leadingWidth: 100.0,
-          leading: const BackBtn(color: Colors.white),
+          backgroundColor: const Color(0xFFF8F8F8),
+          leading: const BackBtn(color: Color(0xFF002E50)),
+          centerTitle: true,
+          title: const Text(
+            'Your Health Dashboard',
+            style: kTitleTextStyle,
+          ),
           elevation: 0.0,
-          bottom: PreferredSize(
-            preferredSize: const Size(double.infinity, 160.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(bottom: 40.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: Image.asset(
-                          'images/icon/page-header-icon/dashboard-icon.png',
-                          width: 65.0,
-                          height: 50.0,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.only(right: 20.0, top: 40.0),
-                        child: Text(
-                          'View Your Health Trending',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20.0,
-                            fontFamily: kTitleFont,
-                          ),
-                        ),
-                      ),
-                    ],
+          bottom: TabBar(
+            indicatorColor: Colors.transparent,
+            controller: tabController,
+            onTap: (int i) {
+              setState(() {
+                tabIndex = i;
+              });
+            },
+            tabs: [
+              Tab(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 11.0),
+                  decoration: BoxDecoration(
+                    color: tabIndex == 0 ? kMainColor : const Color(0xFFE5E5E5),
+                    borderRadius: BorderRadius.circular(50.0),
+                  ),
+                  child: Text(
+                    'Vital Signs',
+                    style: kMainTextStyle.copyWith(
+                      fontSize: 16.0,
+                      color: tabIndex == 0 ? Colors.white : const Color(0xFFB1B1B1),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                const TabBar(
-                  labelColor: Colors.black,
-                  unselectedLabelColor: Colors.white,
-                  indicatorColor: Colors.black,
-                  labelStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20.0,
-                    fontFamily: kTitleFont,
+              ),
+              Tab(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 11.0),
+                  decoration: BoxDecoration(
+                    color: tabIndex == 1 ? kMainColor : const Color(0xFFE5E5E5),
+                    borderRadius: BorderRadius.circular(50.0),
                   ),
-                  unselectedLabelStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.0,
-                    fontFamily: kTitleFont,
+                  child: Text(
+                    'Lab',
+                    style: kMainTextStyle.copyWith(
+                      fontSize: 16.0,
+                      color: tabIndex == 1 ? Colors.white : const Color(0xFFB1B1B1),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  tabs: [
-                    Tab(
-                      text: 'Vital Signs',
-                    ),
-                    Tab(
-                      text: 'Lab',
-                    ),
-                  ]
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+        backgroundColor: const Color(0xFFF8F8F8),
         body: ModalProgressHUD(
           inAsyncCall: isLoading,
-          progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
+          progressIndicator: const AppActivityIndicator(),
           child: SafeArea(
             child: TabBarView(
+              controller: tabController,
               children: [
                 buildChart0(),
                 buildChart1(),

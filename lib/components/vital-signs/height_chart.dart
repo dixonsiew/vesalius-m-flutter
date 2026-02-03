@@ -8,7 +8,7 @@ class HeightChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const HeightChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -19,12 +19,12 @@ class HeightChart extends StatefulWidget {
 class _HeightChartState extends State<HeightChart> {
 
   List<HeightData> createData() {
-    var lx = widget.list;
+    List<VitalSignsData> lx = widget.list;
     List<HeightData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i].novaPatientVitalSignsDetail!;
-      num v1 = num.parse(m.value1!);
-      data.add(HeightData(m.recordedDate!, v1.toDouble()));
+      NovaPatientVitalSignsDetail m = lx[i].novaPatientVitalSignsDetail!;
+      int v1 = int.parse(m.value1!);
+      data.add(HeightData(m.recordedDate!, v1));
     }
 
     return data;
@@ -33,27 +33,22 @@ class _HeightChartState extends State<HeightChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Height (cm)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -62,25 +57,23 @@ class _HeightChartState extends State<HeightChart> {
     }
     
     return SfCartesianChart(
-      primaryXAxis: const CategoryAxis(
+      primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'Height (cm)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +84,7 @@ class _HeightChartState extends State<HeightChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<HeightData, String>>[
+      series: <ChartSeries<HeightData, String>>[
         LineSeries<HeightData, String>(
           dataSource: createData(),
           xValueMapper: (HeightData m, _) => m.date,
@@ -107,7 +100,7 @@ class _HeightChartState extends State<HeightChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),
@@ -120,7 +113,7 @@ class _HeightChartState extends State<HeightChart> {
 class HeightData {
 
   final String date;
-  final double value;
+  final int value;
 
   HeightData(this.date, this.value);
 }

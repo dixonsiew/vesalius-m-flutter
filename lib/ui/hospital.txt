@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app-shared.dart';
@@ -119,6 +120,7 @@ class _HospitalState extends State<Hospital> {
   }
 
   void filterHospital(String s) {
+    // ignore: null_aware_in_condition
     if (s?.isEmpty) {
       setState(() {
         list = _list;
@@ -130,7 +132,9 @@ class _HospitalState extends State<Hospital> {
       var q = _list.where((o) {
         String title = o['title'];
         String desc = o['content'];
+        // ignore: null_aware_in_logical_operator
         return title?.toLowerCase()?.contains(r) ||
+        // ignore: null_aware_in_logical_operator
         desc?.toLowerCase()?.contains(r);
       });
       setState(() {
@@ -290,7 +294,7 @@ class _HospitalState extends State<Hospital> {
       backgroundColor: Color(0xFFF5F5F5),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
-        progressIndicator: AppScalingText('Loading...'),
+        progressIndicator: CupertinoActivityIndicator(radius: 15.0), // AppScalingText('Loading...'),
         child: SafeArea(
           child: RefreshIndicator(
             key: refreshIndicatorKey,

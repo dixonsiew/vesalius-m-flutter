@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
 import 'confirm_appointment.dart';
 
 class AppointmentFreeSlot extends StatefulWidget {
   
-  static const String routeName = 'AppointmentFreeSlot';
+  static const String routeName = '/AppointmentFreeSlot';
 
   final DateTime? selectedDate;
   final TimeOfDay? selectedTime;
   final String? selectedSpecialtyName;
   final String? selectedDoctorName;
   final String? selectedCaseType;
-  final bool isUpdate;
+  final bool? isUpdate;
   final FutureAppointment? appointment;
   final List<AvailableSlot>? list;
 
   const AppointmentFreeSlot({
-    Key? key,
+    Key? key, 
     this.selectedDate,
     this.selectedTime,
     this.selectedSpecialtyName,
     this.selectedDoctorName,
     this.selectedCaseType,
-    this.isUpdate = false,
+    this.isUpdate,
     this.appointment,
     this.list,
   }) : super(key: key);
@@ -82,9 +82,9 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
         child: Text(
           'Available Slot',
           style: TextStyle(
-            color: Color(0xFFB3B3B3),
             fontSize: 16.0,
             fontFamily: kBodyFont,
+            color: Color(0xFFB3B3B3),
           ),
         ),
       ),
@@ -95,20 +95,16 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
         padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
         child: InkWell(
           onTap: () {
-            Navigator.push(context,
-              MaterialPageRoute(
-                builder: (context) => ConfirmAppointment(
-                  selectedDate: getDate(o.date!),
-                  selectedTime: getTime(o.startTime!),
-                  selectedSpecialtyName: widget.selectedSpecialtyName!,
-                  selectedDoctorName: o.doctorName!,
-                  selectedCaseType: widget.selectedCaseType!,
-                  slotNumber: o.slotNumber!,
-                  isUpdate: widget.isUpdate,
-                  appointment: widget.appointment,
-                ),
-              )
-            );
+            Get.to(() => ConfirmAppointment(
+              selectedDate: getDate(o.date!),
+              selectedTime: getTime(o.startTime!),
+              selectedSpecialtyName: widget.selectedSpecialtyName,
+              selectedDoctorName: o.doctorName,
+              selectedCaseType: widget.selectedCaseType,
+              slotNumber: o.slotNumber,
+              isUpdate: widget.isUpdate,
+              appointment: widget.appointment,
+            ));
           },
           child: Container(
             color: Colors.white,
@@ -123,17 +119,17 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                         '${getDate(o.date!)} , ${getTime(o.startTime!)}',
                         // '15 Apr 2021 , 3.05 PM',
                         style: const TextStyle(
-                          color: Color(0xFF808080),
                           fontSize: 16.0,
                           fontFamily: kBodyFont,
+                          color: Color(0xFF808080),
                         ),
                       ),
                       Text(
                         '${o.doctorName}',
                         style: const TextStyle(
-                          color: Color(0xFF808080),
                           fontSize: 16.0,
                           fontFamily: kBodyFont,
+                          color: Color(0xFF808080),
                         ),
                       )
                     ],
@@ -159,29 +155,38 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
-        leadingWidth: 100.0,
-        leading: const BackBtn(color: Color(0xFF565758)),
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Available slot',
           style: TextStyle(
-            color: Color(0xFF565758),
+            color: Colors.white,
             fontSize: 18.0,
-            fontFamily: kTitleFont,
+            fontFamily: kBodyFont,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.close,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Get.back();
+            }
+          ),
+        ],
       ),
       backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: Scrollbar(
           child: SingleChildScrollView(
             child: Container(
-              color: Colors.white,
+              color: const Color(0xFFF5F5F5),
               child: Column(
                 children: [
                   Padding(
@@ -197,9 +202,9 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                         const Text(
                           'Date',
                           style: TextStyle(
-                            color: Color(0xFFB3B3B3),
                             fontSize: 16.0,
                             fontFamily: kBodyFont,
+                            color: Color(0xFFB3B3B3),
                           ),
                         ),
                         Expanded(
@@ -208,9 +213,9 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                             child: Text(
                               getSelectedDate(),
                               style: const TextStyle(
-                                color: Color(0xFF808080),
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
+                                color: Color(0xFF808080),
                               ),
                             ),
                           ),
@@ -231,9 +236,9 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                         const Text(
                           'Time',
                           style: TextStyle(
-                            color: Color(0xFFB3B3B3),
                             fontSize: 16.0,
                             fontFamily: kBodyFont,
+                            color: Color(0xFFB3B3B3),
                           ),
                         ),
                         Expanded(
@@ -242,9 +247,9 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                             child: Text(
                               getSelectedTime(),
                               style: const TextStyle(
-                                color: Color(0xFF808080),
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
+                                color: Color(0xFF808080),
                               ),
                             ),
                           ),
@@ -256,20 +261,25 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                     padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
                     child: Row(
                       children: [
-                        Image.asset(
-                          'images/icon/stethoscope-0.png',
+                        Container(
                           width: 32.0,
                           height: 32.0,
-                          fit: BoxFit.contain,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            image: DecorationImage(
+                              image: AssetImage('images/icon/stethoscope-0.png'),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
                         const Padding(
                           padding: EdgeInsets.only(left: 15.0, right: 18.0),
                           child: Text(
                             'Specialty',
                             style: TextStyle(
-                              color: Color(0xFFB3B3B3),
                               fontSize: 16.0,
                               fontFamily: kBodyFont,
+                              color: Color(0xFFB3B3B3),
                             ),
                           ),
                         ),
@@ -279,11 +289,11 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Text(
-                                widget.selectedSpecialtyName!,
+                                widget.selectedSpecialtyName ?? '',
                                 style: const TextStyle(
-                                  color: Color(0xFF808080),
                                   fontSize: 16.0,
                                   fontFamily: kBodyFont,
+                                  color: Color(0xFF808080),
                                 ),
                                 softWrap: false,
                               ),
@@ -297,20 +307,25 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                     padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
                     child: Row(
                       children: [
-                        Image.asset(
-                          'images/icon/md-0.png',
+                        Container(
                           width: 32.0,
                           height: 32.0,
-                          fit: BoxFit.contain,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            image: DecorationImage(
+                              image: AssetImage('images/icon/md-0.png'),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
                         const Padding(
                           padding: EdgeInsets.only(left: 15.0, right: 18.0),
                           child: Text(
                             'Doctor Name',
                             style: TextStyle(
-                              color: Color(0xFFB3B3B3),
                               fontSize: 16.0,
                               fontFamily: kBodyFont,
+                              color: Color(0xFFB3B3B3),
                             ),
                           ),
                         ),
@@ -320,11 +335,11 @@ class _AppointmentFreeSlotState extends State<AppointmentFreeSlot> {
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Text(
-                                widget.selectedDoctorName!,
+                                widget.selectedDoctorName ?? '',
                                 style: const TextStyle(
-                                  color: Color(0xFF808080),
                                   fontSize: 16.0,
                                   fontFamily: kBodyFont,
+                                  color: Color(0xFF808080),
                                 ),
                                 softWrap: false,
                               ),

@@ -391,7 +391,6 @@ class DoctorInfo {
   String? name;
   String? gender;
   String? nationality;
-  String? allowAppointment;
   String? image;
   List<DoctorSpokenLanguage>? doctorSpokenLanguage;
   List<DoctorQualification>? doctorQualifications;
@@ -406,7 +405,6 @@ class DoctorInfo {
     this.name,
     this.gender,
     this.nationality,
-    this.allowAppointment,
     this.image,
     this.doctorSpokenLanguage,
     this.doctorQualifications,
@@ -418,25 +416,25 @@ class DoctorInfo {
   });
 
   factory DoctorInfo.fromJson(Map<String, dynamic> json) {
-    var ls = json['doctorSpecialities'] as List?;
+    final ls = json['doctorSpecialities'] as List?;
     List<DoctorSpecialities> lx = ls == null ? [] : ls.map<DoctorSpecialities>((x) => DoctorSpecialities.fromJson(x)).toList();
 
-    var lm = json['doctorSpecialty'] as List?;
+    final lm = json['doctorSpecialty'] as List?;
     List<DoctorSpecialty> la = lm == null ? [] : lm.map<DoctorSpecialty>((x) => DoctorSpecialty.fromJson(x)).toList();
 
-    var ln = json['doctorSpokenLanguage'] as List?;
+    final ln = json['doctorSpokenLanguage'] as List?;
     List<DoctorSpokenLanguage> lb = ln == null ? [] : ln.map<DoctorSpokenLanguage>((x) => DoctorSpokenLanguage.fromJson(x)).toList();
 
-    var lo = json['doctorQualifications'] as List?;
+    final lo = json['doctorQualifications'] as List?;
     List<DoctorQualification> lc = lo == null ? [] : lo.map<DoctorQualification>((x) => DoctorQualification.fromJson(x)).toList();
 
-    var lp = json['doctorClinicLocation'] as List?;
+    final lp = json['doctorClinicLocation'] as List?;
     List<DoctorClinicLocation> ld = lp == null ? [] : lp.map<DoctorClinicLocation>((x) => DoctorClinicLocation.fromJson(x)).toList();
 
-    var lq = json['doctorClinicHours'] as List?;
+    final lq = json['doctorClinicHours'] as List?;
     List<DoctorClinicHours> le = lq == null ? [] : lq.map<DoctorClinicHours>((x) => DoctorClinicHours.fromJson(x)).toList();
 
-    var lr = json['doctorContact'] as List?;
+    final lr = json['doctorContact'] as List?;
     List<DoctorContact> lf = lr == null ? [] : lr.map<DoctorContact>((x) => DoctorContact.fromJson(x)).toList();
 
     return DoctorInfo(
@@ -444,7 +442,6 @@ class DoctorInfo {
       name: json['name'],
       gender: json['gender'],
       nationality: json['nationality'],
-      allowAppointment: json['allowAppointment'],
       image: json['image'],
       doctorSpokenLanguage: lb,
       doctorQualifications: lc,
@@ -462,7 +459,6 @@ class DoctorInfo {
       'name': name,
       'gender': gender,
       'nationality': nationality,
-      'allowAppointment': allowAppointment,
       'image': image,
       'doctorSpokenLanguage': doctorSpokenLanguage?.map((x) => x.toJson()).toList(),
       'doctorQualifications': doctorQualifications?.map((x) => x.toJson()).toList(),
@@ -505,10 +501,10 @@ class DoctorDetails {
   });
 
   factory DoctorDetails.fromJson(Map<String, dynamic> json) {
-    var ls = json['specialtyList'] as List?;
+    final ls = json['specialtyList'] as List?;
     List<Specialty> lx = ls == null ? [] : ls.map<Specialty>((x) => Specialty.fromJson(x)).toList();
 
-    var lq = json['qualification'] as List?;
+    final lq = json['qualification'] as List?;
     List<String> la = lq == null ? [] : lq.map<String>((x) => x).toList();
 
     return DoctorDetails(

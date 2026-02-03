@@ -7,7 +7,7 @@ import 'package:vesalius_m_flutter/models/doctor_data.dart';
 class StorageDataManager {
 
   static Future<String> getDbPath(String name) async {
-    var databasesPath = await getDatabasesPath();
+    String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, name);
     return path;
   }
@@ -21,7 +21,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT * FROM user GROUP BY username');
+    final res = await database.rawQuery('SELECT * FROM user GROUP BY username');
     for (var o in res) {
       ls.add("${o['username']}");
     }
@@ -66,7 +66,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS hospital(id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, infoId TEXT, data TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT * FROM hospital WHERE email=? GROUP BY data', [email]);
+    final res = await database.rawQuery('SELECT * FROM hospital WHERE email=? GROUP BY data', [email]);
     for (var o in res) {
       Map m = jsonDecode("${o['data']}");
       Map k = { 'data': m };
@@ -135,7 +135,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS doctor(id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, infoId TEXT, data TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT * FROM doctor WHERE email=? GROUP BY data', [email]);
+    final res = await database.rawQuery('SELECT * FROM doctor WHERE email=? GROUP BY data', [email]);
     for (var o in res) {
       var m = jsonDecode("${o['data']}");
       DoctorInfo x = DoctorInfo.fromJson(m);
@@ -156,7 +156,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS $tableName(id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, infoId TEXT, data TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT DISTINCT infoId FROM $tableName WHERE email=?', [email]);
+    final res = await database.rawQuery('SELECT DISTINCT infoId FROM $tableName WHERE email=?', [email]);
     for (var o in res) {
       Map k = { 'infoId': o['infoId'] };
       ls.add(k);
@@ -174,7 +174,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS appointment(id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, date TEXT, time TEXT, doctorName TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT * FROM appointment WHERE email=?', [email]);
+    final res = await database.rawQuery('SELECT * FROM appointment WHERE email=?', [email]);
     for (var o in res) {
       Map k = { 'date': o['date'], 'time': o['time'], 'doctorName': o['doctorName'] };
       ls.add(k);
@@ -227,7 +227,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS doctorInfo(id INTEGER PRIMARY KEY AUTOINCREMENT, branchId TEXT, data TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT * FROM doctorInfo WHERE branchId=?', [branchId]);
+    final res = await database.rawQuery('SELECT * FROM doctorInfo WHERE branchId=?', [branchId]);
     for (var o in res) {
       List lm = jsonDecode("${o['data']}") as List;
       ls = lm.map((x) => DoctorInfo.fromJson(x)).toList();
@@ -269,7 +269,7 @@ class StorageDataManager {
       await db.execute('CREATE TABLE IF NOT EXISTS hospitalInfo(id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT)');
     });
 
-    var res = await database.rawQuery('SELECT * FROM hospitalInfo', []);
+    final res = await database.rawQuery('SELECT * FROM hospitalInfo', []);
     for (var o in res) {
       Map m = jsonDecode("${o['data']}");
       Map k = { 'data': m };

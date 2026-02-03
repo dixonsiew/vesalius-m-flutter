@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:collection/collection.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -8,12 +8,13 @@ import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/allergy.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 import 'package:vesalius_m_flutter/ui/allergies/allergies_group.dart';
 
 class Allergies extends StatefulWidget {
 
-  static const String routeName = 'Allergies';
+  static const String routeName = '/Allergies';
 
   const Allergies({Key? key}) : super(key: key);
 
@@ -22,6 +23,7 @@ class Allergies extends StatefulWidget {
 }
 
 class _AllergiesState extends State<Allergies> {
+
   List<AllergyGroup> groupList = [];
   AllergyGroup? medicalAlertGroup;
   AllergyGroup? allergiesAndReactionsGroup;
@@ -29,6 +31,7 @@ class _AllergiesState extends State<Allergies> {
   AllergyGroup? infectiousDiseaseGroup;
   List otherAllergies = [];
   bool isLoading = false;
+
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
@@ -43,22 +46,27 @@ class _AllergiesState extends State<Allergies> {
       setState(() {
         isLoading = true;
       });
-      var branchDetails = DataManager.branchDetails;
-      var lx = await getPatientAllergies(branchDetails!.branch!.branchId!, branchDetails.prn!);
+      UserBranch? branchDetails = DataManager.branchDetails;
+      List<Allergy> lx = await getPatientAllergies(branchDetails!.branch!.branchId!, branchDetails.prn!);
       List<AllergyGroup> lg = [];
-      for (var o in lx) {
-        var k = lg.firstWhereOrNull((x) => x.alertType == o.alertType);
+      for (Allergy o in lx) {
+        AllergyGroup? k = lg.firstWhereOrNull((x) => x.alertType == o.alertType);
         if (k == null) {
-          k = AllergyGroup(alertType: o.alertType, list: []);
+          k = AllergyGroup(
+            alertType: o.alertType,
+            list: []
+          );
           lg.add(k);
         }
 
-        var la = k.list!;
+        List<Allergy> la = k.list!;
         la.add(o);
         k.list = la;
       }
       await sortList(lg);
-    } catch (error) {
+    }
+
+    catch (error) {
       setState(() {
         isLoading = false;
       });
@@ -70,35 +78,43 @@ class _AllergiesState extends State<Allergies> {
   }
 
   Future<void> sortList(List<AllergyGroup> lg) async {
-    AllergyGroup? vmedicalAlertGroup;
-    AllergyGroup? vallergiesAndReactionsGroup;
-    AllergyGroup? vhealthAlertsGroup;
-    AllergyGroup? vinfectiousDiseaseGroup;
-    for (var o in lg) {
+    AllergyGroup? mmedicalAlertGroup;
+    AllergyGroup? mallergiesAndReactionsGroup;
+    AllergyGroup? mhealthAlertsGroup;
+    AllergyGroup? minfectiousDiseaseGroup;
+    for (AllergyGroup o in lg) {
       String s = o.alertType!;
       if (s == 'CLINICAL ALERT') {
-        vmedicalAlertGroup = o;
-      } else if (s == 'CLINICAL ALLERGY' || s == 'GENERAL ALLERGY') {
-        if (vallergiesAndReactionsGroup == null) {
-          vallergiesAndReactionsGroup = o;
-        } else {
-          var la = vallergiesAndReactionsGroup.list!;
-          var lb = o.list!;
+        mmedicalAlertGroup = o;
+      }
+
+      else if (s == 'CLINICAL ALLERGY' || s == 'GENERAL ALLERGY') {
+        if (mallergiesAndReactionsGroup == null) {
+          mallergiesAndReactionsGroup = o;
+        }
+
+        else {
+          List<Allergy> la = mallergiesAndReactionsGroup.list!;
+          List<Allergy> lb = o.list!;
           la.addAll(lb);
         }
-      } else if (s == 'GENERAL ALERT') {
-        vhealthAlertsGroup = o;
-      } else if (s == 'INFECTIOUS DISEASE') {
-        vinfectiousDiseaseGroup = o;
+      }
+
+      else if (s == 'GENERAL ALERT') {
+        mhealthAlertsGroup = o;
+      }
+
+      else if (s == 'INFECTIOUS DISEASE') {
+        minfectiousDiseaseGroup = o;
       }
     }
 
     setState(() {
       groupList = lg;
-      medicalAlertGroup = vmedicalAlertGroup;
-      allergiesAndReactionsGroup = vallergiesAndReactionsGroup;
-      healthAlertsGroup = vhealthAlertsGroup;
-      infectiousDiseaseGroup = vinfectiousDiseaseGroup;
+      medicalAlertGroup = mmedicalAlertGroup;
+      allergiesAndReactionsGroup = mallergiesAndReactionsGroup;
+      healthAlertsGroup = mhealthAlertsGroup;
+      infectiousDiseaseGroup = minfectiousDiseaseGroup;
       isLoading = false;
     });
     await DataManager.setItem('allergies', groupList);
@@ -114,20 +130,14 @@ class _AllergiesState extends State<Allergies> {
   List<Widget> _buildList() {
     List<Widget> lx = [];
     if (medicalAlertGroup != null) {
-      lx.add(AllergiesItem(
-        name: 'Medical Alerts',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AllergiesGroup(
-                title: 'Medical Alert',
-                list: medicalAlertGroup!.list!,
-              ),
-            ),
-          );
-        },
-      ));
+      lx.add(
+        AllergiesItem(
+          name: 'Medical Alerts',
+          onTap: () {
+            Get.to(() => AllergiesGroup(title: 'Medical Alert', list: medicalAlertGroup!.list!));
+          },
+        )
+      );
     }
 
     if (allergiesAndReactionsGroup != null) {
@@ -140,15 +150,7 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Allergies & Reactions',
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Allergies & Reactions',
-                  list: allergiesAndReactionsGroup!.list!,
-                ),
-              ),
-            );
+            Get.to(() => AllergiesGroup(title: 'Allergies & Reactions', list: allergiesAndReactionsGroup!.list!));
           },
         ),
       ]);
@@ -164,15 +166,7 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Health Alerts',
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Health Alerts',
-                  list: healthAlertsGroup!.list!,
-                ),
-              ),
-            );
+            Get.to(() => AllergiesGroup(title: 'Health Alerts', list: healthAlertsGroup!.list!));
           },
         ),
       ]);
@@ -188,15 +182,7 @@ class _AllergiesState extends State<Allergies> {
         AllergiesItem(
           name: 'Infectious Disease',
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AllergiesGroup(
-                  title: 'Infectious Disease',
-                  list: infectiousDiseaseGroup!.list!,
-                ),
-              ),
-            );
+            Get.to(() => AllergiesGroup(title: 'Infectious Disease', list: infectiousDiseaseGroup!.list!));
           },
         ),
       ]);
@@ -213,7 +199,7 @@ class _AllergiesState extends State<Allergies> {
           Padding(
             padding: EdgeInsets.all(15.0),
             child: Text(
-              'You do not have any drug allergies and medical alert captured at the moment.',
+              'You do not have any drug allergies and medical alerts at the moment.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF727272),
@@ -260,19 +246,27 @@ class _AllergiesState extends State<Allergies> {
   }
 
   Widget buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Image.asset(
-            'images/icon/page-header-icon/allergies.png',
-            width: 65.0,
-            height: 50.0,
-            fit: BoxFit.contain,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 20.0, top: 20.0),
+          child: Container(
+            width: 80.0,
+            height: 60.0,
+            decoration: const BoxDecoration(
+              shape: BoxShape.rectangle,
+              image: DecorationImage(
+                image: AssetImage('images/icon/page-header-icon/allergies.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
-          const Flexible(
+        ),
+        const Flexible(
+          child: Padding(
+            padding: EdgeInsets.only(right: 20.0, top: 20.0),
             child: Text(
               'View Drug Allergies and Medical Alerts',
               style: TextStyle(
@@ -282,19 +276,16 @@ class _AllergiesState extends State<Allergies> {
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget buildLayer2xx() {
-    var padding = MediaQuery.of(context).padding;
+  Widget buildLayer2() {
+    EdgeInsets padding = MediaQuery.of(context).padding;
 
     return SizedBox(
-      height: MediaQuery.of(context).size.height -
-          padding.top -
-          kAppToolbarHeight -
-          padding.bottom,
+      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
       child: Padding(
         padding: const EdgeInsets.only(left: 20.0, right: 20.0),
         child: Column(
@@ -309,36 +300,11 @@ class _AllergiesState extends State<Allergies> {
     );
   }
 
-  Widget buildLayer2() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-      child: Column(
-        children: [
-          buildHeader(),
-          Flexible(
-            child: buildContent(),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget buildLayer1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          width: double.infinity,
-          height: 160.0,
-          color: kAllergiesBgColor,
-        ),
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFF5F5F5),
-          ),
-        ),
-      ],
+    return Container(
+      width: double.infinity,
+      height: 160.0,
+      color: kAllergiesBgColor,
     );
   }
 
@@ -347,14 +313,14 @@ class _AllergiesState extends State<Allergies> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAllergiesBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAllergiesBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kAllergiesBgColor,
         leadingWidth: 100.0,
         leading: const BackBtn(color: Colors.white),
         elevation: 0.0,
       ),
-      backgroundColor: kAllergiesBgColor,
+      backgroundColor: const Color(0xFFF5F5F5),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
         progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
@@ -372,38 +338,40 @@ class _AllergiesState extends State<Allergies> {
 }
 
 class AllergiesItem extends StatelessWidget {
+
   final String name;
   final void Function() onTap;
 
   const AllergiesItem({
-    Key? key,
+    Key? key, 
     required this.name,
     required this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding:
-            const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontFamily: kBodyFont,
-                color: Color(0xFF727272),
+    return Material(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 25.0, bottom: 25.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  fontFamily: kBodyFont,
+                  color: Color(0xFF727272),
+                ),
               ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios_outlined,
-              color: kAllergiesBgColor,
-            ),
-          ],
+              const Icon(
+                Icons.arrow_forward_ios_outlined,
+                color: kAllergiesBgColor,
+              ),
+            ],
+          ),
         ),
       ),
     );

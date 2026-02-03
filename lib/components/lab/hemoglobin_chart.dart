@@ -8,7 +8,7 @@ class HemoglobinChart extends StatefulWidget {
   final List<LabData> list;
 
   const HemoglobinChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -19,10 +19,10 @@ class HemoglobinChart extends StatefulWidget {
 class _HemoglobinChartState extends State<HemoglobinChart> {
 
   List<HemoglobinData> createData() {
-    var lx = widget.list;
+    List<LabData> lx = widget.list;
     List<HemoglobinData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i];
+      LabData m = lx[i];
       double v1 = double.parse(m.resultValue!);
       data.add(HemoglobinData(m.recordedDate!, v1));
     }
@@ -33,27 +33,22 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Hemoglobin (g/dL)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              'Hemoglobin (mmol/L)',
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -62,25 +57,23 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: const CategoryAxis(
+      primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'Hemoglobin (mmol/L)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +84,7 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<HemoglobinData, String>>[
+      series: <ChartSeries<HemoglobinData, String>>[
         LineSeries<HemoglobinData, String>(
           dataSource: createData(),
           xValueMapper: (HemoglobinData m, _) => m.date,
@@ -107,7 +100,7 @@ class _HemoglobinChartState extends State<HemoglobinChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

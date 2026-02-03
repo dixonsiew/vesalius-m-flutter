@@ -86,6 +86,7 @@ class _DoctorListState extends State<DoctorList> {
 
   void filterDoctor(String s) {
     var lm = filterDoctorListBasedOnSpecialtyCode();
+    // ignore: null_aware_in_condition
     if (s?.isEmpty) {
       setState(() {
         list = lm;

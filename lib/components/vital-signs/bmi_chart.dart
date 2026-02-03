@@ -10,7 +10,7 @@ class BMIChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const BMIChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -21,10 +21,10 @@ class BMIChart extends StatefulWidget {
 class _BMIChartState extends State<BMIChart> {
 
   List<BMIData> createData() {
-    var lx = widget.list;
+    List<VitalSignsData> lx = widget.list;
     List<BMIData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i].novaPatientVitalSignsDetail!;
+      NovaPatientVitalSignsDetail m = lx[i].novaPatientVitalSignsDetail!;
       double v1 = double.parse(m.value1!);
       data.add(BMIData(m.recordedDate!, v1));
     }
@@ -35,27 +35,22 @@ class _BMIChartState extends State<BMIChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'BMI (kg/m\u00B2)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -66,25 +61,23 @@ class _BMIChartState extends State<BMIChart> {
     return SfCartesianChart(
       onDataLabelRender: (DataLabelRenderArgs m) => onDataLabelRender(m, widget.list),
       onMarkerRender: (MarkerRenderArgs m) => onMarkerRender(m, widget.list),
-      primaryXAxis: const CategoryAxis(
+      primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'BMI (kg/m\u00B2)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -95,7 +88,7 @@ class _BMIChartState extends State<BMIChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<BMIData, String>>[
+      series: <ChartSeries<BMIData, String>>[
         LineSeries<BMIData, String>(
           dataSource: createData(),
           xValueMapper: (BMIData m, _) => m.date,
@@ -111,7 +104,7 @@ class _BMIChartState extends State<BMIChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

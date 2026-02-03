@@ -9,7 +9,7 @@ class PRChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const PRChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -20,10 +20,10 @@ class PRChart extends StatefulWidget {
 class _PRChartState extends State<PRChart> {
 
   List<PRData> createData() {
-    var lx = widget.list;
+    List<VitalSignsData> lx = widget.list;
     List<PRData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i].novaPatientVitalSignsDetail!;
+      NovaPatientVitalSignsDetail m = lx[i].novaPatientVitalSignsDetail!;
       int v1 = int.parse(m.value1!);
       data.add(PRData(m.recordedDate!, v1));
     }
@@ -34,27 +34,22 @@ class _PRChartState extends State<PRChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Pulse Rate (bpm)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -65,25 +60,23 @@ class _PRChartState extends State<PRChart> {
     return SfCartesianChart(
       onDataLabelRender: (DataLabelRenderArgs m) => onDataLabelRender(m, widget.list),
       onMarkerRender: (MarkerRenderArgs m) => onMarkerRender(m, widget.list),
-      primaryXAxis: const CategoryAxis(
+      primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'Pulse Rate (bpm)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -94,7 +87,7 @@ class _PRChartState extends State<PRChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<PRData, String>>[
+      series: <ChartSeries<PRData, String>>[
         LineSeries<PRData, String>(
           dataSource: createData(),
           xValueMapper: (PRData m, _) => m.date,
@@ -110,7 +103,7 @@ class _PRChartState extends State<PRChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

@@ -9,17 +9,17 @@ class MedicalInfo extends StatelessWidget {
   final PatientVisit patientVisit;
 
   const MedicalInfo({
-    Key? key,
+    Key? key, 
     required this.patientVisit,
   }) : super(key: key);
 
-  String getRegistrationTime() {
+  String get registrationTime {
     String? t = patientVisit.novaVisit?.registrationTime;
     if (t == null || t == '') {
       return 'NA';
     }
 
-    var a = t.split(':');
+    List<String> a = t.split(':');
     int hour = int.parse(a[0]);
     int min = int.parse(a[1]);
     final now = DateTime.now();
@@ -27,7 +27,7 @@ class MedicalInfo extends StatelessWidget {
     return formatDate(dt, [h, ':', nn, ' ', am]);
   }
 
-  String getRegistrationDate() {
+  String get registrationDate {
     DateTime dt = DateTime.parse(patientVisit.novaVisit!.registrationDate!);
     return formatDate(dt.toLocal(), [dd, ' ', M, ' ', yyyy]);
   }
@@ -35,157 +35,109 @@ class MedicalInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(bottom: 5.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFD6D6D6),
-          ),
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Color.fromRGBO(191, 191, 191, 1),
-            offset: Offset(0, 2),
-            blurRadius: 7.0,
-            spreadRadius: -1,
-          ),
-        ]
+      margin: const EdgeInsets.only(left: 25.0, right: 25.0, top: 25.0),
+      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 16.0),
+      decoration: BoxDecoration(
+        color: kMainColor,
+        borderRadius: BorderRadius.circular(5.0),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 15.0, left: 15.0),
-                  child: Text(
-                    'Registration Date',
-                    style: TextStyle(
-                      color: Color(0xFF9E9E9E),
-                      fontSize: 14.0,
-                      fontFamily: kBodyFont,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                ),
-              ),
-              SizedBox(width: 15.0),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 15.0),
-                  child: Text(
-                    'Registration Time',
-                    style: TextStyle(
-                      color: Color(0xFF9E9E9E),
-                      fontSize: 14.0,
-                      fontFamily: kBodyFont,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 15.0, left: 15.0),
-                  child: Text(
-                    getRegistrationDate(),
-                    style: const TextStyle(
-                      color: Color(0xFF777777),
-                      fontSize: 16.0,
-                      fontFamily: kBodyFont,
-                    ),
+                child: Text(
+                  'Registration Date',
+                  style: kLabelTextStyle.copyWith(
+                    fontSize: 10.0,
+                    color: const Color.fromRGBO(255, 255, 255, 0.8),
                   ),
                 ),
               ),
-              const SizedBox(width: 15.0),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 15.0),
-                  child: Text(
-                    getRegistrationTime(),
-                    style: const TextStyle(
-                      color: Color(0xFF777777),
-                      fontSize: 16.0,
-                      fontFamily: kBodyFont,
-                    ),
+                child: Text(
+                  'Registration Time',
+                  style: kLabelTextStyle.copyWith(
+                    fontSize: 10.0,
+                    color: const Color.fromRGBO(255, 255, 255, 0.8),
                   ),
                 ),
               ),
             ],
           ),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 30.0, left: 15.0),
-                  child: Text(
-                    'Visit Type',
-                    style: TextStyle(
-                      color: Color(0xFF9E9E9E),
-                      fontSize: 14.0,
-                      fontFamily: kBodyFont,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                ),
-              ),
-              SizedBox(width: 15.0),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 30.0),
-                  child: Text(
-                    'Primary Doctor',
-                    style: TextStyle(
-                      color: Color(0xFF9E9E9E),
-                      fontSize: 14.0,
-                      fontFamily: kBodyFont,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 8.0),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 15.0, bottom: 20.0, left: 15.0),
-                  child: Text(
-                    '${patientVisit.novaVisit?.visitType?.titleCase()} (${patientVisit.novaVisit?.caseType?.titleCase()})',
-                    style: const TextStyle(
-                      color: Color(0xFF777777),
-                      fontSize: 16.0,
-                      fontFamily: kBodyFont,
-                    ),
+                child: Text(
+                  registrationDate,
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(width: 15.0),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 15.0, bottom: 20.0),
-                  child: Text(
-                    patientVisit.novaVisit?.primaryDoctor ?? '',
-                    style: const TextStyle(
-                      color: Color(0xFF777777),
-                      fontSize: 16.0,
-                      fontFamily: kBodyFont,
-                    ),
+                child: Text(
+                  registrationTime,
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  'Visit Type',
+                  style: kLabelTextStyle.copyWith(
+                    fontSize: 10.0,
+                    color: const Color.fromRGBO(255, 255, 255, 0.8),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Primary Doctor',
+                  style: kLabelTextStyle.copyWith(
+                    fontSize: 10.0,
+                    color: const Color.fromRGBO(255, 255, 255, 0.8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  '${patientVisit.novaVisit?.visitType?.titleCase()} (${patientVisit.novaVisit?.caseType?.titleCase()})',
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  patientVisit.novaVisit?.primaryDoctor ?? '',
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),

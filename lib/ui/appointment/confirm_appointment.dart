@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
 import 'package:vesalius_m_flutter/models/appointment_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 import 'package:vesalius_m_flutter/ui/appointment.dart';
 import 'package:vesalius_m_flutter/ui/home.dart';
 
 class ConfirmAppointment extends StatefulWidget {
   
-  static const String routeName = 'ConfirmAppointment';
+  static const String routeName = '/ConfirmAppointment';
 
   final String? selectedDate;
   final String? selectedTime;
@@ -22,18 +23,18 @@ class ConfirmAppointment extends StatefulWidget {
   final String? selectedDoctorName;
   final String? selectedCaseType;
   final String? slotNumber;
-  final bool isUpdate;
+  final bool? isUpdate;
   final FutureAppointment? appointment;
 
   const ConfirmAppointment({
-    Key? key,
+    Key? key, 
     this.selectedDate,
     this.selectedTime,
     this.selectedSpecialtyName,
     this.selectedDoctorName,
     this.selectedCaseType,
     this.slotNumber,
-    this.isUpdate = false,
+    this.isUpdate,
     this.appointment,
   }) : super(key: key);
 
@@ -46,27 +47,25 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
   bool isLoading = false;
 
   void updateAppointment(BuildContext context) async {
-    CustomDialog dlg = CustomDialog.of(context);
-    NavigatorState nav = Navigator.of(context);
-    final s = await dlg.showConfirmDialogWithInput('Confirm Change Appointment', 'Are you sure you want to make change this appointment?', 'Cancel', 'Sure', 'Reason');
+    final s = await showConfirmDialogWithInput('Confirm Change Appointment', 'Are you sure you want to make change this appointment?', 'Cancel', 'Sure', 'Reason');
     try {
       if (s == null) {
         return;
       }
 
-      var branchDetails = DataManager.branchDetails;
-      var data = {
-        'appointmentNumber': widget.appointment!.appointmentNumber!,
+      UserBranch? branchDetails = DataManager.branchDetails;
+      final data = {
+        'appointmentNumber': widget.appointment?.appointmentNumber,
         'reason': s,
-        'slotNumber': widget.slotNumber!,
+        'slotNumber': widget.slotNumber,
       };
       await postVesaliusChangeAppointment(branchDetails!.branch!.branchId!, branchDetails.prn!, data);
       await AppointmentManager.getValidAppointment(branchDetails.branch!.branchId!);
       setState(() {
         isLoading = false;
       });
-      await dlg.showCustomDialog('Successful', 'Your appointment has been rescheduled', 'Dismiss');
-      nav.pushNamedAndRemoveUntil(Appointment.routeName, (route) {
+      await showCustomDialog('Successful', 'Your appointment has been rescheduled', 'Dismiss');
+      Get.offAllNamed(Appointment.routeName, predicate: (route) {
         if (route.settings.name == Home.routeName) {
           return true;
         }
@@ -79,20 +78,17 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
       setState(() {
         isLoading = false;
       });
-      dlg.showCustomDialog('Failed', 'Unable to update appointment information at the moment. Please check your internet connection or try again later.', 'Dismiss');
+      showCustomDialog('Failed', 'Unable to update appointment information at the moment. Please check your internet connection or try again later.', 'Dismiss');
     }
   }
 
   void makeAppointment(BuildContext context) async {
-    CustomDialog dlg = CustomDialog.of(context);
-
     try {
       setState(() {
         isLoading = true;
       });
-      NavigatorState nav = Navigator.of(context);
-      var branchDetails = DataManager.branchDetails;
-      var data = {
+      UserBranch? branchDetails = DataManager.branchDetails;
+      final data = {
         'branchId': branchDetails!.branch!.branchId!,
         'caseType': widget.selectedCaseType,
         'slotNumber': widget.slotNumber,
@@ -102,8 +98,8 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
       setState(() {
         isLoading = false;
       });
-      await dlg.showCustomDialog('Successful', 'Appointment Created', 'Dismiss');
-      nav.pushNamedAndRemoveUntil(Appointment.routeName, (route) {
+      await showCustomDialog('Successful', 'Appointment Created', 'Dismiss');
+      Get.offAllNamed(Appointment.routeName, predicate: (route) {
         if (route.settings.name == Home.routeName) {
           return true;
         }
@@ -113,12 +109,12 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
     }
 
     catch (error) {
-      dlg.showCustomDialog('Failed', 'Unable to create new appointment at the moment. Please check your internet connection or try again later.', 'Dismiss');
+      showCustomDialog('Failed', 'Unable to create new appointment at the moment. Please check your internet connection or try again later.', 'Dismiss');
     }
   }
 
   void onConfirmAppointment(BuildContext context) async {
-    if (!widget.isUpdate) {
+    if (!(widget.isUpdate ?? false)) {
       makeAppointment(context);
     }
 
@@ -132,22 +128,31 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
-        leadingWidth: 100.0,
-        leading: const BackBtn(color: Color(0xFF565758)),
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Confirm Appointment',
           style: TextStyle(
-            color: Color(0xFF565758),
+            color: Colors.white,
             fontSize: 18.0,
             fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.close,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Get.back();
+            }
+          ),
+        ],
       ),
       backgroundColor: Colors.grey[200],
       resizeToAvoidBottomInset: false,
@@ -159,7 +164,7 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                color: Colors.white,
+                color: const Color(0xFFF5F5F5),
                 child: Column(
                   children: [
                     Padding(
@@ -234,11 +239,16 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
                       padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
                       child: Row(
                         children: [
-                          Image.asset(
-                            'images/icon/stethoscope-0.png',
+                          Container(
                             width: 32.0,
                             height: 32.0,
-                            fit: BoxFit.contain,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              image: DecorationImage(
+                                image: AssetImage('images/icon/stethoscope-0.png'),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
                           const Padding(
                             padding: EdgeInsets.only(left: 15.0, right: 18.0),
@@ -275,11 +285,16 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
                       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
                       child: Row(
                         children: [
-                          Image.asset(
-                            'images/icon/md-0.png',
+                          Container(
                             width: 32.0,
                             height: 32.0,
-                            fit: BoxFit.contain,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              image: DecorationImage(
+                                image: AssetImage('images/icon/md-0.png'),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
                           const Padding(
                             padding: EdgeInsets.only(left: 15.0, right: 18.0),
@@ -334,8 +349,8 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
                     padding: const EdgeInsets.all(15.0),
                     child: RawMaterialButton(
                       elevation: 5.0,
-                      fillColor: kHomeBgColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                      fillColor: kAppointmentBgColor,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
                       constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
                       child: const Text(
                         'Confirm',
@@ -343,7 +358,6 @@ class _ConfirmAppointmentState extends State<ConfirmAppointment> {
                           color: Colors.white,
                           fontSize: 18.0,
                           fontFamily: kBodyFont,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       onPressed: () {

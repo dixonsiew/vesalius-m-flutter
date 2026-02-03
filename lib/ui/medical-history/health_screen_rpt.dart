@@ -4,7 +4,7 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -13,16 +13,17 @@ import 'package:vesalius_m_flutter/components/medical_info.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/patient_data.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 
 class HealthScreenRpt extends StatelessWidget {
 
-  static const String routeName = 'HealthScreenRpt';
+  static const String routeName = '/HealthScreenRpt';
 
   final PatientVisit patientVisit;
 
   const HealthScreenRpt({
-    Key? key,
+    Key? key, 
     required this.patientVisit,
   }) : super(key: key);
 
@@ -60,7 +61,7 @@ class HealthScreenRpt extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -99,7 +100,7 @@ class HealthScreenRptItem extends StatefulWidget {
   final NovaHealthScreeningRpt novaHealthScreeningRpt;
 
   const HealthScreenRptItem({
-    Key? key,
+    Key? key, 
     required this.novaHealthScreeningRpt,
   }) : super(key: key);
 
@@ -113,6 +114,10 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
   double? percent;
 
   String getDate() {
+    if (widget.novaHealthScreeningRpt.reportDate == null) {
+      return '-';
+    }
+
     DateTime dt = DateFormat('y-M-d').parse(widget.novaHealthScreeningRpt.reportDate!.substring(0, 10));
     return formatDate(dt, [dd, ' ', M, ' ', yyyy]);
   }
@@ -122,8 +127,8 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
       isDownloading = true;
       percent = 0;
     });
-    var branchDetails = DataManager.branchDetails;
-    var dir = await getApplicationDocumentsDirectory();
+    UserBranch? branchDetails = DataManager.branchDetails;
+    Directory dir = await getApplicationDocumentsDirectory();
     String fp = '${dir.path}/${widget.novaHealthScreeningRpt.hsrRefNo}.pdf';
     File file = await getHealthScrReportPdf(branchDetails!.branch!.branchId!, widget.novaHealthScreeningRpt.hsrRefNo!, fp, (received, total) {
       if (total != -1) {
@@ -139,7 +144,7 @@ class _HealthScreenRptItemState extends State<HealthScreenRptItem> {
       isDownloading = false;
     });
     //print(file.path);
-    await OpenFilex.open(file.path);
+    await OpenFile.open(file.path);
   }
 
   List<Widget> buildList() {

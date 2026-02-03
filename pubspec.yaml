@@ -15,10 +15,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.35+1035
+version: 1.0.0+1
 
 environment:
-  sdk: ">=3.4.4 <4.0.0"
+  sdk: ">=2.18.6 <3.0.0"
 
 dependencies:
   flutter:
@@ -29,33 +29,35 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  collection: ^1.18.0
-  path: ^1.8.2
-  modal_progress_hud_nsn: ^0.5.1
-  dio: ^5.9.0
-  form_validator: ^2.1.0
-  flip_card: ^0.7.0
+  cupertino_icons: ^1.0.4
+  modal_progress_hud_nsn: ^0.3.0
+  dio: ^4.0.6
+  form_validator: ^2.1.1
+  flip_card: ^0.6.0
   qr_flutter: ^4.0.0
-  barcode_widget: ^2.0.4
-  carousel_slider: ^5.1.1
-  shared_preferences: ^2.5.3
-  localstorage: ^4.0.1+4
-  flutter_html: ^3.0.0
-  sqflite: ^2.4.2
-  intl: ^0.20.2
-  date_format: ^2.0.9
-  flutter_calendar_carousel: ^2.5.4
-  path_provider: ^2.1.2
-  open_filex: ^4.7.0
-  percent_indicator: ^4.2.5
-  provider: ^6.1.5
+  barcode_widget: ^2.0.1
+  carousel_slider: ^4.1.1
+  shared_preferences: ^2.0.16
+  localstorage: ^4.0.0+1
+  flutter_html: ^2.2.1
+  sqflite: ^2.2.3
+  intl: ^0.17.0
+  date_format: ^2.0.6
+  flutter_calendar_carousel: ^2.2.0
+  path_provider: ^2.0.11
+  open_file: ^3.2.1
+  percent_indicator: ^4.2.2
+  provider: ^6.0.3
   progress_indicators: ^1.0.0
-  package_info_plus: ^9.0.0
-  syncfusion_flutter_charts: ^32.1.24
-  url_launcher: ^6.3.2
-  onesignal_flutter: ^5.3.4
-  flutter_launcher_icons: ^0.14.4
+  package_info_plus: ^1.4.2
+  syncfusion_flutter_charts: ^20.4.43
+  url_launcher: ^6.1.3
+  onesignal_flutter: ^3.3.1
+  get: ^4.6.5
+  path: ^1.8.2
+  collection: ^1.16.0
+  flutter_inappwebview: ^5.4.3+7
+  flutter_launcher_icons: ^0.11.0
 
 dev_dependencies:
   flutter_test:
@@ -66,7 +68,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^2.0.0
 
 flutter_icons:
   android: "ic_launcher"
@@ -91,19 +93,34 @@ flutter:
     - images/imgs/
 
   fonts:
-    - family: AvenirHeavy
+    - family: Lato
       fonts:
-        - asset: fonts/AvenirHeavy-regular.ttf
-        - asset: fonts/AvenirHeavy-bold.ttf
+        - asset: fonts/Lato-Regular.ttf
+        - asset: fonts/Lato-Bold.ttf
           weight: 700
-    - family: AvenirBook
+        - asset: fonts/Lato-Italic.ttf
+          style: italic
+    - family: Mulish
       fonts:
-        - asset: fonts/AvenirBook-regular.ttf
-        - asset: fonts/AvenirBook-bold.ttf
+        - asset: fonts/Mulish-Regular.ttf
+        - asset: fonts/Mulish-Bold.ttf
           weight: 700
+        - asset: fonts/Mulish-Italic.ttf
+          style: italic
+    - family: Montserrat
+      fonts:
+        - asset: fonts/Montserrat-Regular.ttf
+        - asset: fonts/Montserrat-Bold.ttf
+          weight: 700
+        - asset: fonts/Montserrat-Italic.ttf
+          style: italic
     - family: Roboto
       fonts:
         - asset: fonts/Roboto-Regular.ttf
+        - asset: fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: fonts/Roboto-Italic.ttf
+          style: italic
     - family: texgyreadventor
       fonts:
         - asset: fonts/texgyreadventor-regular.otf

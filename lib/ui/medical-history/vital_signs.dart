@@ -1,6 +1,7 @@
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -8,6 +9,7 @@ import 'package:vesalius_m_flutter/components/medical_info.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/patient_data.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 import 'package:vesalius_m_flutter/ui/medical-history/vital-signs/bmi.dart';
 import 'package:vesalius_m_flutter/ui/medical-history/vital-signs/bp.dart';
@@ -17,7 +19,7 @@ import 'package:vesalius_m_flutter/ui/medical-history/vital-signs/weight.dart';
 
 class VitalSigns extends StatefulWidget {
 
-  static const String routeName = 'VitalSigns';
+  static const String routeName = '/VitalSigns000';
 
   const VitalSigns({Key? key}) : super(key: key);
 
@@ -42,11 +44,11 @@ class _VitalSignsState extends State<VitalSigns> {
       setState(() {
         isLoading = true;
       });
-      var branchDetails = DataManager.branchDetails;
-      var lx = await getVesaliusPatientVisit(branchDetails!.branch!.branchId!, branchDetails.prn!, 5);
+      UserBranch? branchDetails = DataManager.branchDetails;
+      List<PatientVisit> lx = await getVesaliusPatientVisit(branchDetails!.branch!.branchId!, branchDetails.prn!, 5);
       setState(() {
         list = lx;
-        patientVisit = lx.isNotEmpty ? lx[0] : null;
+        patientVisit = lx.isNotEmpty ? lx.first : null;
         isLoading = false;
       });
     }
@@ -67,6 +69,7 @@ class _VitalSignsState extends State<VitalSigns> {
         style: TextStyle(
           color: Color(0xFF727272),
           fontSize: 16.0,
+          fontFamily: kBodyFont,
         ),
       ),
     );
@@ -107,11 +110,16 @@ class _VitalSignsState extends State<VitalSigns> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 20.0),
-                child: Image.asset(
-                  'images/icon/page-header-icon/medical-record.png',
+                child: Container(
                   width: 80.0,
                   height: 60.0,
-                  fit: BoxFit.contain,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    image: DecorationImage(
+                      image: AssetImage('images/icon/page-header-icon/medical-record.png'),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
               ),
               const Padding(
@@ -141,7 +149,7 @@ class _VitalSignsState extends State<VitalSigns> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         backgroundColor: kMedicalRecordBgColor,
         leadingWidth: 100.0,
         leading: const BackBtn(color: Colors.white),
@@ -193,7 +201,7 @@ class _VitalSignsState extends State<VitalSigns> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -205,7 +213,6 @@ class _VitalSignsState extends State<VitalSigns> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 18.0,
-            fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -240,7 +247,7 @@ class VitalSignsItem extends StatelessWidget {
   final PatientVisit? patientVisit;
 
   const VitalSignsItem({
-    Key? key,
+    Key? key, 
     this.title,
     this.code,
     this.data,
@@ -257,7 +264,7 @@ class VitalSignsItem extends StatelessWidget {
       return const Text(
         '-',
         style: TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 24.0,
           fontFamily: kBodyFont,
           fontWeight: FontWeight.w900,
@@ -283,8 +290,8 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             '${data?.value1}',
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18.0,
+              color: Colors.black,
+              fontSize: 24.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.w900,
             ),
@@ -295,7 +302,7 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             unit,
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.bold,
@@ -311,7 +318,7 @@ class VitalSignsItem extends StatelessWidget {
       return const Text(
         '-',
         style: TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 24.0,
           fontFamily: kBodyFont,
           fontWeight: FontWeight.w900,
@@ -328,8 +335,8 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             '${data?.value1}/${data?.value2}',
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18.0,
+              color: Colors.black,
+              fontSize: 24.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.w900,
             ),
@@ -340,7 +347,7 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             'mmHg',
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.bold,
@@ -356,7 +363,7 @@ class VitalSignsItem extends StatelessWidget {
       return const Text(
         '-',
         style: TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 24.0,
           fontFamily: kBodyFont,
           fontWeight: FontWeight.w900,
@@ -373,8 +380,8 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             '${data?.value1}',
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18.0,
+              color: Colors.black,
+              fontSize: 24.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.w900,
             ),
@@ -385,7 +392,7 @@ class VitalSignsItem extends StatelessWidget {
           child: Text(
             'kg/m\u00B2',
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 18.0,
               fontFamily: kBodyFont,
               fontWeight: FontWeight.bold,
@@ -398,59 +405,45 @@ class VitalSignsItem extends StatelessWidget {
 
   Widget buildPR(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.ideographic,
       children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                ),
-              ),
-              buildPRValue(),
-            ],
+        SizedBox(
+          width: 85.0,
+          child: Text(
+            title ?? '',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 18.0,
+              fontFamily: kBodyFont,
+            ),
           ),
         ),
+        const SizedBox(width: 20.0),
+        Expanded(child: buildPRValue()),
         data?.value1 == null || data?.value1 == '' ? Container() : ElevatedButton(
           onPressed: () {
             if (code == 'PR') {
-              Navigator.push(context, 
-                MaterialPageRoute(
-                  builder: (context) => PR(
-                    date: getRegistrationDate(),
-                  ),
-                )
-              );
+              Get.to(() => PR(
+                date: getRegistrationDate(),
+              ));
             }
 
             else if (code == 'WT') {
-              Navigator.push(context, 
-                MaterialPageRoute(
-                  builder: (context) => Weight(
-                    date: getRegistrationDate(),
-                  ),
-                )
-              );
+              Get.to(() => Weight(
+                date: getRegistrationDate(),
+              ));
             }
             
             else if (code == 'HT') {
-              Navigator.push(context, 
-                MaterialPageRoute(
-                  builder: (context) => Height(
-                    date: getRegistrationDate(),
-                  ),
-                )
-              );
+              Get.to(() => Height(
+                date: getRegistrationDate(),
+              ));
             }
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: kMedicalRecordBgColor,
+            backgroundColor: kSecondaryColor,
             minimumSize: const Size(24.0, 32.0),
           ),
           child: const Icon(
@@ -463,37 +456,31 @@ class VitalSignsItem extends StatelessWidget {
 
   Widget buildBMI(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.ideographic,
       children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                ),
-              ),
-              buildBMIValue()
-            ],
+        SizedBox(
+          width: 85.0,
+          child: Text(
+            title ?? '',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 18.0,
+              fontFamily: kBodyFont,
+            ),
           ),
         ),
+        const SizedBox(width: 20.0),
+        Expanded(child: buildBMIValue()),
         data?.value1 == null || data?.value1 == '' ? Container() : ElevatedButton(
           onPressed: () {
-            Navigator.push(context, 
-              MaterialPageRoute(
-                builder: (context) => BMI(
-                  date: getRegistrationDate(),
-                ),
-              )
-            );
+            Get.to(() => BMI(
+              date: getRegistrationDate(),
+            ));
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: kMedicalRecordBgColor,
+            backgroundColor: kSecondaryColor,
             minimumSize: const Size(24.0, 32.0),
           ),
           child: const Icon(
@@ -507,36 +494,30 @@ class VitalSignsItem extends StatelessWidget {
   Widget buildBP(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.ideographic,
       children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontFamily: kBodyFont,
-                ),
-              ),
-              buildBPValue(),
-            ],
+        SizedBox(
+          width: 85.0,
+          child: Text(
+            title ?? '',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 18.0,
+              fontFamily: kBodyFont,
+            ),
           ),
         ),
+        const SizedBox(width: 20.0),
+        Expanded(child: buildBPValue()),
         data?.unit == null || data?.unit == '' ? Container() : ElevatedButton(
           onPressed: () {
-            Navigator.push(context, 
-              MaterialPageRoute(
-                builder: (context) => BP(
-                  date: getRegistrationDate(),
-                ),
-              )
-            );
+            Get.to(() => BP(
+              date: getRegistrationDate(),
+            ));
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: kMedicalRecordBgColor,
+            backgroundColor: kSecondaryColor,
             minimumSize: const Size(24.0, 32.0),
           ),
           child: const Icon(
@@ -574,7 +555,7 @@ class VitalSignsItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0),
       child: Container(
-        padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0, bottom: 10.0),
+        padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0, bottom: 15.0),
         decoration: const BoxDecoration(
           color: kMedicalRecordBgColor,
           borderRadius: BorderRadius.all(Radius.circular(10.0)),

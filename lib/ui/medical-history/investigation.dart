@@ -9,12 +9,11 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class Investigation extends StatefulWidget {
   
-  static const String routeName = 'Investigation';
+  static const String routeName = '/Investigation000';
 
   final PatientVisit patientVisit;
 
-  const Investigation({
-    Key? key,
+  const Investigation({Key? key, 
     required this.patientVisit,
   }) : super(key: key);
 
@@ -34,12 +33,12 @@ class _InvestigationState extends State<Investigation> {
   }
 
   void load() {
-    var lx = widget.patientVisit.novaVisitInvestigationDetailList ?? [];
+    List<NovaVisitInvestigationDetail> lx = widget.patientVisit.novaVisitInvestigationDetailList ?? [];
     for (int i = 0; i < lx.length; i++) {
       final o = lx[i];
       String s = o.investigationType?.toLowerCase() ?? '';
       if (map.containsKey(s)) {
-        var ls = map[s]!;
+        List<NovaVisitInvestigationDetail> ls = map[s]!;
         ls.add(o);
       }
 
@@ -79,7 +78,7 @@ class _InvestigationState extends State<Investigation> {
     final ls = map['radiology services']!;
     List<Widget> lk = [];
     for (int i = 0; i < ls.length; i++) {
-      var o = ls[i];
+      NovaVisitInvestigationDetail o = ls[i];
       lk.addAll([
         const SizedBox(height: 10.0),
         Text(
@@ -94,7 +93,7 @@ class _InvestigationState extends State<Investigation> {
           data: o.resultValue == null && o.resultClob == null ? 'Result in PDF format. Unable to view now' : o.resultClob,
           style: {
             'html': Style(
-              fontSize: FontSize(16.0),
+              fontSize: const FontSize(16.0, units: 'pt'),
               fontFamily: kBodyFont,
             ),
           },
@@ -118,7 +117,7 @@ class _InvestigationState extends State<Investigation> {
     final ls = map['diagnostic investigation']!;
     List<Widget> lk = [];
     for (int i = 0; i < ls.length; i++) {
-      var o = ls[i];
+      NovaVisitInvestigationDetail o = ls[i];
       lk.addAll([
         const SizedBox(height: 10.0),
         Text(
@@ -133,7 +132,7 @@ class _InvestigationState extends State<Investigation> {
           data: o.resultValue == null && o.resultClob == null ? 'Result in PDF format. Unable to view now' : o.resultClob,
           style: {
             'html': Style(
-              fontSize: FontSize(16.0),
+              fontSize: const FontSize(16.0, units: 'pt'),
               fontFamily: kBodyFont,
             ),
           },
@@ -157,7 +156,7 @@ class _InvestigationState extends State<Investigation> {
     final ls = map['clincial measurement']!;
     List<Widget> lk = [];
     for (int i = 0; i < ls.length; i++) {
-      var o = ls[i];
+      NovaVisitInvestigationDetail o = ls[i];
       lk.addAll([
         const SizedBox(height: 10.0),
         DataLabel(
@@ -189,7 +188,7 @@ class _InvestigationState extends State<Investigation> {
     final ls = map['lab services']!;
     List<Widget> lk = [];
     for (int i = 0; i < ls.length; i++) {
-      var o = ls[i];
+      NovaVisitInvestigationDetail o = ls[i];
       if (o.description != null) {
         lk.addAll([
           const SizedBox(height: 10.0),
@@ -228,7 +227,7 @@ class _InvestigationState extends State<Investigation> {
 
       if (o.panelDetail != null) {
         for (int j = 0; j < o.panelDetail!.length; j++) {
-          var x = o.panelDetail![j];
+          PanelDetail x = o.panelDetail![j];
           lk.addAll([
             const SizedBox(height: 10.0),
             DataLabel(
@@ -244,7 +243,7 @@ class _InvestigationState extends State<Investigation> {
                 data: x.resultClob ?? '',
                 style: {
                   'html': Style(
-                    fontSize: FontSize(16.0),
+                    fontSize: const FontSize(16.0, units: 'pt'),
                     fontFamily: kBodyFont,
                   ),
                 },
@@ -327,7 +326,7 @@ class _InvestigationState extends State<Investigation> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,

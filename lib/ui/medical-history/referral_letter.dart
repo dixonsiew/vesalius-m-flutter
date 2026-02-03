@@ -9,12 +9,12 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class ReferralLetter extends StatefulWidget {
   
-  static const String routeName = 'ReferralLetter';
+  static const String routeName = '/ReferralLetter';
 
   final PatientVisit patientVisit;
 
   const ReferralLetter({
-    Key? key,
+    Key? key, 
     required this.patientVisit,
   }) : super(key: key);
 
@@ -93,7 +93,7 @@ class _ReferralLetterState extends State<ReferralLetter> {
           data: o.referralLetter,
           style: {
             'html': Style(
-              fontSize: FontSize(15.0),
+              fontSize: const FontSize(15.0, units: 'pt'),
               fontFamily: kBodyFont,
             ),
           }
@@ -142,8 +142,8 @@ class _ReferralLetterState extends State<ReferralLetter> {
         'Referral Letter',
         style: TextStyle(
           fontSize: 15.0,
-          fontFamily: kBodyFont,
           fontWeight: FontWeight.bold,
+          fontFamily: kBodyFont,
         ),
       ),
 
@@ -159,7 +159,7 @@ class _ReferralLetterState extends State<ReferralLetter> {
           data: o.referralLetter,
           style: {
             'html': Style(
-              fontSize: FontSize(15.0),
+              fontSize: const FontSize(15.0, units: 'pt'),
               fontFamily: kBodyFont,
             ),
           }
@@ -217,7 +217,7 @@ class _ReferralLetterState extends State<ReferralLetter> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,

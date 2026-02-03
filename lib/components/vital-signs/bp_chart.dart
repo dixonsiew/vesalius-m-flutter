@@ -8,7 +8,7 @@ class BPChart extends StatefulWidget {
   final List<VitalSignsData> list;
 
   const BPChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -19,10 +19,10 @@ class BPChart extends StatefulWidget {
 class _BPChartState extends State<BPChart> {
 
  List<BPData> createData() {
-    var lx = widget.list;
+    List<VitalSignsData> lx = widget.list;
     List<BPData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i].novaPatientVitalSignsDetail!;
+      NovaPatientVitalSignsDetail m = lx[i].novaPatientVitalSignsDetail!;
       int v1 = int.parse(m.value1!);
       data.add(BPData(m.recordedDate!, v1));
     }
@@ -31,10 +31,10 @@ class _BPChartState extends State<BPChart> {
   }
 
   List<BPData> createData2() {
-    var lx = widget.list;
+    List<VitalSignsData> lx = widget.list;
     List<BPData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i].novaPatientVitalSignsDetail!;
+      NovaPatientVitalSignsDetail m = lx[i].novaPatientVitalSignsDetail!;
       int v1 = int.parse(m.value2!);
       data.add(BPData(m.recordedDate!, v1));
     }
@@ -43,9 +43,9 @@ class _BPChartState extends State<BPChart> {
   }
 
   void onDataLabelRender(DataLabelRenderArgs m) {
-    int i = m.pointIndex;
-    CartesianSeriesRenderer<dynamic, dynamic> s = m.seriesRenderer;
-    var o = widget.list[i];
+    int i = m.pointIndex!;
+    CartesianSeries<dynamic, dynamic> s = m.seriesRenderer;
+    VitalSignsData o = widget.list[i];
     if (o.value1High != null && o.value1Low != null && s.name == 'Systolic') {
       double v1 = double.parse(o.value1High!);
       double v2 = double.parse(o.value1Low!);
@@ -88,7 +88,7 @@ class _BPChartState extends State<BPChart> {
   void onMarkerRender(MarkerRenderArgs m) {
     int i = m.pointIndex!;
     int j = m.seriesIndex!;
-    var o = widget.list[i];
+    VitalSignsData o = widget.list[i];
     if (o.value1High != null && o.value1Low != null && j == 0) {
       double v1 = double.parse(o.value1High!);
       double v2 = double.parse(o.value1Low!);
@@ -149,27 +149,22 @@ class _BPChartState extends State<BPChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Blood Pressure (mmHg)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -188,18 +183,16 @@ class _BPChartState extends State<BPChart> {
         ),
         axisLabelFormatter: axisLabelFormatter,
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'Blood Pressure (mmHg)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: true,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -210,7 +203,7 @@ class _BPChartState extends State<BPChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<BPData, String>>[
+      series: <ChartSeries<BPData, String>>[
         LineSeries<BPData, String>(
           dataSource: createData(),
           xValueMapper: (BPData m, _) => m.date,
@@ -249,7 +242,7 @@ class _BPChartState extends State<BPChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

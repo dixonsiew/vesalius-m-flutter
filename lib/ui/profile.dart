@@ -1,20 +1,24 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
+import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/auth_manager.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
 import 'package:vesalius_m_flutter/models/patient_data.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
+
+import 'profile/change_password.dart';
+import 'sign_in.dart';
 
 class Profile extends StatefulWidget {
 
-  static const String routeName = 'Profile';
+  static const String routeName = '/Profile';
 
   const Profile({Key? key}) : super(key: key);
 
@@ -22,7 +26,7 @@ class Profile extends StatefulWidget {
   State<Profile> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileState extends State<Profile> with AutomaticKeepAliveClientMixin<Profile> {
 
   bool isLoading = false;
   PatientDetails? patientDetails;
@@ -35,12 +39,12 @@ class _ProfileState extends State<Profile> {
 
   void load() async {
     await AuthManager.load();
-    var branchDetails = DataManager.branchDetails;
+    UserBranch? branchDetails = DataManager.branchDetails;
     try {
       setState(() {
         isLoading = true;
       });
-      var patientData = await getVesaliusPatientData(branchDetails!.branch!.branchId!, branchDetails.prn!);
+      PatientDetails? patientData = await getVesaliusPatientData(branchDetails!.branch!.branchId!, branchDetails.prn!);
       await DataManager.setPatientDetails(patientData);
       setState(() {
         patientDetails = patientData;
@@ -55,6 +59,10 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<bool> onSignOut() async {
+    return await showConfirmDialog('Are you sure you want to sign out?');
+  }
+
   Widget buildBackCard() {
     String s = '';
     if (patientDetails != null) {
@@ -63,11 +71,16 @@ class _ProfileState extends State<Profile> {
 
     return Stack(
       children: [
-        Image.asset(
-          'images/imgs/cardb.png',
+        Container(
           width: 300.0,
           height: 200.0,
-          fit: BoxFit.contain,
+          decoration: const BoxDecoration(
+            shape: BoxShape.rectangle,
+            image: DecorationImage(
+              image: AssetImage('images/imgs/cardb.png'),
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
         SizedBox(
           width: 300.0,
@@ -84,7 +97,7 @@ class _ProfileState extends State<Profile> {
                     child: SizedBox(
                       width: 100.0,
                       height: 100.0,
-                      child: QrImageView(
+                      child: QrImage(
                         data: s,
                         version: QrVersions.auto,
                       ),
@@ -97,9 +110,9 @@ class _ProfileState extends State<Profile> {
                       data: s, // Content
                       width: 105.0,
                       height: 60.0,
-                      style: const TextStyle(
-                        fontFamily: kBodyFont,
-                        fontSize: 16.0,
+                      style: kBodyTextStyle.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF4E4E4E),
                       ),
                     ),
                   ),
@@ -115,17 +128,22 @@ class _ProfileState extends State<Profile> {
   Widget buildFrontCard() {
     String s = '';
     if (patientDetails != null) {
-      var name = patientDetails!.name!;
+      Name name = patientDetails!.name!;
       s = '${name.title} ${name.firstName} ${name.middleName} ${name.lastName}';
     }
 
     return Stack(
       children: [
-        Image.asset(
-          'images/imgs/card.png',
+        Container(
           width: 300.0,
           height: 200.0,
-          fit: BoxFit.contain,
+          decoration: const BoxDecoration(
+            shape: BoxShape.rectangle,
+            image: DecorationImage(
+              image: AssetImage('images/imgs/card.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
         SizedBox(
           width: 280.0,
@@ -137,15 +155,13 @@ class _ProfileState extends State<Profile> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 85.0, left: 20.0, right: 20.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 85.0, left: 20.0, right: 20.0),
                     child: Text(
                       'PRN:',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: kBodyFont,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.0,
+                      style: kBodyTextStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF4E4E4E),
                       ),
                     ),
                   ),
@@ -153,10 +169,9 @@ class _ProfileState extends State<Profile> {
                     padding: const EdgeInsets.only(top: 85.0),
                     child: Text(
                       patientDetails == null ? '' : patientDetails!.prn!,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontFamily: kBodyFont,
-                        fontSize: 14.0,
+                      style: kBodyTextStyle.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF4E4E4E),
                       ),
                     ),
                   ),
@@ -167,25 +182,22 @@ class _ProfileState extends State<Profile> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20.0, right: 10.0),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0, right: 10.0),
                     child: Text(
                       'Name:',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: kBodyFont,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.0,
+                      style: kBodyTextStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF4E4E4E),
                       ),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       s,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontFamily: kBodyFont,
-                        fontSize: 14.0,
+                      style: kBodyTextStyle.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF4E4E4E),
                       ),
                     ),
                   ),
@@ -198,146 +210,118 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget buildLayer2xx() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 120.0, bottom: 120.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          FlipCard(
-            front: buildFrontCard(),
-            back: buildBackCard(),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(top: 15.0),
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                'Tap to flip the card',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontFamily: kBodyFont,
-                  fontStyle: FontStyle.italic,
-                  color: Color(0xFFC1C1C1),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget buildContent() {
+    if (isLoading) {
+      return Container();
+    }
 
-  Widget buildLayer1xx() {
-    return Container(
-      width: double.infinity,
-      height: 160.0,
-      color: kProfileBgColor,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0),
-            child: Image.asset(
-              'images/icon/page-header-icon/profile.png',
-              width: 65.0,
-              height: 50.0,
-              fit: BoxFit.contain,
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 20.0, top: 40.0),
-            child: Text(
-              'View Your Personal Info',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20.0,
-                fontFamily: kTitleFont,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    if (patientDetails == null) {
+      return Container();
+    }
 
-  Widget buildLayer2yy() {
-    var padding = MediaQuery.of(context).padding;
-
-    return Container(
-      height: MediaQuery.of(context).size.height - padding.top - kAppToolbarHeight - padding.bottom,
-      margin: const EdgeInsets.only(top: 160.0),
-      color: const Color(0xFFF5F5F5),
-    );
-  }
-
-  Widget buildLayer2() {
-    return Column(
+    return ListView(
+      shrinkWrap: true,
       children: [
         Padding(
-          padding: const EdgeInsets.only(right: 20.0, top: 20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Image.asset(
-                'images/icon/page-header-icon/profile.png',
-                width: 65.0,
-                height: 50.0,
-                fit: BoxFit.contain,
-              ),
-              const Text(
-                'View Your Personal Info',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20.0,
-                  fontFamily: kTitleFont,
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.only(left: 25.0, top: 45.0),
+          child: Text(
+            'Profile',
+            style: kMainTextStyle.copyWith(
+              fontSize: 24.0,
+              color: kMainColor,
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 40.0),
-          child: FlipCard(
-            front: buildFrontCard(),
-            back: buildBackCard(),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 15.0),
+          padding: const EdgeInsets.only(left: 37.0, right: 37.0, top: 21.0),
           child: Align(
             alignment: Alignment.center,
-            child: Text(
-              'Tap to flip the card',
-              style: TextStyle(
-                fontSize: 14.0,
-                fontFamily: kBodyFont,
-                fontStyle: FontStyle.italic,
-                color: Color(0xFFC1C1C1),
-              ),
+            child: FlipCard(
+              front: buildFrontCard(),
+              back: buildBackCard(),
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget buildLayer1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          width: double.infinity,
-          height: 160.0,
-          color: kProfileBgColor,
+        const SizedBox(height: 16.0),
+        Align(
+          alignment: Alignment.center,
+          child: Text(
+            'Tap to flip the card',
+            style: kBodyTextStyle.copyWith(
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFB1B1B1),
+            ),
+          ),
         ),
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFF5F5F5),
+        Padding(
+          padding:const EdgeInsets.only(left: 25.0, top: 32.0, bottom: 11.0),
+          child: Text(
+            'Account Settings',
+            style: kMainTextStyle.copyWith(
+              color: const Color(0xFFB1B1B1),
+            ),
+          ),
+        ),
+        InkWell(
+          onTap: () {
+            Get.toNamed(ChangePassword.routeName);
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 27.5, top: 18.0, bottom: 18.0),
+            child: Row(
+              children: [
+                Image.asset(
+                  'images/icon/lock.png',
+                  width: 20.0,
+                  height: 20.0,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(width: 22.5),
+                Text(
+                  'Change Password',
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Divider(
+          thickness: 1.0,
+          color: Color(0xFFE5E5E5),
+        ),
+        InkWell(
+          onTap: () async {
+            bool b = await onSignOut();
+            if (b) {
+              await DataManager.clear();
+              //AppointmentManager.stop();
+              //OneSignal.shared.removeExternalUserId();
+              Get.offAllNamed(SignIn.routeName);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 27.5, top: 18.0, bottom: 18.0),
+            child: Row(
+              children: [
+                Image.asset(
+                  'images/icon/logout.png',
+                  width: 20.0,
+                  height: 20.0,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(width: 22.5),
+                Text(
+                  'Logout',
+                  style: kBodyTextStyle.copyWith(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ],
@@ -346,30 +330,16 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kProfileBgColor),
-        backgroundColor: kProfileBgColor,
-        toolbarHeight: kAppToolbarHeight,
-        automaticallyImplyLeading: false,
-        leadingWidth: 100.0,
-        leading: const BackBtn(color: Colors.white),
-        elevation: 0.0,
-      ),
-      backgroundColor: kProfileBgColor,
-      body: ModalProgressHUD(
-        inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              buildLayer1(),
-              buildLayer2(),
-            ],
-          ),
-        ),
+    super.build(context);
+    return ModalProgressHUD(
+      inAsyncCall: isLoading,
+      progressIndicator: const AppActivityIndicator(),
+      child: Scrollbar(
+        child: buildContent(),
       ),
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -5,6 +5,7 @@ class AppointmentModel extends ChangeNotifier {
 
   FutureAppointment? _appointment;
   bool _hasAppointment = false;
+  int _appointmentCount = 0;
 
   void setAppointment(FutureAppointment? appmt) {
     _appointment = appmt;
@@ -12,7 +13,14 @@ class AppointmentModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAppointmentCount(int n) {
+    _appointmentCount = n;
+    notifyListeners();
+  }
+
   FutureAppointment? get appointment => _appointment;
 
   bool get hasAppointment => _hasAppointment;
+
+  int get appointmentCount => _appointmentCount;
 }

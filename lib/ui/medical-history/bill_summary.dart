@@ -8,12 +8,12 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class BillSummary extends StatelessWidget {
   
-  static const String routeName = 'BillSummary';
+  static const String routeName = '/BillSummary';
 
   final PatientVisit patientVisit;
 
   const BillSummary({
-    Key? key,
+    Key? key, 
     required this.patientVisit,
   }) : super(key: key);
 
@@ -85,7 +85,7 @@ class BillSummary extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
@@ -124,7 +124,7 @@ class BillInfo extends StatelessWidget {
   final NovaBill novaBill;
 
   const BillInfo({
-    Key? key,
+    Key? key, 
     required this.novaBill,
   }) : super(key: key);
 
@@ -148,7 +148,7 @@ class BillInfo extends StatelessWidget {
       return 'NA';
     }
 
-    var a = t.split(':');
+    List<String> a = t.split(':');
     int hour = int.parse(a[0]);
     int min = int.parse(a[1]);
     final now = DateTime.now();
@@ -166,50 +166,70 @@ class BillInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 3.0),
-        const Padding(
-          padding: EdgeInsets.only(top: 15.0, left: 30.0),
-          child: Text(
-            'Invoice No',
-            style: TextStyle(
-              color: Color(0xFF9E9E9E),
-              fontSize: 14.0,
-              fontFamily: kBodyFont,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            SizedBox(height: 3.0),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(top: 15.0, left: 30.0),
+                child: Text(
+                  'Invoice No',
+                  style: TextStyle(
+                    color: Color(0xFF9E9E9E),
+                    fontSize: 14.0,
+                    fontFamily: kBodyFont,
+                  ),
+                ),
+              ),
             ),
-          ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(top: 15.0),
+                child: Text(
+                  'Amount',
+                  style: TextStyle(
+                    color: Color(0xFF9E9E9E),
+                    fontSize: 14.0,
+                    fontFamily: kBodyFont,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 15.0, left: 30.0),
-          child: Text(
-            novaBill.invoiceNumber ?? '',
-            style: const TextStyle(
-              color: Color(0xFF777777),
-              fontSize: 16.0,
-              fontFamily: kBodyFont,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 15.0, left: 30.0),
+                child: Text(
+                  novaBill.invoiceNumber ?? '',
+                  style: const TextStyle(
+                    color: Color(0xFF777777),
+                    fontSize: 16.0,
+                    fontFamily: kBodyFont,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 40.0, left: 30.0),
-          child: Text(
-            'Amount',
-            style: TextStyle(
-              color: Color(0xFF9E9E9E),
-              fontSize: 14.0,
-              fontFamily: kBodyFont,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 15.0),
+                child: Text(
+                  "RM ${getAmount()}",
+                  style: const TextStyle(
+                    color: Color(0xFF777777),
+                    fontSize: 16.0,
+                    fontFamily: kBodyFont,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 15.0, left: 30.0),
-          child: Text(
-            "RM ${getAmount()}",
-            style: const TextStyle(
-              color: Color(0xFF777777),
-              fontSize: 16.0,
-              fontFamily: kBodyFont,
-            ),
-          ),
+          ],
         ),
         const Padding(
           padding: EdgeInsets.only(top: 40.0, left: 30.0),
@@ -229,6 +249,7 @@ class BillInfo extends StatelessWidget {
             style: const TextStyle(
               color: Color(0xFF777777),
               fontSize: 16.0,
+              fontFamily: kBodyFont,
             ),
           ),
         ),

@@ -2,26 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
 
 import 'appointment_free_slot.dart';
 
 class UpdateAppointment extends StatefulWidget {
 
-  static const String routeName = 'UpdateAppointment';
+  static const String routeName = '/UpdateAppointment';
 
   final FutureAppointment appointment;
 
   const UpdateAppointment({
-    Key? key,
+    Key? key, 
     required this.appointment
   }) : super(key: key);
 
@@ -43,14 +44,14 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
 
   void load() {
     if (widget.appointment.date != null && widget.appointment.date != '') {
-      var dt = DateFormat('d-MMM-y').parse(widget.appointment.date!);
+      DateTime dt = DateFormat('d-MMM-y').parse(widget.appointment.date!);
       setState(() {
         selectedDate = dt;
       });
     }
 
     if (widget.appointment.startTime != null && widget.appointment.startTime != '') {
-      var a = widget.appointment.startTime!.split(':');
+      List<String> a = widget.appointment.startTime!.split(':');
       int hour = int.parse(a[0]);
       int min = int.parse(a[1]);
       setState(() {
@@ -69,7 +70,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
   }
 
   String getSelectedTime() {
-    String s = widget.appointment.startTime!;
+    String? s = widget.appointment.startTime;
 
     if (selectedTime != null) {
       final now = DateTime.now();
@@ -79,7 +80,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
     }
 
     else {
-      var a = s.split(':');
+      List<String> a = s!.split(':');
       int h = int.parse(a[0]);
       int m = int.parse(a[1]);
       final now = DateTime.now();
@@ -100,26 +101,23 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
     }
 
     final minDate = DateTime(dt.year, dt.month, dt.day);
-    DateTime vminDate = minDate;
+    DateTime mminDate = minDate;
 
     if (selectedDate != null) {
       if (selectedDate!.isBefore(minDate)) {
-        vminDate = selectedDate!;
+        mminDate = selectedDate!;
       }
     }
 
     final calendarCarousel = CalendarCarousel<Event>(
       height: 420.0,
-      staticSixWeekFormat: true,
-      showOnlyCurrentMonthDate: true,
       headerTextStyle: const TextStyle(
         fontSize: 16.0,
+        fontFamily: kBodyFont,
         color: Color(0xFF8C8C8C),
       ),
-      todayBorderColor: kAppointmentBgColor,
-      todayButtonColor: kAppointmentBgColor,
-      selectedDayBorderColor: kHomeBgColor,
-      selectedDayButtonColor: kHomeBgColor,
+      selectedDayBorderColor: kAppointmentBgColor,
+      selectedDayButtonColor: kAppointmentBgColor,
       daysTextStyle: const TextStyle(
         fontFamily: kBodyFont,
         color: Colors.black,
@@ -132,19 +130,17 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
       ),
       weekdayTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: kHomeBgColor,
       ),
       weekendTextStyle: const TextStyle(
         fontFamily: kBodyFont,
-        color: kHomeBgColor,
       ),
       iconColor: Colors.black,
       daysHaveCircularBorder: false,
       thisMonthDayBorderColor: const Color(0xFF8C8C8C),
       selectedDateTime: selectedDate ?? minDate,
-      minSelectedDate: vminDate,
+      minSelectedDate: mminDate,
       onDayPressed: (date, events) {
-        var w = DateFormat('EEEE').format(date);
+        String w = DateFormat('EEEE').format(date);
         if (w != 'Sunday' && date.compareTo(minDate) >= 0) {
           setState(() {
             selectedDate = date;
@@ -157,7 +153,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
   }
 
   void onSelectTime() async {
-    var vselectedTime = await showTimePicker(
+    TimeOfDay? mselectedTime = await showTimePicker(
       initialTime: selectedTime ?? TimeOfDay.now(),
       initialEntryMode: TimePickerEntryMode.dial,
       context: context,
@@ -167,7 +163,7 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
           child: Theme(
             data: Theme.of(context).copyWith(
               colorScheme: const ColorScheme.light(
-                primary: kHomeBgColor,
+                primary: kAppointmentBgColor,
               ),
               timePickerTheme: TimePickerTheme.of(context).copyWith(
                 helpTextStyle: const TextStyle(
@@ -187,9 +183,9 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
         );
       }
     );
-    if (vselectedTime != null) {
+    if (mselectedTime != null) {
       setState(() {
-        selectedTime = vselectedTime;
+        selectedTime = mselectedTime;
       });
     }
   }
@@ -216,32 +212,26 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
       setState(() {
         isLoading = true;
       });
-      CustomDialog dlg = CustomDialog.of(context);
-      NavigatorState nav = Navigator.of(context);
-      var branchDetails = DataManager.branchDetails;
-      var lx = await getVesaliusNextAvailableSlot(branchDetails!.branch!.branchId!, branchDetails.prn!, m);
+      UserBranch? branchDetails = DataManager.branchDetails;
+      List<AvailableSlot> lx = await getVesaliusNextAvailableSlot(branchDetails!.branch!.branchId!, branchDetails.prn!, m);
       setState(() {
         isLoading = false;
       });
       if (lx.isEmpty) {
-        dlg.showCustomDialog('Failed', 'There is no available slot on your request date / time.', 'Dismiss');
+        showCustomDialog('Failed', 'There is no available slot on your request date / time.', 'Dismiss');
       }
 
       else {
-        nav.push(
-          MaterialPageRoute(
-            builder: (context) => AppointmentFreeSlot(
-              selectedDate: selectedDate,
-              selectedTime: selectedTime,
-              selectedDoctorName: widget.appointment.doctorName,
-              selectedSpecialtyName: widget.appointment.specialty,
-              selectedCaseType: widget.appointment.caseType,
-              isUpdate: true,
-              appointment: widget.appointment,
-              list: lx,
-            ),
-          )
-        );
+        Get.to(() => AppointmentFreeSlot(
+          selectedDate: selectedDate,
+          selectedTime: selectedTime,
+          selectedDoctorName: widget.appointment.doctorName,
+          selectedSpecialtyName: widget.appointment.specialty,
+          selectedCaseType: widget.appointment.caseType,
+          isUpdate: true,
+          appointment: widget.appointment,
+          list: lx,
+        ));
       }
     }
 
@@ -257,22 +247,31 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kAppointmentBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
         backgroundColor: kAppointmentBgColor,
         toolbarHeight: kAppToolbarHeight,
-        leadingWidth: 100.0,
-        leading: const BackBtn(color: Color(0xFF565758)),
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Appointment Details',
           style: TextStyle(
-            color: Color(0xFF565758),
+            color: Colors.white,
             fontSize: 18.0,
             fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.close,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Get.back();
+            }
+          ),
+        ],
       ),
       body: ModalProgressHUD(
         inAsyncCall: isLoading,
@@ -280,133 +279,212 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
         child: SafeArea(
           child: Scrollbar(
             child: SingleChildScrollView(
-              child: Container(
-                color: Colors.white,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'images/icon/stethoscope-0.png',
-                            width: 32.0,
-                            height: 32.0,
-                            fit: BoxFit.contain,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32.0,
+                          height: 32.0,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            image: DecorationImage(
+                              image: AssetImage('images/icon/stethoscope-0.png'),
+                              fit: BoxFit.contain,
+                            ),
                           ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 15.0, right: 18.0),
-                            child: Text(
-                              'Specialty',
-                              style: TextStyle(
-                                color: Color(0xFFB3B3B3),
-                                fontSize: 16.0,
-                                fontFamily: kBodyFont,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 15.0, right: 18.0),
+                          child: Text(
+                            'Specialty',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontFamily: kBodyFont,
+                              color: Color(0xFFB3B3B3),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                widget.appointment.specialty ?? '',
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontFamily: kBodyFont,
+                                  color: Color(0xFF808080),
+                                ),
+                                softWrap: false,
                               ),
                             ),
                           ),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Text(
-                                  widget.appointment.specialty!,
-                                  style: const TextStyle(
-                                    color: Color(0xFF808080),
-                                    fontSize: 16.0,
-                                    fontFamily: kBodyFont,
-                                  ),
-                                  softWrap: false,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32.0,
+                          height: 32.0,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            image: DecorationImage(
+                              image: AssetImage('images/icon/md-0.png'),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 15.0, right: 18.0),
+                          child: Text(
+                            'Doctor Name',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontFamily: kBodyFont,
+                              color: Color(0xFFB3B3B3),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                widget.appointment.doctorName ?? '',
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontFamily: kBodyFont,
+                                  color: Color(0xFF808080),
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0),
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'images/icon/md-0.png',
-                            width: 32.0,
-                            height: 32.0,
-                            fit: BoxFit.contain,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 15.0, right: 18.0),
-                            child: Text(
-                              'Doctor Name',
-                              style: TextStyle(
-                                color: Color(0xFFB3B3B3),
-                                fontSize: 16.0,
-                                fontFamily: kBodyFont,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Text(
-                                  widget.appointment.doctorName!,
-                                  style: const TextStyle(
-                                    color: Color(0xFF808080),
-                                    fontSize: 16.0,
-                                    fontFamily: kBodyFont,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  ),
 
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 15.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 25.0,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 15.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 25.0,
+                          height: 1.0,
+                          color: const Color(0xFF8C8C8C),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                          child: Text(
+                            'Select a preferred date',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontFamily: kBodyFont,
+                              color: Color(0xFF8C8C8C),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
                             height: 1.0,
                             color: const Color(0xFF8C8C8C),
                           ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                            child: Text(
-                              'Select a preferred date',
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+                    child: getCalendar(),
+                  ),
+
+                  Row(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(left: 37.0, right: 15.0),
+                        child: Icon(
+                          Icons.event,
+                          color: Color(0xFF8C8C8C),
+                          size: 40.0,
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Reschedule Date',
                               style: TextStyle(
-                                color: Color(0xFF8C8C8C),
                                 fontSize: 16.0,
                                 fontFamily: kBodyFont,
+                                color: Color(0xFF8C8C8C),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1.0,
-                              color: const Color(0xFF8C8C8C),
+                            Text(
+                              getDate(),
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontFamily: kBodyFont,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF8C8C8C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 25.0, bottom: 20.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 25.0,
+                          height: 1.0,
+                          color: const Color(0xFF8C8C8C),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                          child: Text(
+                            'Select a preferred time',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontFamily: kBodyFont,
+                              color: Color(0xFF8C8C8C),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            height: 1.0,
+                            color: const Color(0xFF8C8C8C),
+                          ),
+                        ),
+                      ],
                     ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-                      child: getCalendar(),
-                    ),
-
-                    Row(
+                  ),
+                  InkWell(
+                    onTap: () {
+                      onSelectTime();
+                    },
+                    child: Row(
                       children: [
                         const Padding(
                           padding: EdgeInsets.only(left: 37.0, right: 15.0),
                           child: Icon(
-                            Icons.event,
+                            Icons.schedule_outlined,
                             color: Color(0xFF8C8C8C),
                             size: 40.0,
                           ),
@@ -417,131 +495,58 @@ class _UpdateAppointmentState extends State<UpdateAppointment> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Reschedule Date',
+                                'Reschedule Time',
                                 style: TextStyle(
-                                  color: Color(0xFF8C8C8C),
                                   fontSize: 16.0,
                                   fontFamily: kBodyFont,
+                                  color: Color(0xFF8C8C8C),
                                 ),
                               ),
                               Text(
-                                getDate(),
+                                getSelectedTime(),
                                 style: const TextStyle(
-                                  color: Color(0xFF8C8C8C),
                                   fontSize: 16.0,
                                   fontFamily: kBodyFont,
                                   fontWeight: FontWeight.bold,
+                                  color: Color(0xFF8C8C8C),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 10.0, bottom: 20.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 25.0,
-                            height: 1.0,
-                            color: const Color(0xFF8C8C8C),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                            child: Text(
-                              'Select a preferred time',
-                              style: TextStyle(
-                                color: Color(0xFF8C8C8C),
-                                fontSize: 16.0,
-                                fontFamily: kBodyFont,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1.0,
-                              color: const Color(0xFF8C8C8C),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        onSelectTime();
-                      },
-                      child: Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 37.0, right: 15.0),
-                            child: Icon(
-                              Icons.schedule_outlined,
-                              color: Color(0xFF8C8C8C),
-                              size: 40.0,
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Reschedule Time',
-                                  style: TextStyle(
-                                    color: Color(0xFF8C8C8C),
-                                    fontSize: 16.0,
-                                    fontFamily: kBodyFont,
-                                  ),
-                                ),
-                                Text(
-                                  getSelectedTime(),
-                                  style: const TextStyle(
-                                    color: Color(0xFF8C8C8C),
-                                    fontSize: 16.0,
-                                    fontFamily: kBodyFont,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(right: 10.0),
-                            child: Icon(
-                              Icons.arrow_forward_ios_outlined,
-                              color: Color(0xFF8C8C8C),
-                              size: 32.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0, bottom: 15.0),
-                      child: RawMaterialButton(
-                        elevation: 5.0,
-                        fillColor: kHomeBgColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
-                        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                        child: const Text(
-                          'Check Available Slot',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontFamily: kBodyFont,
-                            fontWeight: FontWeight.bold,
+                        const Padding(
+                          padding: EdgeInsets.only(right: 10.0),
+                          child: Icon(
+                            Icons.arrow_forward_ios_outlined,
+                            color: Color(0xFF8C8C8C),
+                            size: 32.0,
                           ),
                         ),
-                        onPressed: () {
-                          onCheckAvailability();
-                        },
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 20.0, bottom: 20.0),
+                    child: RawMaterialButton(
+                      elevation: 5.0,
+                      fillColor: kAppointmentBgColor,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                      constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+                      child: const Text(
+                        'Check Available Slot',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.0,
+                          fontFamily: kBodyFont,
+                        ),
+                      ),
+                      onPressed: () {
+                        onCheckAvailability();
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vesalius_m_flutter/models/appointment_data.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/data_service.dart';
-import 'dart:developer' as developer;
 
 import 'appointment_model.dart';
 
@@ -26,16 +26,16 @@ class AppointmentManager {
 
   static Future<FutureAppointment?> getValidAppointment(num branchId) async {
     appointment = null;
-    AppointmentModel ctx = context.read<AppointmentModel>();
-    var branchDetails = DataManager.branchDetails;
+    UserBranch? branchDetails = DataManager.branchDetails;
     if (branchDetails != null) {
       try {
-        var lx = await getVesaliusFutureAppointments(branchId, branchDetails.prn!);
+        final ctx = context.read<AppointmentModel>();
+        List<FutureAppointment> lx = await getVesaliusFutureAppointments(branchId, branchDetails.prn!);
         if (lx.isNotEmpty) {
           appointment = lx.first;
           hasAppointment = true;
           ctx.setAppointment(appointment);
-          startAppointmentMonitor(appointment);
+          await startAppointmentMonitor(appointment!);
         }
 
         else {
@@ -44,8 +44,8 @@ class AppointmentManager {
       }
       
       catch (error) {
-        developer.log('AppointmentManager.getValidAppointment');
-        developer.log(error.toString());
+        print('AppointmentManager.getValidAppointment');
+        print(error);
       }
     }
     
@@ -56,7 +56,7 @@ class AppointmentManager {
     return appointment;
   }
 
-  static Future<void> startAppointmentMonitor(FutureAppointment? appointment) async {
+  static Future<void> startAppointmentMonitor(FutureAppointment appointment) async {
     if (tx != null) {
       tx!.cancel();
     }
@@ -64,21 +64,22 @@ class AppointmentManager {
     await _startAppointmentMonitor(appointment);
   }
 
-  static Future<void> _startAppointmentMonitor(FutureAppointment? vappointment) async {
-    appointment = vappointment;
+  static Future<void> _startAppointmentMonitor(FutureAppointment mappointment) async {
+    appointment = mappointment;
     await getAndUpdateAppointment();
     tx = Timer.periodic(const Duration(milliseconds: 2000000), (ti) async { // 2000000
       await getAndUpdateAppointment();
-      developer.log('AppointmentManager._startAppointmentMonitor');
+      print('AppointmentManager._startAppointmentMonitor');
+      print(appointment);
     });
   }
 
   static Future<void> getAndUpdateAppointment() async {
-    AppointmentModel ctx = context.read<AppointmentModel>();
-    var branchDetails = DataManager.branchDetails;
+    UserBranch? branchDetails = DataManager.branchDetails;
     if (branchDetails != null) {
       try {
-        var lx = await getVesaliusFutureAppointments(branchDetails.branch!.branchId!, branchDetails.prn!);
+        final ctx = context.read<AppointmentModel>();
+        List<FutureAppointment> lx = await getVesaliusFutureAppointments(branchDetails.branch!.branchId!, branchDetails.prn!);
         if (lx.isNotEmpty) {
           appointment = lx.first;
           hasAppointment = true;
@@ -94,27 +95,27 @@ class AppointmentManager {
       }
 
       catch (error) {
-        developer.log('AppointmentManager.getAndUpdateAppointment');
-        developer.log(error.toString());
+        print('AppointmentManager.getAndUpdateAppointment');
+        print(error);
       }
     }
   }
 
   static void stopAppointmentMonitor() async {
-    developer.log('AppointmentManager.stopAppointmentMonitor');
+    print('AppointmentManager.stopAppointmentMonitor');
     if (tx != null) {
       tx!.cancel();
     }
     
     appointment = null;
     hasAppointment = false;
-    AppointmentModel ctx = context.read<AppointmentModel>();
+    final ctx = context.read<AppointmentModel>();
     await DataManager.removeItem('appointment');
     ctx.setAppointment(null);
   }
 
-  static void start(BuildContext ctx) {
-    context = ctx;
+  static void start(BuildContext mcontext) {
+    context = mcontext;
   }
 
   static void stop() {

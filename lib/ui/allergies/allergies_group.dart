@@ -7,13 +7,13 @@ import 'package:vesalius_m_flutter/models/allergy.dart';
 
 class AllergiesGroup extends StatelessWidget {
 
-  static const String routeName = 'AllergiesGroup';
+  static const String routeName = '/AllergiesGroup';
 
   final String title;
   final List<Allergy> list;
 
   const AllergiesGroup({
-    Key? key,
+    Key? key, 
     required this.title,
     required this.list,
   }) : super(key: key);
@@ -29,7 +29,7 @@ class AllergiesGroup extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAllergiesBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kAllergiesBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kAllergiesBgColor,
         automaticallyImplyLeading: false,
@@ -70,7 +70,7 @@ class AllergiesGroupItem extends StatelessWidget {
   final Allergy allergy;
 
   const AllergiesGroupItem({
-    Key? key,
+    Key? key, 
     required this.allergy,
   }) : super(key: key);
 
@@ -160,6 +160,7 @@ class AllergiesGroupItem extends StatelessWidget {
               allergy.reaction == null || allergy.reaction == '' ? '-' : allergy.reaction!,
               style: const TextStyle(
                 fontSize: 20.0,
+                fontFamily: kBodyFont,
                 color: Color.fromARGB(255, 100, 100, 100),
               ),
             ),

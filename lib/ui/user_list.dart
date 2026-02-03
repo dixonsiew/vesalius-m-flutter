@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
 import 'package:vesalius_m_flutter/components/back_btn.dart';
@@ -14,7 +15,7 @@ import 'home.dart';
 
 class UserList extends StatefulWidget {
   
-  static const String routeName = 'User';
+  static const String routeName = '/User';
 
   const UserList({Key? key}) : super(key: key);
 
@@ -40,16 +41,15 @@ class _UserListState extends State<UserList> {
       setState(() {
         isLoading = true;
       });
-      NavigatorState nav = Navigator.of(context);
-      var vuserDetails = await DataManager.getUserDetails();
-      var lx = await StorageDataManager.getData();
+      UserDetails? muserDetails = await DataManager.getUserDetails();
+      List<String> lx = await StorageDataManager.getData();
       setState(() {
         list = lx;
-        userDetails = vuserDetails;
+        userDetails = muserDetails;
         isLoading = false;
       });
       if (lx.isEmpty) {
-        nav.pushNamedAndRemoveUntil(SignIn.routeName, (route) {
+        Get.offAllNamed(SignIn.routeName, predicate: (route) {
           if (route.settings.name == Home.routeName) {
             return true;
           }
@@ -67,19 +67,18 @@ class _UserListState extends State<UserList> {
   }
 
   void confirmDeleteUser(String email) async {
-    NavigatorState nav = Navigator.of(context);
     await StorageDataManager.delUser(email);
-    var lx = await StorageDataManager.getData();
+    List<String> lx = await StorageDataManager.getData();
     setState(() {
       list = lx;
     });
     if (lx.isEmpty) {
-      nav.popUntil(ModalRoute.withName(Home.routeName));
+      Get.until(ModalRoute.withName(Home.routeName));
     }
   }
 
   void onDeleteUser(String email) async {
-    bool b = await CustomDialog.of(context).showConfirmDialog('Confirm to Delete', 'Are you sure you want to delete this user from the list?', 'Cancel', 'Sure');
+    bool b = await showConfirmDialog00('Confirm to Delete', 'Are you sure you want to delete this user from the list?', 'Cancel', 'Sure');
     if (b) {
       confirmDeleteUser(email);
     }
@@ -88,16 +87,13 @@ class _UserListState extends State<UserList> {
   Widget getIcon(String email) {
     if (userDetails?.email == email) {
       if (!isDelete) {
-        return const Icon(
-          Icons.check,
-          color: kHomeBgColor,
-        );
+        return const Icon(Icons.check);
       }
 
       else {
-        return IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () => onDeleteUser(email),
+        return InkWell(
+          child: const Icon(Icons.delete),
+          onTap: () => onDeleteUser(email),
         );
       }
     }
@@ -108,9 +104,9 @@ class _UserListState extends State<UserList> {
       }
 
       else {
-        return IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () => onDeleteUser(email),
+        return InkWell(
+          child: const Icon(Icons.delete),
+          onTap: () => onDeleteUser(email),
         );
       }
     }
@@ -118,6 +114,7 @@ class _UserListState extends State<UserList> {
 
   Widget buildContent(String email) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -126,32 +123,23 @@ class _UserListState extends State<UserList> {
           ),
         ),
       ),
-      child: Material(
-        child: InkWell(
-          onTap: () {
-            Navigator.push(context,
-              MaterialPageRoute(
-                builder: (context) => SignIn(email: email)
-              )
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    email,
-                    style: const TextStyle(
-                      fontFamily: kBodyFont,
-                    ),
-                  ),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              child: Text(
+                email,
+                style: const TextStyle(
+                  fontFamily: kBodyFont,
                 ),
-                getIcon(email),
-              ],
+              ),
+              onTap: () {
+                Get.to(() => SignIn(email: email));
+              },
             ),
           ),
-        ),
+          getIcon(email),
+        ],
       ),
     );
   }
@@ -171,7 +159,7 @@ class _UserListState extends State<UserList> {
         title: const Text(
           'User',
           style: TextStyle(
-            color: kHomeBgColor,
+            color: kPrimaryColor,
             fontSize: 18.0,
             fontFamily: kTitleFont,
             fontWeight: FontWeight.bold,
@@ -181,7 +169,7 @@ class _UserListState extends State<UserList> {
           IconButton(
             icon: Icon(
               isDelete ? Icons.close : Icons.settings,
-              color: isDelete ? Colors.black : kHomeBgColor,
+              color: isDelete ? Colors.black : kPrimaryColor,
             ),
             onPressed: () {
               setState(() {

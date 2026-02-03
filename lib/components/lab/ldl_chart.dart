@@ -8,7 +8,7 @@ class LDLChart extends StatefulWidget {
   final List<LabData> list;
 
   const LDLChart({
-    Key? key,
+    Key? key, 
     required this.list,
   }) : super(key: key);
 
@@ -19,10 +19,10 @@ class LDLChart extends StatefulWidget {
 class _LDLChartState extends State<LDLChart> {
 
   List<LDLData> createData() {
-    var lx = widget.list;
+    List<LabData> lx = widget.list;
     List<LDLData> data = [];
     for (int i = 0; i < lx.length; i++) {
-      var m = lx[i];
+      LabData m = lx[i];
       double v1 = double.parse(m.resultValue!);
       data.add(LDLData(m.recordedDate!, v1));
     }
@@ -33,27 +33,22 @@ class _LDLChartState extends State<LDLChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.list.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'LDL (mmol/L)',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 102, 102, 102),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'No data to display',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontFamily: kTitleFont,
-                color: Color(0xFF585656),
+              style: kTitleTextStyle.copyWith(
+                fontSize: 14.0,
               ),
             ),
           ],
@@ -62,25 +57,23 @@ class _LDLChartState extends State<LDLChart> {
     }
 
     return SfCartesianChart(
-      primaryXAxis: const CategoryAxis(
+      primaryXAxis: CategoryAxis(
         arrangeByIndex: true,
         labelRotation: 25,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
-      title: const ChartTitle(
+      title: ChartTitle(
         text: 'LDL (mmol/L)',
-        textStyle: TextStyle(
+        textStyle: kTitleTextStyle.copyWith(
           fontSize: 14.0,
-          fontFamily: kTitleFont,
-          fontWeight: FontWeight.bold,
         ),
       ),
-      legend: const Legend(
+      legend: Legend(
         isVisible: false,
         position: LegendPosition.top,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: kBodyFont,
         ),
       ),
@@ -91,7 +84,7 @@ class _LDLChartState extends State<LDLChart> {
           fontFamily: kBodyFont,
         ),
       ),
-      series: <CartesianSeries<LDLData, String>>[
+      series: <ChartSeries<LDLData, String>>[
         LineSeries<LDLData, String>(
           dataSource: createData(),
           xValueMapper: (LDLData m, _) => m.date,
@@ -107,7 +100,7 @@ class _LDLChartState extends State<LDLChart> {
               fontFamily: kBodyFont, 
               fontStyle: FontStyle.normal, 
               fontWeight: FontWeight.normal, 
-              fontSize: 12,
+              fontSize: 12.0,
               color: Colors.white,
             ),
           ),

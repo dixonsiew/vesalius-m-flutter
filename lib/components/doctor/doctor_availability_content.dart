@@ -28,56 +28,47 @@ class _DoctorAvailabilityContentState extends State<DoctorAvailabilityContent> {
         String a = o.byAppointmentOnly ?? false ? '*' : '';
         String s = '${o.dayStartTime} - ${o.dayEndTime}$a';
         final w = Padding(
-          padding: const EdgeInsets.only(left: 10.0, top: 5.0),
+          padding: const EdgeInsets.symmetric(horizontal: 18.0),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 5.0,
-                height: 5.0,
-                margin: const EdgeInsets.only(right: 15.0, top: 8.0),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black,
-                ),
-              ),
-              Flexible(
-                child: SizedBox(
-                  width: 100.0,
-                  child: Text(
-                    o.dayOfTheWeek ?? '',
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                      fontFamily: kBodyFont,
-                      color: Color(0xFF4B4B4B),
-                    ),
+              Expanded(
+                child: Text(
+                  o.dayOfTheWeek ?? '',
+                  style: kTextStyle1.copyWith(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w400,
+                    color: kTextColor4,
                   ),
                 ),
               ),
               Expanded(
                 child: Text(
                   s,
-                  style: const TextStyle(
-                    fontSize: 16.0,
-                    fontFamily: kBodyFont,
-                    color: Color(0xFF4B4B4B),
+                  style: kTextStyle1.copyWith(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w400,
+                    color: kTextColor4,
                   ),
+                  textAlign: TextAlign.right,
                 ),
               ),
             ],
           ),
         );
         ls.add(w);
+        ls.add(const SizedBox(height: 10.0));
       }
 
       ls.add(
-        const Padding(
-          padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 5.0, bottom: 10.0),
+        Padding(
+          padding: const EdgeInsets.only(left: 18.0, right: 18.0, bottom: 20.0),
           child: Text(
             '*By Appointment Basis',
-            style: TextStyle(
-              fontSize: 14.0,
-              fontFamily: kBodyFont,
+            style: kTextStyle1.copyWith(
+              fontSize: 12.0,
+              fontWeight: FontWeight.w400,
+              color: kTextColor4,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -91,22 +82,21 @@ class _DoctorAvailabilityContentState extends State<DoctorAvailabilityContent> {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: const Text(
+      title: Text(
         'Available Hours',
-        style: TextStyle(
-          fontSize: 18.0,
-          fontFamily: kBodyFont,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF247CA1),
+        style: kTextStyle1.copyWith(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w600,
+          color: isAvailabilityExpanded ? kTextColor1 : kTextColor2,
         ),
       ),
-      iconColor: const Color(0xFF247CA1),
-      collapsedIconColor: const Color(0xFF247CA1),
+      iconColor: kTextColor1,
+      collapsedIconColor: kTextColor2,
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
-      children: buildAvailabilityList(),
       onExpansionChanged: (bool expanded) {
         setState(() => isAvailabilityExpanded = expanded);
       },
+      children: buildAvailabilityList(),
     );
   }
 }

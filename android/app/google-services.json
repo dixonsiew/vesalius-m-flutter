@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "490062653273",
+    "project_id": "vesalius-ihp",
+    "storage_bucket": "vesalius-ihp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490062653273:android:8418e0d055705650120e48",
+        "android_client_info": {
+          "package_name": "io.gms.nova.m.dev.cvs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "490062653273-4s1k1bdk7gkoagit14610078076jakkd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPwRYUtSJG11Sm0YsdWoRLEh-2AonKtFY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "490062653273-4s1k1bdk7gkoagit14610078076jakkd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

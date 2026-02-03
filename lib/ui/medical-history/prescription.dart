@@ -7,12 +7,12 @@ import 'package:vesalius_m_flutter/models/patient_data.dart';
 
 class Prescription extends StatefulWidget {
   
-  static const String routeName = 'Prescription';
+  static const String routeName = '/Prescription';
 
   final PatientVisit patientVisit;
 
   const Prescription({
-    Key? key,
+    Key? key, 
     required this.patientVisit,
   }) : super(key: key);
 
@@ -32,12 +32,12 @@ class _PrescriptionState extends State<Prescription> {
   }
 
   void load() {
-    var lx = widget.patientVisit.novaVisitPatientRxList ?? [];
+    List<NovaVisitPatientRx> lx = widget.patientVisit.novaVisitPatientRxList ?? [];
     for (int i = 0; i < lx.length; i++) {
       final o = lx[i];
       String s = o.doctorName ?? '';
       if (map.containsKey(s)) {
-        var ls = map[s]!;
+        List<NovaVisitPatientRx> ls = map[s]!;
         ls.add(o);
       }
 
@@ -73,7 +73,7 @@ class _PrescriptionState extends State<Prescription> {
       ),
     ];
     for (int i = 0; i < ls.length; i++) {
-      var o = ls[i];
+      NovaVisitPatientRx o = ls[i];
       lx.addAll([
         const Padding(
           padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 15.0),
@@ -115,6 +115,7 @@ class _PrescriptionState extends State<Prescription> {
             style: const TextStyle(
               color: Color(0xFF002E50),
               fontSize: 14.0,
+              fontFamily: kBodyFont,
             ),
           ),
         ),
@@ -203,7 +204,7 @@ class _PrescriptionState extends State<Prescription> {
     return Scaffold(
       appBar: AppBar(
         // brightness: Brightness.dark,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kMedicalRecordBgColor),
         toolbarHeight: kAppToolbarHeight,
         backgroundColor: kMedicalRecordBgColor,
         automaticallyImplyLeading: false,
