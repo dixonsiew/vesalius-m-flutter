@@ -70,7 +70,7 @@ class _DoctorState extends State<Doctor> {
       });
     }
 
-    on DioException catch (error) {
+    on DioError catch (error) {
       setState(() {
         isLoading = false;
       });
@@ -101,7 +101,7 @@ class _DoctorState extends State<Doctor> {
       });
     }
 
-    on DioException catch (error) {
+    on DioError catch (error) {
       setState(() {
         isLoading = false;
       });

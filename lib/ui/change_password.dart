@@ -78,11 +78,11 @@ class _ChangePasswordState extends State<ChangePassword> {
         nav.popUntil(ModalRoute.withName(Home.routeName));
       }
 
-      on DioException catch (error) {
+      on DioError catch (error) {
         setState(() {
           isLoading = false;
         });
-        if (error.type == DioExceptionType.badResponse && error.response?.statusCode == 417 &&
+        if (error.type == DioErrorType.badResponse && error.response?.statusCode == 417 &&
         s1 == s2) {
           dlg.showCustomDialog('Failed', 'New Password is not allowed to be the same with Old Password', 'Dismiss');
         }

@@ -106,11 +106,11 @@ class _SignInState extends State<SignIn> {
       }
     }
 
-    on DioException catch (error) {
+    on DioError catch (error) {
       setState(() {
         isLoading = false;
       });
-      if (error.type == DioExceptionType.badResponse && error.response?.statusCode == 401) {
+      if (error.type == DioErrorType.badResponse && error.response?.statusCode == 401) {
         dlg.showCustomDialog('Login Failed', 'Incorrect Email or Password', 'Dismiss');
       }
 

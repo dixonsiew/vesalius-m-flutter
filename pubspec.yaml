@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.31+32
+version: 1.0.68+69
 
 environment:
   sdk: ">=2.19.6 <3.0.0"
@@ -30,30 +30,30 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.4
-  modal_progress_hud_nsn: ^0.3.0
-  dio: ^5.2.0
+  modal_progress_hud_nsn: ^0.4.0
+  dio: ^5.1.2
   form_validator: ^2.1.1
   flip_card: ^0.7.0
   qr_flutter: ^4.0.0
   barcode_widget: ^2.0.1
   carousel_slider: ^4.0.0
-  shared_preferences: ^2.0.12
-  localstorage: ^4.0.0+1
+  shared_preferences: ^2.1.1
+  localstorage: ^4.0.1+2
   flutter_html: ^2.2.1
-  sqflite: ^2.0.2
+  sqflite: ^2.2.8+4
   intl: ^0.17.0
   date_format: ^2.0.4
   flutter_calendar_carousel: ^2.4.1
-  path_provider: ^2.0.8
+  path_provider: ^2.0.15
   open_filex: ^4.3.2
-  percent_indicator: ^4.2.2
+  percent_indicator: ^4.2.3
   provider: ^6.0.2
   progress_indicators: ^1.0.0
-  package_info_plus: ^3.1.2
+  package_info_plus: ^1.4.2
   path: ^1.8.2
   collection: ^1.17.0
   syncfusion_flutter_charts: ^21.2.4
-  url_launcher: ^6.0.18
+  url_launcher: ^6.1.11
   onesignal_flutter: ^3.2.7
   flutter_launcher_icons: ^0.11.0
 
@@ -94,12 +94,19 @@ flutter:
           weight: 700
         - asset: fonts/Roboto-Italic.ttf
           style: italic
-    - family: texgyreadventor
+    - family: Lato
       fonts:
-        - asset: fonts/texgyreadventor-regular.otf
-        - asset: fonts/texgyreadventor-bold.otf
+        - asset: fonts/Lato-Regular.ttf
+        - asset: fonts/Lato-Bold.ttf
           weight: 700
-        - asset: fonts/texgyreadventor-italic.otf
+        - asset: fonts/Lato-Italic.ttf
+          style: italic
+    - family: Mulish
+      fonts:
+        - asset: fonts/Mulish-Regular.ttf
+        - asset: fonts/Mulish-Bold.ttf
+          weight: 700
+        - asset: fonts/Mulish-Italic.ttf
           style: italic
 
   # To add assets to your application, add an assets section, like this:

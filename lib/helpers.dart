@@ -54,17 +54,17 @@ class CustomDialog {
     return CustomDialog._(context);
   }
 
-  void handleError(DioException error, void Function() onYes) async {
+  void handleError(DioError error, void Function() onYes) async {
     String msg = error.message ?? 'Unknown';
-    if (error.type == DioExceptionType.connectionTimeout) {
+    if (error.type == DioErrorType.connectionTimeout) {
       msg = 'Connection Timeout';
     }
 
-    else if (error.type == DioExceptionType.receiveTimeout) {
+    else if (error.type == DioErrorType.receiveTimeout) {
       msg = 'Receive Timeout';
     }
 
-    else if (error.type == DioExceptionType.badResponse) {
+    else if (error.type == DioErrorType.badResponse) {
       msg = 'Error occurred - ${error.response?.statusCode}';
     }
 

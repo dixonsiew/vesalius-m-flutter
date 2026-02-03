@@ -59,11 +59,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       dlg.showCustomDialog('Successful', m['successMessage'], 'Dismiss');
     }
 
-    on DioException catch (error) {
+    on DioError catch (error) {
       setState(() {
         isLoading = false;
       });
-      if (error.type == DioExceptionType.badResponse) {
+      if (error.type == DioErrorType.badResponse) {
         var mx = error.response?.data as Map;
         if (mx.containsKey('errorMessage')) {
           dlg.showCustomDialog('Failed', mx['errorMessage'], 'Dismiss');
