@@ -1,16 +1,28 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:form_validator/form_validator.dart';
+import 'package:barcode_scan2/barcode_scan2.dart' as bs;
+import 'package:get/get.dart';
+// import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:vesalius_m_flutter/components/app_shared.dart';
-import 'package:vesalius_m_flutter/components/bottom_red.dart';
-import 'package:vesalius_m_flutter/components/top_red.dart';
+import 'package:vesalius_m_flutter/components/inner_page.dart';
+import 'package:vesalius_m_flutter/components/required_label.dart';
 import 'package:vesalius_m_flutter/constants.dart';
+import 'package:vesalius_m_flutter/controllers/sign_up_ctrl.dart';
 import 'package:vesalius_m_flutter/helpers.dart';
+import 'package:vesalius_m_flutter/models/auth_manager.dart';
+import 'package:vesalius_m_flutter/models/country_data.dart';
 import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/models/user_details.dart';
 import 'package:vesalius_m_flutter/services/auth_service.dart';
+import 'package:vesalius_m_flutter/services/common_service.dart';
+import 'package:vesalius_m_flutter/ui/sign-in/verify_email_code.dart';
 
+import 'select_country.dart';
+import 'select_tel.dart';
 import 'sign_in.dart';
 
 extension EmailValidator on String {
@@ -23,8 +35,6 @@ extension EmailValidator on String {
 
 class SignUp extends StatefulWidget {
 
-  static const String routeName = 'SignUp';
-
   const SignUp({super.key});
 
   @override
@@ -33,400 +43,1325 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
 
-  bool valid = false;
-  bool isLoading = false;
+  String playerId = '';
   DateTime? dobdt;
-
+  late final TextEditingController txtprn;
+  late final TextEditingController txtfullname;
+  late final TextEditingController txtic;
+  late final TextEditingController txtdob;
+  late final TextEditingController txtemail;
+  late final TextEditingController txtpwd;
+  late final TextEditingController txtcfmpwd;
+  late final TextEditingController txtcontact1;
+  late final TextEditingController txtcontact2;
+  late final TextEditingController txtbarcode;
   final formKey = GlobalKey<FormState>();
-  final txtfullname = TextEditingController();
-  final txtdob = TextEditingController();
-  final txtic = TextEditingController();
-  final txtemail = TextEditingController();
+
+  final SignUpCtrl ctrl = Get.put(SignUpCtrl());
+
+  static final _possibleFormats = bs.BarcodeFormat.values.toList()
+    ..removeWhere((e) => e == bs.BarcodeFormat.unknown);
+  List<bs.BarcodeFormat> selectedFormats = [..._possibleFormats];
+
+  @override
+  void initState() {
+    super.initState();
+    txtprn = TextEditingController();
+    txtfullname = TextEditingController();
+    txtic = TextEditingController();
+    txtdob = TextEditingController();
+    txtemail = TextEditingController();
+    txtpwd = TextEditingController();
+    txtcfmpwd = TextEditingController();
+    txtcontact1 = TextEditingController();
+    txtcontact2 = TextEditingController();
+    txtbarcode = TextEditingController();
+    initPlatformState();
+  }
+
+  @override
+  void dispose() {
+    txtprn.dispose();
+    txtfullname.dispose();
+    txtic.dispose();
+    txtdob.dispose();
+    txtemail.dispose();
+    txtpwd.dispose();
+    txtcfmpwd.dispose();
+    txtcontact1.dispose();
+    txtcontact2.dispose();
+    txtbarcode.dispose();
+    super.dispose();
+  }
+
+  void initPlatformState() async {
+    playerId = await AuthManager.instance.getPlayerId();
+  }
+
+  void loadCountry() async {
+    try {
+      if (ctrl.countryList.isEmpty) {
+        ctrl.setIsLoading(true);
+        final lx = await CommonService.getCountries();
+        lx.sort((a, b) {
+          return a.countryName.toLowerCase().compareTo(b.countryName.toLowerCase());
+        });
+        final cx1 = lx.firstWhereOrNull((x) => x.countryName.toLowerCase() == 'malaysia');
+        final cx2 = lx.firstWhereOrNull((x) => x.countryName.toLowerCase() == 'singapore');
+        final cx3 = lx.firstWhereOrNull((x) => x.countryName.toLowerCase() == 'indonesia');
+        if (cx3 != null) {
+          lx.removeWhere((x) => x.countryName.toLowerCase() == 'indonesia');
+          lx.insert(0, cx3);
+        }
+
+        if (cx2 != null) {
+          lx.removeWhere((x) => x.countryName.toLowerCase() == 'singapore');
+          lx.insert(0, cx2);
+        }
+
+        if (cx1 != null) {
+          lx.removeWhere((x) => x.countryName.toLowerCase() == 'malaysia');
+          lx.insert(0, cx1);
+        }
+
+        ctrl.setCountryList(lx);
+        ctrl.setIsLoading(false);
+      }
+
+      final c = await Get.to<Country?>(() => SelectCountry(selected: ctrl.selectedCountry, list: ctrl.countryList));
+      ctrl.setSelectedCountry(c);
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+
+    on DioException catch (error) {
+      ctrl.setIsLoading(false);
+      handleLoadError(error, loadCountry);
+    }
+
+    catch (error) {
+      ctrl.setIsLoading(false);
+      showCustomDialog('Error', error.toString(), 'Dismiss');
+    }
+  }
+
+  void loadTel() async {
+    try {
+      if (ctrl.telList.isEmpty) {
+        ctrl.setIsLoading(true);
+        final lx = await CommonService.getTelCountries();
+        ctrl.setTelList(lx);
+        ctrl.setIsLoading(false);
+      }
+
+      final c = await Get.to<CountryTel?>(() => SelectTel(selected: ctrl.selectedTel, list: ctrl.telList));
+      ctrl.setSelectedTel(c);
+      txtcontact1.text = c?.telCode ?? '';
+      validate(txtcontact1.text);
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+
+    on DioException catch (error) {
+      ctrl.setIsLoading(false);
+      handleLoadError(error, loadTel);
+    }
+
+    catch (error) {
+      ctrl.setIsLoading(false);
+      showCustomDialog('Error', error.toString(), 'Dismiss');
+    }
+  }
+
+  Future<void> scanBarcode() async {
+    final result = await bs.BarcodeScanner.scan(
+      options: bs.ScanOptions(
+        strings: {
+          'cancel': 'Cancel',
+          'flash_on': 'Flash on',
+          'flash_off': 'Flash off',
+        },
+        restrictFormat: selectedFormats,
+        useCamera: 0,
+        autoEnableFlash: false,
+        android: const bs.AndroidOptions(
+          aspectTolerance: 0.00,
+          useAutoFocus: true,
+        ),
+      ),
+    );
+    txtbarcode.text = result.rawContent;
+    // final bc = await Get.to<String?>(() => BarcodeScan());
+    // if (bc != null) {
+    //   txtbarcode.text = bc;
+    // }
+    
+    // String barcodeScanRes;
+    // try {
+    //   barcodeScanRes = await FlutterBarcodeScanner.scanBarcode('#ff6666', 'Cancel', true, ScanMode.BARCODE);
+    //   txtbarcode.text = barcodeScanRes;
+    // } on PlatformException {
+    //   showCustomDialog('Failed', 'Failed to get platform version.', 'Dismiss');
+    // }
+  }
 
   void validate(String s) {
     bool b = formKey.currentState!.validate();
 
     if (s.isEmpty) {
-      setState(() {
-        valid = false;
-      });
+      ctrl.setIsValid(false);
     }
 
     else {
-      setState(() {
-        valid = b;
-      });
-    }
-  }
-
-  void onSignUp() async {
-    final dlg = CustomDialog.of(context);
-    try {
-      setState(() {
-        isLoading = true;
-      });
-      var branchDetails = DataManager.branchDetails;
-      num branchId = branchDetails == null ? 1 : branchDetails.branch!.branchId!;
-      var m = await signUp(branchId, txtdob.text, txtemail.text, txtfullname.text, txtic.text);
-      setState(() {
-        isLoading = false;
-      });
-      dlg.showCustomDialog('Successful', m['successMessage'], 'Dismiss');
-    }
-
-    on DioException catch (error) {
-      setState(() {
-        isLoading = false;
-      });
-      if (error.type == DioExceptionType.badResponse) {
-        var mx = error.response?.data as Map;
-        if (mx.containsKey('errorMessage')) {
-          dlg.showCustomDialog('Failed', mx['errorMessage'], 'Dismiss');
+      if (ctrl.signUpOpt == SignUpOpt.email) {
+        String s1 = txtpwd.text;
+        String s2 = txtcfmpwd.text;
+        if (s1.isNotEmpty && s2.isNotEmpty && s1 == s2) {
+          ctrl.setIsValid(true & b);
         }
 
-        else if (mx.containsKey('message')) {
-          dlg.showCustomDialog('Failed', mx['message'], 'Dismiss');
-        }
-        
-        else {
-          dlg.showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
+        else if (s1.isNotEmpty && s2.isNotEmpty && s1 != s2) {
+          ctrl.setIsValid(false);
         }
       }
 
       else {
-        dlg.showCustomDialog('Failed', 'Sign Up failed', 'Dismiss');
+        ctrl.setIsValid(b);
+      }
+    }
+  }
+
+  void showSuccess(String type) async {
+    String ms = type == 'email' ? 'The verification code has been sent to your email.\nPlease check your email.' : 'Please proceed to sign in';
+    await Get.dialog(AlertDialog(
+      scrollable: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      backgroundColor: Colors.white,
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'images/icon/tick.png',
+              width: 40.0,
+              height: 40.0,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(height: 16.0),
+            Text(
+              'Your account is created',
+              style: kTextStyle1.copyWith(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: kTextColor1,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              ms,
+              style: kTextStyle1.copyWith(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w400,
+                color: kTextColor6,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16.0),
+            AppElevatedButton(
+              text: 'Next',
+              onPressed: () {
+                Get.back();
+                if (type == 'email') {
+                  Get.to(() => VerifyEmailCode(
+                    type: 'verify-email-signup',
+                    email: txtemail.text,
+                  ));
+                }
+                
+                else {
+                  Get.offAll(() => const SignIn());
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  Future<bool> showConfirm() async {
+    return await Get.dialog(AlertDialog(
+      scrollable: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      backgroundColor: Colors.white,
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Please ensure that all information provided matches your registered hospital records.',
+              style: kTextStyle1.copyWith(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: kPrimaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24.0),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Get.back(result: false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: kTextColor2,
+                      backgroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48.0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                      side: const BorderSide(
+                        color: Color(0xFFDBDBDB),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: kTextStyle1.copyWith(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 18.0),
+                Expanded(
+                  child: AppElevatedButton(
+                    text: 'Proceed',
+                    onPressed: () => Get.back(result: true),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    )) ?? false;
+  }
+
+  void onSignUpMobile() async {
+    try {
+      String hp2 = txtcontact2.text.trimFirstZero();
+      String mobile = '${txtcontact1.text}$hp2';
+      ctrl.setIsLoading(true);
+      UserBranch? branchDetails = DataManager.instance.branchDetails;
+      num branchId = branchDetails == null ? 1 : branchDetails.branch!.branchId!;
+      await AdminService.signUpV2(branchId, txtprn.text, txtdob.text, mobile, '', txtfullname.text, txtic.text, '***', playerId, 1);
+      AuthManager.instance.isFirstTimeLogin = true;
+      AuthManager.instance.isFirstTimeBiometric = true;
+      await DataManager.instance.write('isFirstTimeLogin', '1');
+      await DataManager.instance.write('isFirstTimeBiometric', '1');
+      await DataManager.instance.remove('__biometric-username__');
+      await DataManager.instance.remove('__biometric-uuid__');
+      await DataManager.instance.removeItem('biometric');
+      await DataManager.instance.write('signinType', '1');
+      await DataManager.instance.write('contact1', txtcontact1.text);
+      await DataManager.instance.write('contact2', hp2);
+      ctrl.setIsLoading(false);
+      showSuccess('mobile');
+      
+      // Get.to(() => VerifyOTP(
+      //   type: 'verify-mobile-signup',
+      //   mobile: mobile,
+      //   contact1: txtcontact1.text,
+      //   contact2: hp2,
+      // ));
+    }
+
+    on DioException catch (error) {
+      ctrl.setIsLoading(false);
+      if (error.type == DioExceptionType.badResponse) {
+        final mx = error.response?.data as Map;
+        if (mx.containsKey('errorMessage')) {
+          showCustomDialog('Error', mx['errorMessage'], 'Dismiss');
+        }
+
+        else if (mx.containsKey('message')) {
+          showCustomDialog('Error', mx['message'], 'Dismiss');
+        }
+        
+        else {
+          showCustomDialog('Error', kError, 'Dismiss');
+        }
+      }
+
+      else {
+        showCustomDialog('Error', kError, 'Dismiss');
+      }
+    }
+
+    catch (_) {
+      ctrl.setIsLoading(false);
+      showCustomDialog('Error', kError, 'Dismiss');
+    }
+  }
+
+  void onSignUpEmail() async {
+    try {
+      String s2 = txtpwd.text;
+      String s3 = txtcfmpwd.text;
+    
+      if (s2 != s3) {
+        showCustomDialog('Error', 'Password does not match with confirm password', 'Dismiss');
+        return;
+      }
+      
+      ctrl.setIsLoading(true);
+      UserBranch? branchDetails = DataManager.instance.branchDetails;
+      num branchId = branchDetails == null ? 1 : branchDetails.branch!.branchId!;
+      await AdminService.signUpV2(branchId, txtprn.text, txtdob.text, '', txtemail.text, txtfullname.text, txtic.text, txtpwd.text, playerId, 2);
+      AuthManager.instance.isFirstTimeLogin = true;
+      AuthManager.instance.isFirstTimeBiometric = true;
+      await DataManager.instance.write('isFirstTimeLogin', '1');
+      await DataManager.instance.write('isFirstTimeBiometric', '1');
+      await DataManager.instance.remove('__biometric-username__');
+      await DataManager.instance.remove('__biometric-uuid__');
+      await DataManager.instance.removeItem('biometric');
+      await DataManager.instance.write('signinType', '2');
+      await DataManager.instance.write('username', txtemail.text);
+      ctrl.setIsLoading(false);
+      showSuccess('email');
+    }
+
+    on DioException catch (error) {
+      ctrl.setIsLoading(false);
+      if (error.type == DioExceptionType.badResponse) {
+        final mx = error.response?.data as Map;
+        if (mx.containsKey('errorMessage')) {
+          showCustomDialog('Error', mx['errorMessage'], 'Dismiss');
+        }
+
+        else if (mx.containsKey('message')) {
+          showCustomDialog('Error', mx['message'], 'Dismiss');
+        }
+        
+        else {
+          showCustomDialog('Error', kError, 'Dismiss');
+        }
+      }
+
+      else {
+        showCustomDialog('Error', kError, 'Dismiss');
+      }
+    }
+
+    catch (_) {
+      ctrl.setIsLoading(false);
+      showCustomDialog('Error', kError, 'Dismiss');
+    }
+  } 
+
+  void onSubmit() async {
+    bool b = await showConfirm();
+    if (b) {
+      if (ctrl.signUpOpt == SignUpOpt.email) {
+        onSignUpEmail();
+      }
+      
+      else {
+        onSignUpMobile();
       }
     }
   }
 
   Widget buildForm() {
-    var padding = MediaQuery.of(context).padding;
-
-    return SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height - padding.top - padding.bottom,
-        color: Colors.white,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const TopRed(),
-            const BottomRed(),
-
-            Stack(
-              alignment: AlignmentDirectional.topEnd,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: kPrimaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            Center(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 72.0,
-                      height: 72.0,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        image: DecorationImage(
-                          image: AssetImage('images/imgs/nova.png'),
-                          fit: BoxFit.contain,
+    return Stack(
+      children: [
+        Form(
+          key: formKey,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 130.0),
+            child: Scrollbar(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 25.0),
+                      Text(
+                        'Note: Fields marked with an asterisk (*) are mandatory',
+                        style: kTextStyle1.copyWith(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w600,
+                          color: kTextColor3,
                         ),
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-                      child: Text(
-                        'Enter your personal details',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 24.0,
-                          fontFamily: kTitleFont,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(height: 8.0),
+                      const ReqLbl(s: 'PRN'),
+                      const SizedBox(height: 5.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: kBgColor2.withValues(alpha: 0.1),
+                              offset: const Offset(0.0, 4.0),
+                              blurRadius: 4.0,
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('Fullname is required').minLength(1, 'Fullname is required').build(),
-                        controller: txtfullname,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Fullname',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
+                        child: TextFormField(
+                          autovalidateMode: AutovalidateMode.always,
+                          onChanged: validate,
+                          validator: ValidationBuilder(requiredMessage: '').required().minLength(1, '').build(),
+                          controller: txtprn,
+                          cursorColor: kTextColor1,
+                          style: const TextStyle(
                             fontFamily: kBodyFont,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            color: kTextColor1,
                           ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.account_circle,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.all(15.0),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'xx-xxxxxx',
+                            hintStyle: kTextStyle1.copyWith(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w400,
+                              color: kTextColor5,
+                            ),
+                            errorStyle: const TextStyle(
+                              fontFamily: kBodyFont,
+                              color: kTextColor3,
+                            ),
+                            enabledBorder: kEnabledBorder,
+                            focusedBorder: kFocusedBorder,
+                            errorBorder: kErrorBorder,
+                            focusedErrorBorder: kFocusedErrorBorder,
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('NRIC / Passport is required').minLength(1, 'NRIC / Passport is required').build(),
-                        controller: txtic,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
+                      const SizedBox(height: 24.0),
+                      const ReqLbl(s: 'Full Name'),
+                      const SizedBox(height: 5.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: kBgColor2.withValues(alpha: 0.1),
+                              offset: const Offset(0.0, 4.0),
+                              blurRadius: 4.0,
+                            ),
+                          ],
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'NRIC / Passport',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
+                        child: TextFormField(
+                          autovalidateMode: AutovalidateMode.always,
+                          onChanged: validate,
+                          validator: ValidationBuilder(requiredMessage: '').required().minLength(1, '').build(),
+                          controller: txtfullname,
+                          cursorColor: kTextColor1,
+                          style: const TextStyle(
                             fontFamily: kBodyFont,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            color: kTextColor1,
                           ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.contacts,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.all(15.0),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'e.g.John Smith',
+                            hintStyle: kTextStyle1.copyWith(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w400,
+                              color: kTextColor5,
+                            ),
+                            errorStyle: const TextStyle(
+                              fontFamily: kBodyFont,
+                              color: kTextColor3,
+                            ),
+                            enabledBorder: kEnabledBorder,
+                            focusedBorder: kFocusedBorder,
+                            errorBorder: kErrorBorder,
+                            focusedErrorBorder: kFocusedErrorBorder,
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        onTap: () async {
-                          DateTime? dob = await showDatePicker(
-                            context: context,
-                            initialDate: dobdt ?? DateTime.now(),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now(),
-                            locale: const Locale('en', 'AU'),
-                            fieldHintText: 'DD/MM/YYYY',
-                            builder: (context, child) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  colorScheme: const ColorScheme.light(
-                                    primary: kPrimaryColor,
+                      //const SizedBox(height: 8.0),
+                      Text(
+                        'As per NRIC/Passport and registered in hospital',
+                        style: kTextStyle1.copyWith(
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF0000FF),
+                        ),
+                      ),
+                      const SizedBox(height: 20.0),
+                      const ReqLbl(s: 'NRIC / Passport / Birth Cert'),
+                      const SizedBox(height: 5.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: kBgColor2.withValues(alpha: 0.1),
+                              offset: const Offset(0.0, 4.0),
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          autovalidateMode: AutovalidateMode.always,
+                          onChanged: validate,
+                          validator: ValidationBuilder(requiredMessage: '').required().minLength(1, '').build(),
+                          controller: txtic,
+                          cursorColor: kTextColor1,
+                          style: const TextStyle(
+                            fontFamily: kBodyFont,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            color: kTextColor1,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.all(15.0),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: '',
+                            hintStyle: kTextStyle1.copyWith(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w400,
+                              color: kTextColor5,
+                            ),
+                            errorStyle: const TextStyle(
+                              fontFamily: kBodyFont,
+                              color: kTextColor3,
+                            ),
+                            enabledBorder: kEnabledBorder,
+                            focusedBorder: kFocusedBorder,
+                            errorBorder: kErrorBorder,
+                            focusedErrorBorder: kFocusedErrorBorder,
+                          ),
+                        ),
+                      ),
+                      //const SizedBox(height: 8.0),
+                      Text(
+                        'As per NRIC/Passport and registered in hospital',
+                        style: kTextStyle1.copyWith(
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF0000FF),
+                        ),
+                      ),
+                      const SizedBox(height: 24.0),
+                      const ReqLbl(s: 'Date of Birth'),
+                      const SizedBox(height: 5.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: kBgColor2.withValues(alpha: 0.1),
+                              offset: const Offset(0.0, 4.0),
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                          onTap: () async {
+                            DateTime? dob = await showDatePicker(
+                              context: context,
+                              initialDate: dobdt == null ? DateTime.now() : dobdt!,
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now(),
+                              locale: const Locale('en', 'AU'),
+                              fieldHintText: 'DD/MM/YYYY',
+                              helpText: '',
+                              confirmText: 'SELECT DATE',
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: kPrimaryColor,
+                                    ),
+                                    dialogTheme: DialogTheme(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30.0),
+                                      ),
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              }
+                            );
+                            if (dob != null) {
+                              String dobDay = '${dob.day}';
+                              dobDay = dobDay.padLeft(2, '0');
+                              String dobMonth = '${dob.month}';
+                              dobMonth = dobMonth.padLeft(2, '0');
+                              txtdob.text = '$dobDay/$dobMonth/${dob.year}';
+                              dobdt = DateTime(dob.year, dob.month, dob.day);
+                              validate(txtdob.text);
+                            }
+                          },
+                          autovalidateMode: AutovalidateMode.always,
+                          onChanged: validate,
+                          validator: ValidationBuilder(requiredMessage: '').required().minLength(10, '').build(),
+                          controller: txtdob,
+                          readOnly: true,
+                          showCursor: true,
+                          cursorColor: kTextColor1,
+                          style: const TextStyle(
+                            fontFamily: kBodyFont,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            color: kTextColor1,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.all(15.0),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'DOB (DD/MM/YYYY)',
+                            hintStyle: kTextStyle1.copyWith(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w400,
+                              color: kTextColor5,
+                            ),
+                            errorStyle: const TextStyle(
+                              fontFamily: kBodyFont,
+                              color: kTextColor3,
+                            ),
+                            suffixIcon: const Icon(
+                              Icons.event,
+                              color: kTextColor1,
+                            ),
+                            enabledBorder: kEnabledBorder,
+                            focusedBorder: kFocusedBorder,
+                            disabledBorder: kEnabledBorder,
+                            errorBorder: kErrorBorder,
+                            focusedErrorBorder: kFocusedErrorBorder,
+                          ),
+                        ),
+                      ),
+                      //const SizedBox(height: 8.0),
+                      Text(
+                        'As per registered in hospital',
+                        style: kTextStyle1.copyWith(
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF0000FF),
+                        ),
+                      ),
+                      const SizedBox(height: 24.0),
+          
+                      Text(
+                        'Sign In Method',
+                        style: kTextStyle1.copyWith(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w600,
+                          color: kTextColor1,
+                        ),
+                      ),
+                      const SizedBox(height: 5.0),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Obx(() => 
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  border: Border.all(color: ctrl.signUpOpt == SignUpOpt.mobile ? kTextColor1 : const Color(0xFFDBDBDB).withValues(alpha: 0.45)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFDBDBDB).withValues(alpha: 0.3),
+                                      blurRadius: 8.0,
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      ctrl.setSignUpOpt(SignUpOpt.mobile);
+                                      Future.delayed(const Duration(milliseconds: 100), () {
+                                        validate(txtcontact1.text);
+                                        validate(txtcontact2.text);
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                                      child: Text(
+                                        'Mobile Number',
+                                        style: kTextStyle1.copyWith(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w400,
+                                          color: ctrl.signUpOpt == SignUpOpt.mobile ? kTextColor1 : kTextColor2,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                child: child!,
-                              );
-                            }
-                          );
-                          if (dob != null) {
-                            String dobDay = '${dob.day}';
-                            dobDay = dobDay.padLeft(2, '0');
-                            String dobMonth = '${dob.month}';
-                            dobMonth = dobMonth.padLeft(2, '0');
-                            txtdob.text = '$dobDay/$dobMonth/${dob.year}';
-                            dobdt = DateTime(dob.year, dob.month, dob.day);
-                          }
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('DOB is required').minLength(10, 'DOB is required').build(),
-                        controller: txtdob,
-                        readOnly: true,
-                        showCursor: true,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'DOB (DD/MM/YYYY)',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
+                              ),
+                            ),
                           ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
+                          const SizedBox(width: 8.0),
+                          Expanded(
+                            child: Obx(() =>
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  border: Border.all(color: ctrl.signUpOpt == SignUpOpt.email ? kTextColor1 : const Color(0xFFDBDBDB).withValues(alpha: 0.45)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFDBDBDB).withValues(alpha: 0.3),
+                                      blurRadius: 8.0,
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      ctrl.setSignUpOpt(SignUpOpt.email);
+                                      Future.delayed(const Duration(milliseconds: 100), () {
+                                        validate(txtemail.text);
+                                        validate(txtpwd.text);
+                                        validate(txtcfmpwd.text);
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                                      child: Text(
+                                        'Email Address',
+                                        style: kTextStyle1.copyWith(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w400,
+                                          color: ctrl.signUpOpt == SignUpOpt.email ? kTextColor1 : kTextColor2,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          prefixIcon: Icon(
-                            Icons.event,
-                            color: Color(0xFF929292),
+
+                          /* Obx(() =>
+                            Radio<SignUpOpt>(
+                              value: SignUpOpt.mobile,
+                              groupValue: ctrl.signUpOpt,
+                              activeColor: kPrimaryColor,
+                              onChanged: (value) {
+                                ctrl.setSignUpOpt(value);
+                                Future.delayed(const Duration(milliseconds: 100), () {
+                                  validate(txtcontact1.text);
+                                  validate(txtcontact2.text);
+                                });
+                              },
+                            ),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                          Expanded(
+                            child: Text(
+                              'Mobile Number',
+                              style: kTextStyle1.copyWith(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor1,
+                              ),
+                            ),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                          Obx(() =>
+                            Radio<SignUpOpt>(
+                              value: SignUpOpt.email,
+                              groupValue: ctrl.signUpOpt,
+                              activeColor: kPrimaryColor,
+                              onChanged: (value) {
+                                ctrl.setSignUpOpt(value);
+                                Future.delayed(const Duration(milliseconds: 100), () {
+                                  validate(txtemail.text);
+                                  validate(txtpwd.text);
+                                  validate(txtcfmpwd.text);
+                                });
+                              },
+                            ),
                           ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                        ),
+                          Expanded(
+                            child: Text(
+                              'Email Address',
+                              style: kTextStyle1.copyWith(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor1,
+                              ),
+                            ),
+                          ), */
+                        ],
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        onChanged: validate,
-                        validator: ValidationBuilder().required('Email is required').minLength(1, 'Email is required').email('Email is invalid').build(),
-                        controller: txtemail,
-                        cursorColor: const Color(0xFF929292),
-                        style: const TextStyle(
-                          fontSize: 18.0,
-                          fontFamily: kBodyFont,
-                          color: Color(0xFF929292),
+                      const SizedBox(height: 12.0),
+          
+                      if (ctrl.signUpOpt == SignUpOpt.mobile) ...[
+                        const ReqLbl(s: 'Mobile Number'),
+                        const SizedBox(height: 5.0),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 78.85,
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: kBgColor2.withValues(alpha: 0.1),
+                                    offset: const Offset(0.0, 4.0),
+                                    blurRadius: 4.0,
+                                  ),
+                                ],
+                              ),
+                              child: TextFormField(
+                                autovalidateMode: AutovalidateMode.always,
+                                onChanged: validate,
+                                validator: ValidationBuilder(requiredMessage: '').required().minLength(1, '').build(),
+                                controller: txtcontact1,
+                                readOnly: true,
+                                cursorColor: kTextColor1,
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(
+                                  fontFamily: kBodyFont,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: kTextColor1,
+                                ),
+                                decoration: InputDecoration(
+                                  contentPadding: const EdgeInsets.all(15.0),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  hintText: '+60',
+                                  hintStyle: kTextStyle1.copyWith(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w400,
+                                    color: kTextColor5,
+                                  ),
+                                  errorStyle: const TextStyle(
+                                    fontFamily: kBodyFont,
+                                    color: kTextColor3,
+                                  ),
+                                  enabledBorder: kEnabledBorder,
+                                  focusedBorder: kFocusedBorder,
+                                  errorBorder: kErrorBorder,
+                                  focusedErrorBorder: kFocusedErrorBorder,
+                                ),
+                                onTap: loadTel,
+                              ),
+                            ),
+                            const SizedBox(width: 13.0),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: kBgColor2.withValues(alpha: 0.1),
+                                      offset: const Offset(0.0, 4.0),
+                                      blurRadius: 4.0,
+                                    ),
+                                  ],
+                                ),
+                                child: TextFormField(
+                                  autovalidateMode: AutovalidateMode.always,
+                                  onChanged: validate,
+                                  validator: ValidationBuilder(requiredMessage: '').required().minLength(1, '').build(),
+                                  controller: txtcontact2,
+                                  cursorColor: kTextColor1,
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(
+                                    fontFamily: kBodyFont,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w400,
+                                    color: kTextColor1,
+                                  ),
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.all(15.0),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    hintText: 'Contact Number',
+                                    hintStyle: kTextStyle1.copyWith(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: kTextColor5,
+                                    ),
+                                    errorStyle: const TextStyle(
+                                      fontFamily: kBodyFont,
+                                      color: kTextColor3,
+                                    ),
+                                    enabledBorder: kEnabledBorder,
+                                    focusedBorder: kFocusedBorder,
+                                    errorBorder: kErrorBorder,
+                                    focusedErrorBorder: kFocusedErrorBorder,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'Email',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontFamily: kBodyFont,
+                      ],
+          
+                      if (ctrl.signUpOpt == SignUpOpt.email) ...[
+                        const ReqLbl(s: 'Email'),
+                        const SizedBox(height: 5.0),
+                        Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: kBgColor2.withValues(alpha: 0.1),
+                                offset: const Offset(0.0, 4.0),
+                                blurRadius: 4.0,
+                              ),
+                            ],
                           ),
-                          errorStyle: TextStyle(
-                            fontFamily: kBodyFont,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.email,
-                            color: Color(0xFF929292),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                            borderSide: BorderSide(color: Color(0xFFE9E9E9)),
+                          child: TextFormField(
+                            autovalidateMode: AutovalidateMode.always,
+                            onChanged: validate,
+                            validator: ValidationBuilder(requiredMessage: '').required().minLength(1, '').email('Email is invalid').build(),
+                            controller: txtemail,
+                            cursorColor: kTextColor1,
+                            style: const TextStyle(
+                              fontFamily: kBodyFont,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w400,
+                              color: kTextColor1,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.all(15.0),
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: 'e.g.JohnSmith@abc.com',
+                              hintStyle: kTextStyle1.copyWith(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor5,
+                              ),
+                              errorStyle: const TextStyle(
+                                fontFamily: kBodyFont,
+                                color: kTextColor3,
+                              ),
+                              enabledBorder: kEnabledBorder,
+                              focusedBorder: kFocusedBorder,
+                              errorBorder: kErrorBorder,
+                              focusedErrorBorder: kFocusedErrorBorder,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-                      child: RawMaterialButton(
-                        elevation: 5.0,
-                        fillColor: kPrimaryBtnBgColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
-                        onPressed: valid ? onSignUp : null,
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontFamily: kBodyFont,
-                            fontWeight: FontWeight.bold,
+                        /* const SizedBox(height: 8.0),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15.0),
+                          child: Text(
+                            'As per registered in hospital',
+                            style: kTextStyle1.copyWith(
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF0000FF),
+                            ),
+                          ),
+                        ), */
+                        const SizedBox(height: 20.0),
+                        const ReqLbl(s: 'Password'),
+                        const SizedBox(height: 5.0),
+                        Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: kBgColor2.withValues(alpha: 0.1),
+                                offset: const Offset(0.0, 4.0),
+                                blurRadius: 4.0,
+                              ),
+                            ],
+                          ),
+                          child: Obx(() =>
+                            TextFormField(
+                              autovalidateMode: AutovalidateMode.always,
+                              onChanged: validate,
+                              validator: ValidationBuilder(requiredMessage: '').required().minLength(8, 'Password must be at least 8 characters in length').regExp(kRegExpPassword, 'Password must be alphanumeric').build(),
+                              controller: txtpwd,
+                              obscureText: ctrl.isPwd,
+                              cursorColor: kTextColor1,
+                              style: const TextStyle(
+                                fontFamily: kBodyFont,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor1,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.all(15.0),
+                                filled: true,
+                                fillColor: Colors.white,
+                                hintText: 'Enter Password',
+                                hintStyle: kTextStyle1.copyWith(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: kTextColor5,
+                                ),
+                                errorStyle: const TextStyle(
+                                  fontFamily: kBodyFont,
+                                  color: kTextColor3,
+                                ),
+                                suffixIcon: Material(
+                                  color: Colors.white,
+                                  type: MaterialType.transparency,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      ctrl.setIsPwd(!ctrl.isPwd);
+                                    }, 
+                                    icon: Obx(() =>
+                                      Icon(
+                                        ctrl.isPwd ? Icons.visibility_off : Icons.visibility,
+                                        color: kTextColor1,
+                                      ),
+                                    ),
+                                    color: kTextColor1,
+                                    splashRadius: 22.0,           
+                                  ),
+                                ),
+                                enabledBorder: kEnabledBorder,
+                                focusedBorder: kFocusedBorder,
+                                errorBorder: kErrorBorder,
+                                focusedErrorBorder: kFocusedErrorBorder,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'For hospital registered patient only',
-                        style: TextStyle(
-                          color: kPrimaryColor,
+                        const SizedBox(height: 20.0),
+                        const ReqLbl(s: 'Confirm Password'),
+                        const SizedBox(height: 5.0),
+                        Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: kBgColor2.withValues(alpha: 0.1),
+                                offset: const Offset(0.0, 4.0),
+                                blurRadius: 4.0,
+                              ),
+                            ],
+                          ),
+                          child: Obx(() =>
+                            TextFormField(
+                              autovalidateMode: AutovalidateMode.always,
+                              onChanged: validate,
+                              validator: ValidationBuilder(requiredMessage: '').required().minLength(8, 'Confirm Password must be at least 8 characters in length').regExp(kRegExpPassword, 'Confirm Password must be alphanumeric').build(),
+                              controller: txtcfmpwd,
+                              obscureText: ctrl.isCfmPwd,
+                              cursorColor: kTextColor1,
+                              style: const TextStyle(
+                                fontFamily: kBodyFont,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                                color: kTextColor1,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.all(15.0),
+                                filled: true,
+                                fillColor: Colors.white,
+                                hintText: 'Enter Password',
+                                hintStyle: kTextStyle1.copyWith(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: kTextColor5,
+                                ),
+                                errorStyle: const TextStyle(
+                                  fontFamily: kBodyFont,
+                                  color: kTextColor3,
+                                ),
+                                suffixIcon: Material(
+                                  color: Colors.white,
+                                  type: MaterialType.transparency,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      ctrl.setIsCfmPwd(!ctrl.isCfmPwd);
+                                    }, 
+                                    icon: Obx(() =>
+                                      Icon(
+                                        ctrl.isCfmPwd ? Icons.visibility_off : Icons.visibility,
+                                        color: kTextColor1,
+                                      ),
+                                    ),
+                                    color: kTextColor1,
+                                    splashRadius: 22.0,           
+                                  ),
+                                ),
+                                enabledBorder: kEnabledBorder,
+                                focusedBorder: kFocusedBorder,
+                                errorBorder: kErrorBorder,
+                                focusedErrorBorder: kFocusedErrorBorder,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 150.0),
+                        
+                      /* const SizedBox(height: 20.0),
+                      Text(
+                        'Barcode',
+                        style: kTextStyle1.copyWith(
                           fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w600,
+                          color: kTextColor1,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 30.0),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Already a user?',
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14.0,
-                          fontFamily: kBodyFont,
+                      const SizedBox(height: 5.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: kBgColor2.withValues(alpha: 0.1),
+                              offset: const Offset(0.0, 4.0),
+                              blurRadius: 4.0,
+                            ),
+                          ],
                         ),
+                        child: TextFormField(
+                          controller: txtbarcode,
+                          cursorColor: kTextColor1,
+                          style: const TextStyle(
+                            fontFamily: kBodyFont,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            color: kTextColor1,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.all(15.0),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: '',
+                            hintStyle: kTextStyle1.copyWith(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w400,
+                              color: kTextColor5,
+                            ),
+                            errorStyle: const TextStyle(
+                              fontFamily: kBodyFont,
+                              color: kTextColor3,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                              borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                              borderSide: const BorderSide(color: Color(0xFFC7CCD6)),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                              borderSide: const BorderSide(color: kTextColor3),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                              borderSide: const BorderSide(color: kTextColor3),
+                            ),
+                          ),
+                        ),
+                      ), */
+                      // const SizedBox(height: 300.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            color: kBgColor1,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    '*For hospital registered patient only',
+                    style: kTextStyle1.copyWith(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.bold,
+                      color: kPrimaryColor,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 33.0),
+                  child: Obx(() =>
+                    AppElevatedButton(
+                      text: 'Sign Up',
+                      onPressed: !ctrl.isValid ? null : onSubmit,
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already an existing user?',
+                      style: kTextStyle1.copyWith(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w400,
+                        color: kTextColor2,
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(SignIn.routeName);
+                    TextButton(
+                      onPressed: () {
+                        Get.offAll(() => const SignIn());
                       },
-                      child: const Text(
+                      style: TextButton.styleFrom(
+                        foregroundColor: kPrimaryColor,
+                      ),
+                      child: Text(
                         'Sign In',
-                        style: TextStyle(
-                          color: kPrimaryColor,
+                        style: kTextStyle1.copyWith(
                           fontSize: 14.0,
-                          fontFamily: kBodyFont,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
+                /* Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 33.0),
+                  child: AppElevatedButton(
+                    text: 'Scan Barcode',
+                    onPressed: scanBarcode,
+                  ),
+                ),
+                const SizedBox(height: 8.0), */
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // brightness: Platform.isAndroid ? Brightness.dark : Brightness.light,
-        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light, statusBarColor: kPrimaryBgColor),
-        toolbarHeight: 0.0,
-        backgroundColor: Colors.white,
-        elevation: 5.0,
-      ),
-      backgroundColor: Colors.white,
-      body: ModalProgressHUD(
-        inAsyncCall: isLoading,
-        progressIndicator: const AppActivityIndicator(),
-        child: SafeArea(
-          child: Scrollbar(
+    return InnerPage(
+      title: 'Sign Up',
+      body: SafeArea(
+        child: Obx(() =>
+          ModalProgressHUD(
+            inAsyncCall: ctrl.isLoading,
+            blur: kBlur,
+            progressIndicator: const AppActivityIndicator(),
             child: buildForm(),
           ),
         ),
@@ -434,3 +1369,68 @@ class _SignUpState extends State<SignUp> {
     );
   }
 }
+
+/* class BarcodeScan extends StatelessWidget {
+
+  final MobileScannerController cameraController = MobileScannerController();
+
+  BarcodeScan({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return InnerPage(
+      title: 'Barcode Scanner',
+      actions: [
+        IconButton(
+          color: Colors.white,
+          icon: ValueListenableBuilder(
+            valueListenable: cameraController.torchState,
+            builder: (context, state, child) {
+              switch (state) {
+                case TorchState.off:
+                  return const Icon(Icons.flash_off, color: Colors.grey);
+                case TorchState.on:
+                  return const Icon(Icons.flash_on, color: Colors.yellow);
+              }
+            },
+          ),
+          iconSize: 32.0,
+          onPressed: () => cameraController.toggleTorch(),
+        ),
+        IconButton(
+          color: Colors.white,
+          icon: ValueListenableBuilder(
+            valueListenable: cameraController.cameraFacingState,
+            builder: (context, state, child) {
+              switch (state) {
+                case CameraFacing.front:
+                  return const Icon(Icons.camera_front, color: kPrimaryColor);
+                case CameraFacing.back:
+                  return const Icon(Icons.camera_rear, color: kPrimaryColor);
+              }
+            },
+          ),
+          iconSize: 32.0,
+          onPressed: () => cameraController.switchCamera(),
+        ),
+      ],
+      body: MobileScanner(
+        // fit: BoxFit.contain,
+        controller: cameraController,
+        onDetect: (capture) {
+          final List<Barcode> barcodes = capture.barcodes;
+          // final Uint8List? image = capture.image;
+          String? barcodex;
+          for (final barcode in barcodes) {
+            debugPrint('Barcode found! ${barcode.rawValue}');
+            barcodex = barcode.rawValue;
+          }
+
+          if (barcodex != null) {
+            Get.back(result: barcodex);
+          }
+        },
+      ),
+    );
+  }
+} */

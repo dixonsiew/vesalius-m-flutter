@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html_v3/flutter_html.dart';
 import 'package:vesalius_m_flutter/constants.dart';
 
 class FrontLayer extends StatelessWidget {
@@ -55,12 +55,12 @@ class FrontLayer extends StatelessWidget {
             style: {
               'span': Style(
                 color: Colors.white,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: FontSize(16.0),
                 fontWeight: FontWeight.bold,
               ),
               'p': Style(
                 color: Colors.white,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: FontSize(16.0),
                 fontWeight: FontWeight.bold,
               ),
             },
@@ -76,6 +76,9 @@ class FrontLayer extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(25.0)),
                 ),
                 child: IconButton(
+                  onPressed: () {
+                    onToggleBookmark(isBookmarked, hospitalInformationId, data);
+                  },
                   icon: isBookmarked ? 
                   const Icon(
                     Icons.bookmark_sharp,
@@ -84,9 +87,6 @@ class FrontLayer extends StatelessWidget {
                   const Icon(
                     Icons.bookmark_outline_sharp,
                   ),
-                  onPressed: () {
-                    onToggleBookmark(isBookmarked, hospitalInformationId, data);
-                  },
                 ),
               ),
             ),
@@ -99,11 +99,6 @@ class FrontLayer extends StatelessWidget {
 
 class BackgroundLayer extends StatelessWidget {
 
-  final String title;
-  final String content;
-  final bool isBookmarked;
-  final String? image;
-
   const BackgroundLayer({
     super.key, 
     required this.title,
@@ -111,6 +106,11 @@ class BackgroundLayer extends StatelessWidget {
     required this.isBookmarked,
     required this.image,
   });
+
+  final String title;
+  final String content;
+  final bool isBookmarked;
+  final String? image;
 
   @override
   Widget build(BuildContext context) {
@@ -150,12 +150,12 @@ class BackgroundLayer extends StatelessWidget {
             style: {
               'span': Style(
                 color: Colors.transparent,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: FontSize(16.0),
                 fontWeight: FontWeight.bold,
               ),
               'p': Style(
                 color: Colors.transparent,
-                fontSize: const FontSize(16.0, units: 'pt'),
+                fontSize: FontSize(16.0),
                 fontWeight: FontWeight.bold,
               ),
             },
