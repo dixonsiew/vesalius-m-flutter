@@ -11,70 +11,58 @@ class TopRed extends StatelessWidget {
       children: [
         Container(
           width: 220.0,
-          decoration: ShapeDecoration(
+          decoration: const ShapeDecoration(
             color: Colors.white,
-            shape: const Border(
+            shape: Border(
               top: BorderSide(
                 color: kSecondaryBgColor,
                 style: BorderStyle.solid,
                 width: 105.0,
               ),
-            ) +
-            const Border(
               right: BorderSide(
                 color: Colors.transparent,
                 style: BorderStyle.solid,
                 width: 230.0,
               ),
-            ) +
-            const Border(
               bottom: BorderSide(
                 color: Colors.transparent,
                 style: BorderStyle.solid,
                 width: 0,
               ),
-            ) +
-            const Border(
               left: BorderSide(
                 color: Colors.transparent,
                 style: BorderStyle.solid,
                 width: 0,
               ),
-            )
+            ),
           ),
         ),
         Container(
           width: 200.0,
-          decoration: ShapeDecoration(
+          decoration: const ShapeDecoration(
             color: Colors.transparent,
-            shape: const Border(
+            shape: Border(
               top: BorderSide(
                 color: kPrimaryBgColor,
                 style: BorderStyle.solid,
                 width: 90.0,
               ),
-            ) +
-            const Border(
               right: BorderSide(
                 color: Colors.transparent,
                 style: BorderStyle.solid,
                 width: 200.0,
               ),
-            ) +
-            const Border(
               bottom: BorderSide(
                 color: Colors.transparent,
                 style: BorderStyle.solid,
                 width: 0,
               ),
-            ) +
-            const Border(
               left: BorderSide(
                 color: Colors.transparent,
                 style: BorderStyle.solid,
                 width: 0,
               ),
-            )
+            ),
           ),
         ),
       ],

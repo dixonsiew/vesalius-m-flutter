@@ -1,0 +1,73 @@
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    integrations:
+      app_store_connect: vesalius-m-dev-ihp-appstore
+    environment:
+      flutter: v3.7.12
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: io.gms.nova.m
+      vars:
+        APP_STORE_APPLE_ID: 1562974050
+    scripts:
+    - name: Set up code signing settings on Xcode project
+      script: xcode-project use-profiles
+    - name: Get Flutter packages
+      script: | 
+        flutter packages pub get
+    - name: Install pods
+      script: | 
+        find . -name "Podfile" -execdir pod install \;
+    - name: Flutter build ipa
+      script: | 
+        flutter build ipa --release \
+          --export-options-plist=/Users/builder/export_options.plist
+    publishing: 
+      email:
+        recipients:
+          - dixonsiew@gmail.com
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        expire_build_submitted_for_review: true
+        beta_groups:
+          - Testers
+        submit_to_app_store: false
+    artifacts:
+    - build/ios/ipa/*.ipa
+    - /tmp/xcodebuild_logs/*.log
+    - flutter_drive.log
+  android-workflow:
+    name: Android Workflow
+    max_build_duration: 120
+    environment:
+      flutter: v3.10.2
+    scripts:
+    - name: Set up local.properties
+      script: | 
+        echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+    - name: Get Flutter packages
+      script: | 
+        flutter packages pub get
+    # - name: Build AAB with Flutter
+    #   script: | 
+    #     flutter build appbundle --release
+    - name: Build apk
+      script: |
+        flutter build apk --release
+    publishing:
+      email:
+        recipients:
+          - dixonsiew@gmail.com
+        notify:
+          success: true
+          failure: true
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/mapping.txt
+      - flutter_drive.log

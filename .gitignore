@@ -5,7 +5,6 @@
 *.swp
 *.apk
 *.idsig
-*.aab
 .DS_Store
 .atom/
 .buildlog/

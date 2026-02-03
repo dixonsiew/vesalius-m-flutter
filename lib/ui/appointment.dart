@@ -1,146 +1,351 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:vesalius_m_flutter/components/app_shared.dart';
+import 'package:vesalius_m_flutter/components/back_btn.dart';
 import 'package:vesalius_m_flutter/constants.dart';
-import 'package:vesalius_m_flutter/controllers/appointment/upcoming_appointment_ctrl.dart';
-import 'package:vesalius_m_flutter/ui/services/doctor.dart';
-
-import 'appointment/completed_appointment.dart';
-import 'appointment/upcoming_appointment.dart';
+import 'package:vesalius_m_flutter/models/appointment_data.dart';
+import 'package:vesalius_m_flutter/models/data_manager.dart';
+import 'package:vesalius_m_flutter/services/data_service.dart';
+import 'package:vesalius_m_flutter/ui/appointment/edit_appointment.dart';
+import 'package:vesalius_m_flutter/ui/doctor.dart';
 
 class Appointment extends StatefulWidget {
 
-  static const String routeName = '/Appointment';
+  static const String routeName = 'Appointment';
 
-  final int tabIndex;
-
-  const Appointment({
-    super.key, 
-    this.tabIndex = 0,
-  });
+  const Appointment({super.key});
 
   @override
   State<Appointment> createState() => _AppointmentState();
 }
 
-class _AppointmentState extends State<Appointment> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin<Appointment> {
+class _AppointmentState extends State<Appointment> {
 
-  int tabIndex = 0;
-  late TabController tabController;
+  List<FutureAppointment> list = [];
+  bool isLoading = false;
 
-  final UpcomingAppointmentCtrl upcomingAppointmentCtrl = Get.put(UpcomingAppointmentCtrl());
+  final GlobalKey<RefreshIndicatorState> refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
     super.initState();
-    tabController = TabController(vsync: this, length: 2);
-    tabController.addListener(() {
-      setState(() {
-        tabIndex = tabController.index;
-      });
-    });
-    tabIndex = widget.tabIndex;
-    tabController.index = tabIndex;
+    load();
   }
 
-  @override
-  void dispose() {
-    tabController.removeListener(() { });
-    tabController.dispose();
-    super.dispose();
+  void load() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      var branchDetails = DataManager.branchDetails;
+      var lx = await getVesaliusFutureAppointments(branchDetails!.branch!.branchId!, branchDetails.prn!);
+      setState(() {
+        list = lx;
+        isLoading = false;
+      });
+    }
+
+    catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> onRefresh() async {
+    load();
+  }
+
+  String getTime(String s) {
+    var a = s.split(':');
+    int hour = int.parse(a[0]);
+    int min = int.parse(a[1]);
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, hour, min);
+    return formatDate(dt, [hh, ':', nn, ' ', am]);
+  }
+
+  String getDate(String s) {
+    return s.replaceAll('-', ' ');
+  }
+
+  Widget buildList() {
+    return ListView.separated(
+      shrinkWrap: true,
+      itemBuilder: (context, i) {
+        final o = list[i];
+        return AppointmentItem(
+          date: getDate(o.date!),
+          startTime: getTime(o.startTime!),
+          doctorName: o.doctorName!,
+          appointment: o,
+          load: load,
+        );
+      }, 
+      separatorBuilder: (context, i) => const Divider(
+        color: Color(0xFFE2E2E2),
+        height: 1.0,
+        thickness: 1.0,
+      ), 
+      itemCount: list.length,
+    );
+  }
+
+  Widget buildMakeAppointment() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
+      child: RawMaterialButton(
+        elevation: 5.0,
+        fillColor: kAppointmentBgColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+        constraints: const BoxConstraints(minWidth: double.maxFinite, minHeight: 50.0),
+        onPressed: () {
+          Navigator.of(context).pushNamed(Doctor.routeName);
+        },
+        child: const Text(
+          'Make Appointment',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.0,
+            fontFamily: kBodyFont,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (list.isEmpty) {
+      return ListView(
+        shrinkWrap: true,
+        children: const [
+          Padding(
+            padding: EdgeInsets.all(15.0),
+            child: Text(
+              'You do not have any upcoming appointments.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF727272),
+                fontSize: 16.0,
+                fontFamily: kBodyFont,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Scrollbar(
+      child: buildList(),
+    );
+  }
+
+  Widget buildContent() {
+    if (isLoading) {
+      return Container();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 40.0),
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(133, 133, 133, 0.29),
+            offset: Offset(5, 4),
+            blurRadius: 10.0,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: RefreshIndicator(
+        key: refreshIndicatorKey,
+        onRefresh: onRefresh,
+        color: kPrimaryColor,
+        child: _buildContent(),
+      ),
+    ); 
+  }
+
+  Widget buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Image.asset(
+            'images/icon/page-header-icon/appointment.png',
+            width: 65.0,
+            height: 50.0,
+            fit: BoxFit.contain,
+          ),
+          const Flexible(
+            child: Text(
+              'Schedule your Appointment',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20.0,
+                fontFamily: kTitleFont,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLayer2() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+      child: Column(
+        children: [
+          buildHeader(),
+          Flexible(
+            child: buildContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLayer1() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          width: double.infinity,
+          height: 160.0,
+          color: kAppointmentBgColor,
+        ),
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            color: const Color(0xFFF5F5F5),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
-    return DefaultTabController(
-      length: 2,
-      child: Builder(
-        builder: (BuildContext context) {
-          return Scaffold(
-            appBar: AppBar(
-              systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.dark, statusBarColor: kBgColor1),
-              toolbarHeight: kAppToolbarHeight,
-              automaticallyImplyLeading: false,
-              backgroundColor: kBgColor1,
-              centerTitle: true,
-              title: Text(
-                'Appointment',
-                style: kTextStyle1.copyWith(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.w700,
-                  color: kTextColor1,
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        // brightness: Brightness.dark,
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark, statusBarIconBrightness: Brightness.light, statusBarColor: kAppointmentBgColor),
+        toolbarHeight: kAppToolbarHeight,
+        backgroundColor: kAppointmentBgColor,
+        automaticallyImplyLeading: false,
+        leadingWidth: 100.0,
+        leading: const BackBtn(color: Colors.white),
+        elevation: 0.0,
+      ),
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: ModalProgressHUD(
+        inAsyncCall: isLoading,
+        progressIndicator: const AppActivityIndicator(), // AppScalingText('Loading...'),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              buildLayer1(),
+              buildLayer2(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: buildMakeAppointment(),
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 10.0),
-                  child: IconButton(
-                    onPressed: () {
-                      Get.to(() => const Doctor());
-                    },
-                    icon: const Icon(
-                      Icons.add_circle_rounded,
-                      color: kPrimaryColor,
-                    ),
-                  ),
-                ),
-              ],
-              elevation: 2.0,
-              bottom: TabBar(
-                indicatorColor: kPrimaryColor,
-                controller: tabController,
-                onTap: (int i) {
-                  setState(() {
-                    tabIndex = i;
-                  });
-                },
-                tabs: [
-                  Tab(
-                    child: Obx(() =>
-                      Text(
-                        upcomingAppointmentCtrl.count == 0 ? 'Upcoming' : 'Upcoming (${upcomingAppointmentCtrl.count})',
-                        //context.watch<AppointmentModel>().appointmentCount > 0 ? 'Upcoming (${context.watch<AppointmentModel>().appointmentCount})' : 'Upcoming',
-                        style: kTextStyle1.copyWith(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w700,
-                          color: tabIndex == 0 ? kPrimaryColor : kTextColor2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                  Tab(
-                    child: Text(
-                      'Completed',
-                      style: kTextStyle1.copyWith(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w700,
-                        color: tabIndex == 1 ? kPrimaryColor : kTextColor2,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            backgroundColor: kBgColor1,
-            body: SafeArea(
-              child: TabBarView(
-                controller: tabController,
-                children: const [
-                  UpcomingAppointment(),
-                  CompletedAppointment(),
-                ],
-              ),
-            ),
-          );
-        }
+            ],
+          ),
+        ),
       ),
     );
   }
-  
+}
+
+class AppointmentItem extends StatelessWidget {
+
+  final String date;
+  final String startTime;
+  final String doctorName;
+  final FutureAppointment appointment;
+  final void Function() load;
+
+  const AppointmentItem({
+    super.key, 
+    required this.date,
+    required this.startTime,
+    required this.doctorName,
+    required this.appointment,
+    required this.load,
+  });
+
   @override
-  bool get wantKeepAlive => true;
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        final b = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditAppointment(appointment: appointment)));
+        if (b == true) {
+          load();
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0, right: 10.0, top: 15.0, bottom: 15.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    date,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      fontFamily: kBodyFont,
+                      color: Color(0xFF727272),
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(
+                      doctorName,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontFamily: kBodyFont,
+                        color: Color(0xFFBBBBBB),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const SizedBox(width: 5.0),
+                Text(
+                  startTime,
+                  style: const TextStyle(
+                    fontSize: 17.0,
+                    fontFamily: kBodyFont,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_outlined,
+                  color: Colors.black,
+                  size: 18.0,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

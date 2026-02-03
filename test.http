@@ -1,4 +1,4 @@
-@baseUrl = https://202.73.42.183:43901/mobile_central_2_0_0
+@baseUrl = http://175.145.93.195:27051/mobile_central_cvskl-2.0.2
 
 ###
 
@@ -7,59 +7,32 @@ POST {{baseUrl}}/login
 Content-Type: application/json
 
 {
-  "username": "rosalind.yee@nova-hub.com",
-  "password": "password",
-  "fromAdmin": false
+  "username": "wingfei.siew@nova-hub.com",
+  "password": "password"
 }
 
-###
-
-@token = {{login.response.headers.authorization}}
+@token = {{login.response.headers.Authorization}}
 
 ###
 
-GET {{baseUrl}}/user
-Authorization: Bearer {{token}}
-
-###
-
-GET {{baseUrl}}/vesalius/patient-data/1/00-000040
-Authorization: Bearer {{token}}
-
-###
-
-GET {{baseUrl}}/vesalius/patient-allergy/1/20-000117
-Authorization: Bearer {{token}}
-
-###
-
-GET {{baseUrl}}/vesalius/patient-visit/1/20-000117/2
-Authorization: Bearer {{token}}
+GET {{baseUrl}}/vesalius/patient-visit/1/00010/4
+Authorization: {{token}}
 
 ###
 
 GET {{baseUrl}}/vesalius/patient-visit/1/08-001001/5
-Authorization: Bearer {{token}}
+Authorization: {{token}}
 
 ###
 
 GET {{baseUrl}}/vesalius/get-vital-signs-history/1/08-001001/2020-07-29/BMI
-Authorization: Bearer {{token}}
+Authorization: {{token}}
 
 ###
-GET {{baseUrl}}/public/vesalius/getAllDoctorInformation/1?_page=1&_limit=50
-
-###
-
-GET {{baseUrl}}/public/vesalius/getDoctorInformationByMCR/1/631
+GET {{baseUrl}}/public/vesalius/getAllDoctorInformation/1
 
 ###
 
-POST {{baseUrl}}/vesalius/make-appointment/1/00-000040
-Authorization: Bearer {{token}}
-Content-Type: application/json
+GET {{baseUrl}}/public/vesalius/getDoctorInformationByMCR/1/21607
 
-{
-  "caseType": "FU",
-  "slotNumber": 8062
-}
+###

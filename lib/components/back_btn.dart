@@ -1,36 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:vesalius_m_flutter/constants.dart';
 
 class BackBtn extends StatelessWidget {
 
   final Color color;
-  final void Function()? onBack;
+  final FontWeight? fontWeight;
 
   const BackBtn({
     super.key, 
     required this.color,
-    this.onBack,
+    this.fontWeight,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: IconButton(
-        onPressed: () {
-          if (onBack == null) {
-            Get.back();
-          }
-    
-          else {
-            onBack!.call();
-          }
-        },
-        icon: Icon(
-          Icons.chevron_left,
-          color: color,
-          size: 32.0,
-        ),
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).pop();
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(width: 10.0),
+          Icon(
+            Icons.arrow_back_ios,
+            color: color,
+          ),
+          Text(
+            'Back',
+            style: TextStyle(
+              color: color,
+              fontSize: 18.0,
+              fontFamily: kBodyFont,
+              fontWeight: fontWeight ?? FontWeight.normal,
+            ),
+          ),
+        ],   
       ),
     );
   }

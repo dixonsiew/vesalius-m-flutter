@@ -1,7 +1,6 @@
-package io.gms.nova.m.dev.vesalius.m
+package io.gms.nova.m
 
 import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity: FlutterFragmentActivity() {
+class MainActivity: FlutterActivity() {
 }

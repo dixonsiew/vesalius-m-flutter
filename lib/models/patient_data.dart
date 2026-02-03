@@ -1,14 +1,6 @@
-import 'package:hive/hive.dart';
+class ContactNumber {
 
-part 'patient_data.g.dart';
-
-@HiveType(typeId: 5)
-class ContactNumber extends HiveObject {
-
-  @HiveField(0)
   String? home;
-
-  @HiveField(1)
   String? email;
 
   ContactNumber({
@@ -30,28 +22,14 @@ class ContactNumber extends HiveObject {
     };
 }
 
-@HiveType(typeId: 6)
-class Address extends HiveObject {
+class Address {
 
-  @HiveField(0)
   String? address1;
-
-  @HiveField(1)
   String? address2;
-
-  @HiveField(2)
   String? address3;
-
-  @HiveField(3)
   String? address4;
-
-  @HiveField(4)
   String? address5;
-
-  @HiveField(5)
   String? cityState;
-
-  @HiveField(6)
   String? postalCode;
 
   Address({
@@ -88,19 +66,11 @@ class Address extends HiveObject {
     };
 }
 
-@HiveType(typeId: 7)
-class Name extends HiveObject {
+class Name {
 
-  @HiveField(0)
   String? firstName;
-
-  @HiveField(1)
   String? lastName;
-
-  @HiveField(2)
   String? middleName;
-
-  @HiveField(3)
   String? title;
 
   Name({
@@ -128,13 +98,9 @@ class Name extends HiveObject {
     };
 }
 
-@HiveType(typeId: 8)
-class Nationality extends HiveObject {
+class Nationality {
 
-  @HiveField(0)
   String? code;
-
-  @HiveField(1)
   String? description;
 
   Nationality({
@@ -156,13 +122,9 @@ class Nationality extends HiveObject {
     };
 }
 
-@HiveType(typeId: 9)
-class Sex extends HiveObject {
+class Sex {
 
-  @HiveField(0)
   String? code;
-
-  @HiveField(1)
   String? description;
 
   Sex({
@@ -184,19 +146,11 @@ class Sex extends HiveObject {
     };
 }
 
-@HiveType(typeId: 10)
-class Document extends HiveObject {
+class Document {
 
-  @HiveField(0)
   String? code;
-
-  @HiveField(1)
   String? description;
-
-  @HiveField(2)
   String? value;
-
-  @HiveField(3)
   String? expiryDate;
 
   Document({
@@ -224,35 +178,17 @@ class Document extends HiveObject {
     };
 }
 
-@HiveType(typeId: 4)
-class PatientDetails extends HiveObject {
+class PatientDetails {
 
-  @HiveField(0)
   ContactNumber? contactNumber;
-
-  @HiveField(1)
   String? dob;
-
-  @HiveField(2)
   Address? homeAddress;
-
-  @HiveField(3)
   Name? name;
-
-  @HiveField(4)
   Nationality? nationality;
-
-  @HiveField(5)
   String? prn;
-
-  @HiveField(6)
   String? resident;
-
-  @HiveField(7)
   Sex? sex;
-
-  @HiveField(8)
-  List<Document> documents;
+  List<Document>? documents;
 
   PatientDetails({
     this.contactNumber,
@@ -263,7 +199,7 @@ class PatientDetails extends HiveObject {
     this.prn,
     this.resident,
     this.sex,
-    this.documents = const[],
+    this.documents,
   });
 
   factory PatientDetails.fromJson(Map<String, dynamic> json) {
@@ -293,7 +229,7 @@ class PatientDetails extends HiveObject {
       'prn': prn,
       'resident': resident,
       'sex': sex?.toJson(),
-      'documents': documents.map((x) => x.toJson()).toList(),
+      'documents': documents?.map((x) => x.toJson()).toList(),
     };
 }
 
@@ -639,28 +575,28 @@ class NovaVisitVitalSignsDetail {
 
 class PatientVisit {
 
-  List<NovaBill> novaBills;
+  List<NovaBill>? novaBills;
   NovaVisit? novaVisit;
-  List novaVisitSummaries;
-  List novaVisitPrescriptionList;
-  List<NovaHealthScreeningRpt> novaHealthScreeningRptList;
+  List? novaVisitSummaries;
+  List? novaVisitPrescriptionList;
+  List<NovaHealthScreeningRpt>? novaHealthScreeningRptList;
   List? novaPatientDiagnosisDetails;
-  List<NovaVisitInvestigationDetail> novaVisitInvestigationDetailList;
-  List<NovaVisitVitalSignsDetail> novaVisitVitalSignsDetailList;
-  List<NovaVisitReferralLetter> novaVisitReferralLetterList;
-  List<NovaVisitPatientRx> novaVisitPatientRxList;
+  List<NovaVisitInvestigationDetail>? novaVisitInvestigationDetailList;
+  List<NovaVisitVitalSignsDetail>? novaVisitVitalSignsDetailList;
+  List<NovaVisitReferralLetter>? novaVisitReferralLetterList;
+  List<NovaVisitPatientRx>? novaVisitPatientRxList;
 
   PatientVisit({
-    this.novaBills = const[],
+    this.novaBills,
     this.novaVisit,
-    this.novaVisitSummaries = const[],
-    this.novaVisitPrescriptionList = const[],
-    this.novaHealthScreeningRptList = const[],
-    this.novaPatientDiagnosisDetails = const[],
-    this.novaVisitInvestigationDetailList = const[],
-    this.novaVisitVitalSignsDetailList = const[],
-    this.novaVisitReferralLetterList = const[],
-    this.novaVisitPatientRxList = const[],
+    this.novaVisitSummaries,
+    this.novaVisitPrescriptionList,
+    this.novaHealthScreeningRptList,
+    this.novaPatientDiagnosisDetails,
+    this.novaVisitInvestigationDetailList,
+    this.novaVisitVitalSignsDetailList,
+    this.novaVisitReferralLetterList,
+    this.novaVisitPatientRxList,
   });
 
   factory PatientVisit.fromJson(Map<String, dynamic> json) {
@@ -695,12 +631,12 @@ class PatientVisit {
 
   Map<String, dynamic> toJson() =>
     {
-      'novaBills': novaBills.map((x) => x.toJson()).toList(),
+      'novaBills': novaBills == null ? null : novaBills!.map((x) => x.toJson()).toList(),
       'novaVisit': novaVisit?.toJson(),
-      'novaVisitVitalSignsDetailList': novaVisitVitalSignsDetailList.map((x) => x.toJson()).toList(),
-      'novaVisitInvestigationDetailList': novaVisitInvestigationDetailList.map((x) => x.toJson()).toList(),
-      'novaVisitReferralLetterList': novaVisitReferralLetterList.map((x) => x.toJson()).toList(),
-      'novaHealthScreeningRptList': novaHealthScreeningRptList.map((x) => x.toJson()).toList(),
+      'novaVisitVitalSignsDetailList': novaVisitVitalSignsDetailList == null ? null : novaVisitVitalSignsDetailList!.map((x) => x.toJson()).toList(),
+      'novaVisitInvestigationDetailList': novaVisitInvestigationDetailList == null ? null : novaVisitInvestigationDetailList!.map((x) => x.toJson()).toList(),
+      'novaVisitReferralLetterList': novaVisitReferralLetterList == null ? null : novaVisitReferralLetterList!.map((x) => x.toJson()).toList(),
+      'novaHealthScreeningRptList': novaHealthScreeningRptList == null ? null : novaHealthScreeningRptList!.map((x) => x.toJson()).toList(),
     };
 }
 
@@ -814,11 +750,11 @@ class LabData {
 class VitalSignsHistory {
 
   String? vitalSignCode;
-  List<VitalSignsData> vitalSignsData;
+  List<VitalSignsData>? vitalSignsData;
 
   VitalSignsHistory({
     this.vitalSignCode,
-    this.vitalSignsData = const[],
+    this.vitalSignsData,
   });
 
   factory VitalSignsHistory.fromJson(Map<String, dynamic> json) {
@@ -835,11 +771,11 @@ class VitalSignsHistory {
 class LabHistory {
 
   String? labCode;
-  List<LabData> labData;
+  List<LabData>? labData;
 
   LabHistory({
     this.labCode,
-    this.labData = const[],
+    this.labData,
   });
 
   factory LabHistory.fromJson(Map<String, dynamic> json) {
@@ -911,7 +847,7 @@ class NovaVisitInvestigationDetail {
   String? resultClob;
   String? panelCode;
   String? panelDescription;
-  List<PanelDetail> panelDetail;
+  List<PanelDetail>? panelDetail;
 
   NovaVisitInvestigationDetail({
     this.investigationRefNo,
@@ -926,7 +862,7 @@ class NovaVisitInvestigationDetail {
     this.resultClob,
     this.panelCode,
     this.panelDescription,
-    this.panelDetail = const[],
+    this.panelDetail,
   });
 
   factory NovaVisitInvestigationDetail.fromJson(Map<String, dynamic> json) {
@@ -964,7 +900,7 @@ class NovaVisitInvestigationDetail {
       'resultClob': resultClob,
       'panelCode': panelCode,
       'panelDescription': panelDescription,
-      'panelDetail': panelDetail.map((x) => x.toJson()).toList(),
+      'panelDetail': panelDetail == null ? null : panelDetail!.map((x) => x.toJson()).toList(),
     };
 }
 

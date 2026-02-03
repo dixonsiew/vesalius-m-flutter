@@ -1,14 +1,6 @@
-import 'package:hive/hive.dart';
+class Branch {
 
-part 'user_details.g.dart';
-
-@HiveType(typeId: 3)
-class Branch extends HiveObject {
-
-  @HiveField(0)
   num? branchId;
-
-  @HiveField(1)
   String? branchName;
 
   Branch({
@@ -30,25 +22,13 @@ class Branch extends HiveObject {
     };
 }
 
-@HiveType(typeId: 2)
-class UserBranch extends HiveObject {
+class UserBranch {
 
-  @HiveField(0)
   num? adminId;
-
-  @HiveField(1)
   String? prn;
-
-  @HiveField(2)
   num? branchId;
-
-  @HiveField(3)
   String? branchName;
-
-  @HiveField(4)
   num? userId;
-
-  @HiveField(5)
   Branch? branch;
 
   UserBranch({
@@ -94,41 +74,18 @@ class UserBranch extends HiveObject {
     };
 }
 
-@HiveType(typeId: 1)
-class UserDetails extends HiveObject {
+class UserDetails {
 
-  @HiveField(0)
   String? address;
-
-  @HiveField(1)
   String? dob;
-
-  @HiveField(2)
   String? email;
-
-  @HiveField(3)
   String? firstName;
-
-  @HiveField(4)
   String? sex;
-
-  @HiveField(5)
   String? lastName;
-
-  @HiveField(6)
   num? userId;
-
-  @HiveField(7)
   bool? firstTimeLogin;
-
-  @HiveField(8)
   String? role;
-
-  @HiveField(9)
-  String? race;
-
-  @HiveField(10)
-  List<UserBranch> userBranches;
+  List<UserBranch>? userBranches;
 
   UserDetails({
     this.address,
@@ -140,12 +97,11 @@ class UserDetails extends HiveObject {
     this.userId,
     this.firstTimeLogin,
     this.role,
-    this.race,
-    this.userBranches = const[],
+    this.userBranches,
   });
 
   factory UserDetails.fromJson(Map<String, dynamic> json) {
-    final ls = json['userBranches'] as List? ?? [];
+    final ls = json['userBranches'] as List;
     List<UserBranch> lx = ls.map((x) => UserBranch.fromJson(x)).toList();
 
     return UserDetails(
@@ -158,7 +114,6 @@ class UserDetails extends HiveObject {
       userId: json['user_id'],
       firstTimeLogin: json['firstTimeLogin'],
       role: json['role'],
-      race: json['race'],
       userBranches: lx,
     );
   }
@@ -174,7 +129,6 @@ class UserDetails extends HiveObject {
       'user_id': userId,
       'firstTimeLogin': firstTimeLogin,
       'role': role,
-      'race': race,
-      'userBranches': userBranches.map((x) => x.toJson()).toList(),
+      'userBranches': userBranches?.map((x) => x.toJson()).toList(),
     };
 }
