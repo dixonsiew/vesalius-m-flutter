@@ -4,7 +4,7 @@ workflows:
     integrations:
       app_store_connect: vesalius-m-dev-ihp-appstore
     environment:
-      flutter: v3.38.7
+      flutter: v3.41.2
       ios_signing:
         distribution_type: app_store
         bundle_identifier: io.gms.nova.m.uat.vesalius.m.ihp
@@ -58,7 +58,7 @@ workflows:
     name: Android Workflow
     max_build_duration: 120
     environment:
-      flutter: v3.38.7
+      flutter: v3.41.2
     scripts:
     - name: Set up local.properties
       script: | 
