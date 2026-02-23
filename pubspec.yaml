@@ -34,14 +34,14 @@ dependencies:
   hive_flutter: ^1.1.0
   flutter_dotenv: ^6.0.0
   modal_progress_hud_nsn: ^0.5.1
-  dio: ^5.9.0
+  dio: ^5.9.1
   mime_type: ^1.0.1
   flutter_inappwebview: ^6.1.5
-  expandable_page_view: ^1.2.0
+  expandable_page_view: ^1.2.1
   local_auth: ^3.0.0
   form_validator: ^2.1.1
   flip_card: ^0.7.0
-  carousel_slider: ^5.1.1
+  carousel_slider: ^5.1.2
   flutter_secure_storage: ^10.0.0
   flutter_widget_from_html_core: ^0.17.0
   # flutter_html_v3: ^3.0.6
@@ -57,28 +57,28 @@ dependencies:
   package_info_plus: ^9.0.0
   qr_flutter: ^4.1.0
   barcode_widget: ^2.0.4
-  syncfusion_flutter_core: ^32.1.23
-  syncfusion_flutter_charts: ^32.1.23
-  syncfusion_flutter_sliders: ^32.1.23
+  syncfusion_flutter_core: ^32.2.5
+  syncfusion_flutter_charts: ^32.2.5
+  syncfusion_flutter_sliders: ^32.2.5
   url_launcher: ^6.3.2
   android_id: ^0.5.1
   device_info_plus: ^12.3.0
-  onesignal_flutter: 5.3.5
+  onesignal_flutter: 5.3.7
   get: ^4.7.3
   path: ^1.8.3
   collection: ^1.18.0
   timeline_tile: ^2.0.0
   grouped_list: ^6.0.0
-  map_launcher: ^4.4.2
+  map_launcher: ^4.4.3
   flutter_time_picker_spinner: ^2.0.0
   image_picker: ^1.2.1
-  file_picker: 10.3.8
+  file_picker: 10.3.10
   easy_rich_text: ^2.2.0
   jiffy: ^6.4.4
   # mobile_scanner: ^3.4.1
   barcode_scan2: ^4.7.2
   qr_code_dart_scan: ^0.11.5
-  qr_code_scanner_plus: ^2.0.14
+  qr_code_scanner_plus: ^2.1.1
   zoomable_widget: ^0.0.6
   dio_brotli_transformer: ^2.0.0
   flutter_launcher_icons: ^0.14.4
